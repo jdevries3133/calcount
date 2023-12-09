@@ -1,0 +1,1 @@
+pub const SESSION_EXPIRY_TIME_DAYS: i64 = 7;

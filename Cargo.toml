@@ -1,0 +1,31 @@
+[package]
+name = "calcount"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+live_reload = []
+
+[dependencies]
+ammonia = "3.3.0"
+anyhow = "1.0.69"
+async-trait = "0.1.73"
+axum = { version = "0.6.18", features = ["headers"] }
+axum-macros = "0.3.8"
+base64 = "0.21.2"
+chrono = { version = "0.4.26", features = ["serde"] }
+dotenvy = "0.15.7"
+futures = "0.3.28"
+hmac = "0.12.1"
+hyper = "0.14.27"
+markdown = "1.0.0-alpha.12"
+regex = "1.9.1"
+rustls = "0.21.7"
+serde = { version = "1.0.171", features = ["derive"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+sha2 = "0.10.7"
+sqlx = { version = "0.6", features = ["json", "postgres", "uuid", "chrono", "offline", "runtime-async-std-rustls" ] }
+tokio = { version = "1.29.1", features = ["full"] }
+tower = "0.4.13"
+tower-http = "0.4.1"
+uuid = { version = "1.3.0", features = ["v4"] }

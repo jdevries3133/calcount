@@ -1,0 +1,21 @@
+# First and foremost, if you're just cloning this to try it out or learn or
+# explore, you do not need to change anything in this file. Just follow the
+# directions in ./HACKING.md.
+# ============================================================================
+
+# Note: when running `make debug-container`, change the hostname in the
+# database connection string from localhost:5432 to `host.docker.internal`
+# on macOS. On linux, passing the `--net=host` flag to Docker when we call
+# `docker run` inside the Makefile should allow this same database connection
+# host to work.
+DATABASE_URL=postgres://you:somepassword@localhost:5432/calcount
+SESSION_SECRET=superdupersecret
+
+# Note: these guys are only used to initialize the PostgreSQL database
+# container with Docker
+POSTGRES_USER=you
+POSTGRES_USERNAME=you
+POSTGRES_HOST=localhost
+POSTGRES_PASSWORD=somepassword
+POSTGRES_DB=calcount
+OPENAI_API_KEY=<your api key goes here>

@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.link {
+  @apply text-blue-500 visited:text-purple-500 underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type="number"],
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="checkbox"],
+  input[type="date"] {
+    @apply text-white bg-slate-700;
+  }
+  input[type="number"],
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="date"]{
+    @apply rounded;
+  }
+  input[type="checkbox"] {
+    @apply text-black bg-white rounded cursor-pointer;
+  }
+  textarea {
+    @apply bg-slate-700 text-white;
+  }
+  .link:visited {
+    @apply text-yellow-400;
+  }
+}
