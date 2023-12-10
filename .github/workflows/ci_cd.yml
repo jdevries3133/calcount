@@ -12,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: clippy,rustfmt
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -40,11 +36,6 @@ jobs:
     environment: Kubernetes
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: clippy,rustfmt
-          target: x86_64-unknown-linux-musl
       - name: cargo cache
         uses: actions/cache@v3
         with:
