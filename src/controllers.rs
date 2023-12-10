@@ -120,7 +120,7 @@ pub async fn handle_registration(
         return Ok((
             headers,
             format!(
-                r#"<p hx-trigger="load delay:1s" hx-get="{register_route}">Nice try ya chungus</p>"#
+                r#"<p hx-trigger="load delay:1s" hx-get="{register_route}">Wrong registration key.</p>"#
             ),
         ));
     };
@@ -181,7 +181,7 @@ pub async fn handle_login(
         Ok((
             headers,
             format!(
-                r#"<p hx-trigger="load delay:1s" hx-get="{login_route}">Nice try ya chungus</p>"#
+                r#"<p hx-trigger="load delay:1s" hx-get="{login_route}">Invalid login credentials.</p>"#
             ),
         ))
     }
