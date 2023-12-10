@@ -37,6 +37,12 @@ resource "random_password" "secret_key" {
   special = false
 }
 
+// This key is required for creating an accountj
+resource "random_password" "registration_key" {
+  length  = 48
+  special = false
+}
+
 
 data "external" "git_describe" {
   program = [
@@ -57,7 +63,8 @@ module "basic-deployment" {
   domain    = "calcount.jackdevries.com"
 
   extra_env = {
-    SESSION_SECRET = random_password.secret_key.result
-    OPENAI_API_KEY = var.openai_api_key
+    SESSION_SECRET   = random_password.secret_key.result
+    OPENAI_API_KEY   = var.openai_api_key
+    REGISTRATION_KEY = random_password.registration_key.result
   }
 }

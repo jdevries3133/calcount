@@ -147,13 +147,10 @@ impl Component for RegisterForm {
                 <input type="email" id="email" name="email" />
                 <label for="password">Password</label>
                 <input autocomplete="current-password" type="password" id="password" name="password" />
-                <label for="secret_word">Secret Word</label>
+                <label for="secret_word">Registration Key</label>
                 <p class="text-sm dark:text-slate-100">
-                    What is the secret word? This app is under development and
-                    this is how I will prevent login spam, though you may take
-                    a look at the source code and find the secret word if you
-                    really want a sneak peek so bad. Let reading the source
-                    be your Captcha.
+                    A registration key from the developer is required to create
+                    an account at this time.
                 </p>
                 <input type="text" id="secret_word" name="secret_word" />
                 <button class="dark:bg-slate-700 w-36 dark:text-white dark:hover:bg-slate-600 transition shadow hover:shadow-none rounded p-1 block">Sign Up</button>
