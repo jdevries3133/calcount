@@ -14,7 +14,7 @@ use std::env;
 
 pub async fn root() -> impl IntoResponse {
     components::Page {
-        title: "NC!",
+        title: "calcount",
         children: Box::new(components::Home {}),
     }
     .render()
