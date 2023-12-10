@@ -1,6 +1,6 @@
 //! All possible routes with their params are defined in a big enum.
 
-use super::{controllers, models};
+use super::{controllers, count_chat, models};
 use axum::routing::{get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
@@ -20,6 +20,7 @@ use axum::routing::{get, post, Router};
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
 pub enum Route<'a> {
+    HandleChat,
     /// The `String` slug is unnecessary here, but this is the general pattern
     /// for handling routes that have slug parameters.
     UserHome(Option<&'a str>),
@@ -35,6 +36,7 @@ pub enum Route<'a> {
 impl Route<'_> {
     pub fn as_string(&self) -> String {
         match self {
+            Self::HandleChat => "/chat".into(),
             Self::UserHome(slug) => match slug {
                 Some(value) => format!("/home/{value}"),
                 None => "/home/:slug".into(),
@@ -59,10 +61,15 @@ impl std::fmt::Display for Route<'_> {
 /// authenticated to be redirected to the login page before the request handlers
 /// are called.
 pub fn get_protected_routes() -> Router<models::AppState> {
-    Router::new().route(
-        &Route::UserHome(None).as_string(),
-        get(controllers::user_home),
-    )
+    Router::new()
+        .route(
+            &Route::UserHome(None).as_string(),
+            get(controllers::user_home),
+        )
+        .route(
+            &Route::HandleChat.as_string(),
+            post(count_chat::handle_chat),
+        )
 }
 
 /// In [crate::main], these routes are not protected by any authentication, so

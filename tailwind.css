@@ -32,3 +32,10 @@
     @apply text-yellow-400;
   }
 }
+
+.htmx-request {
+  opacity: 50;
+}
+.htmx-request::after {
+  content: "loading...";
+}

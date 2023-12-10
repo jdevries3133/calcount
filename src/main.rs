@@ -9,6 +9,7 @@ mod auth;
 mod components;
 mod config;
 mod controllers;
+mod count_chat;
 mod crypto;
 mod db_ops;
 mod errors;
