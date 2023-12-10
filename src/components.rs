@@ -147,12 +147,12 @@ impl Component for RegisterForm {
                 <input type="email" id="email" name="email" />
                 <label for="password">Password</label>
                 <input autocomplete="current-password" type="password" id="password" name="password" />
-                <label for="secret_word">Registration Key</label>
+                <label for="registration_key">Registration Key</label>
                 <p class="text-sm dark:text-slate-100">
                     A registration key from the developer is required to create
                     an account at this time.
                 </p>
-                <input type="text" id="secret_word" name="secret_word" />
+                <input type="text" id="registration_key" name="registration_key" />
                 <button class="dark:bg-slate-700 w-36 dark:text-white dark:hover:bg-slate-600 transition shadow hover:shadow-none rounded p-1 block">Sign Up</button>
             </form>
             "#

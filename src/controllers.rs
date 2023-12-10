@@ -104,7 +104,7 @@ pub struct RegisterForm {
     username: String,
     email: String,
     password: String,
-    secret_word: String,
+    registration_key: String,
 }
 
 pub async fn handle_registration(
@@ -115,7 +115,9 @@ pub async fn handle_registration(
     let registration_key = env::var("REGISTRATION_KEY").map_err(|_| {
         ServerError::internal_server_error("registration key is missing")
     })?;
-    if form.secret_word.to_lowercase() != registration_key {
+    let user_key = form.registration_key;
+    if user_key != registration_key {
+        println!("keys {user_key} and {registration_key} (actual) don't match");
         let register_route = Route::Register;
         return Ok((
             headers,
