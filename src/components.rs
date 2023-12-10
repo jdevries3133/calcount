@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{models, routes::Route};
+use super::{count_chat, models, routes::Route};
 use ammonia::clean;
 
 #[cfg(feature = "live_reload")]
@@ -52,6 +52,12 @@ pub trait Component {
     /// Render the component to a HTML string. By convention, the
     /// implementation should sanitize all string properties at render-time
     fn render(&self) -> String;
+}
+
+impl std::fmt::Display for dyn Component {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.render())
+    }
 }
 
 pub struct Page<'a> {
@@ -187,10 +193,11 @@ pub struct UserHome<'a> {
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let username = clean(&self.user.username);
+        let chat = count_chat::ChatContainer {}.render();
         format!(
             r#"
-            <h1>Hi {username}</h1>
-            <p>Welcome to calcount.</p>
+            <h1>Hi, {username}</h1>
+            {chat}
             "#
         )
     }

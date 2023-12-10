@@ -19,7 +19,7 @@
   input[type="text"],
   input[type="password"],
   input[type="email"],
-  input[type="date"]{
+  input[type="date"] {
     @apply rounded;
   }
   input[type="checkbox"] {
@@ -31,4 +31,20 @@
   .link:visited {
     @apply text-yellow-400;
   }
+}
+
+@keyframes opacity {
+  0% {
+    opacity: 30%;
+  }
+  50% {
+    opacity: 50%;
+  }
+  100% {
+    opacity: 30%;
+  }
+}
+
+.htmx-request {
+  animation: opacity 2s ease-in-out infinite;
 }
