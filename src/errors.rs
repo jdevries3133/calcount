@@ -12,12 +12,17 @@ use axum::{
 
 /// Generic 500 error if we bubble up out of HTTP request handlers.
 #[derive(Debug)]
-pub struct ServerError(Error);
+pub struct ServerError {
+    /// The actuall error, which will be logged.
+    err: Error,
+    status: StatusCode,
+    /// Public-facing response message
+    response_message: &'static str,
+}
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
-        println!("{:?}", self);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong")
-            .into_response()
+        println!("HTTP {} {:?}", self.status, self.err);
+        (self.status, self.response_message).into_response()
     }
 }
 
@@ -29,6 +34,22 @@ where
     E: Into<anyhow::Error>,
 {
     fn from(err: E) -> Self {
-        Self(err.into())
+        Self {
+            err: err.into(),
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            response_message: "something went wrong",
+        }
+    }
+}
+
+impl ServerError {
+    /// `msg` is the internal error string to be logged, and will not be
+    /// exposed to the client.
+    pub fn internal_server_error(msg: &'static str) -> Self {
+        Self {
+            err: Error::msg(msg),
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            response_message: "Something went wrong.",
+        }
     }
 }
