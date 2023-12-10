@@ -84,7 +84,7 @@ deploy:
 ifdef CI
 	terraform init
 endif
-	terraform apply -auto-approve
+	terraform destroy -auto-approve
 
 _start-db:
 	$(ENV) docker run \
