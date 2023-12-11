@@ -1,5 +1,4 @@
 use anyhow::Result;
-use async_trait::async_trait;
 use openai_api_rs::v1::{
     api::Client,
     chat_completion::{
@@ -12,27 +11,15 @@ use std::env;
 pub struct OpenAI {
     client: Client,
 }
-#[async_trait]
-pub trait OpenAITr {
-    fn from_env() -> Result<Self>
-    where
-        Self: Sized;
-    async fn send_message(
-        &self,
-        system_msg: String,
-        usr_msg: String,
-    ) -> Result<String>;
-}
 
-#[async_trait]
-impl OpenAITr for OpenAI {
-    fn from_env() -> Result<Self> {
+impl OpenAI {
+    pub fn from_env() -> Result<Self> {
         let api_key = env::var("OPENAI_API_KEY")?;
         Ok(Self {
             client: Client::new(api_key),
         })
     }
-    async fn send_message(
+    pub fn send_message(
         &self,
         system_msg: String,
         usr_msg: String,
