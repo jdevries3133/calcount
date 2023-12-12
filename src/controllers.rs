@@ -10,7 +10,6 @@ use axum::{
     Form,
 };
 use serde::Deserialize;
-use std::env;
 
 pub async fn root() -> impl IntoResponse {
     components::Page {
@@ -112,12 +111,10 @@ pub async fn handle_registration(
     Form(form): Form<RegisterForm>,
 ) -> Result<impl IntoResponse, ServerError> {
     let headers = HeaderMap::new();
-    let registration_key = env::var("REGISTRATION_KEY").map_err(|_| {
-        ServerError::internal_server_error("registration key is missing")
-    })?;
+    let registration_keys = db_ops::get_registraton_keys(&db).await?;
     let user_key = form.registration_key;
-    if user_key != registration_key {
-        println!("keys {user_key} and {registration_key} (actual) don't match");
+    if !registration_keys.contains(&user_key) {
+        println!("{user_key} is not a known registration key");
         let register_route = Route::Register;
         return Ok((
             headers,

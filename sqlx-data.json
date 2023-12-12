@@ -1,5 +1,23 @@
 {
   "db": "PostgreSQL",
+  "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "key",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "select key from registration_key"
+  },
   "70110c383b7af1407cf18775e6765b82504230e636ab7793e8b21de6924fff2e": {
     "describe": {
       "columns": [

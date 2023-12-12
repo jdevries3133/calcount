@@ -7,6 +7,7 @@ use sqlx::{
     postgres::{PgPool, PgPoolOptions},
     query_as,
 };
+use std::collections::HashSet;
 
 /// Generic container for database IDs. For example, to be used with queries
 /// returning (id).
@@ -118,4 +119,17 @@ pub async fn create_user(
         username,
         email,
     })
+}
+
+pub async fn get_registraton_keys(db: &PgPool) -> Result<HashSet<String>> {
+    struct Qres {
+        key: String,
+    }
+    let mut keys = query_as!(Qres, "select key from registration_key")
+        .fetch_all(db)
+        .await?;
+    Ok(keys.drain(..).fold(HashSet::new(), |mut acc, k| {
+        acc.insert(k.key);
+        acc
+    }))
 }

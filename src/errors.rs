@@ -41,15 +41,3 @@ where
         }
     }
 }
-
-impl ServerError {
-    /// `msg` is the internal error string to be logged, and will not be
-    /// exposed to the client.
-    pub fn internal_server_error(msg: &'static str) -> Self {
-        Self {
-            err: Error::msg(msg),
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-            response_message: "Something went wrong.",
-        }
-    }
-}
