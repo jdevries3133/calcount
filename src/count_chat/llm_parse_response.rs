@@ -8,8 +8,7 @@ use regex::{Captures, Regex};
 #[derive(Debug)]
 pub struct FollowUp {
     /// Response to send back to the LLM, hopefully to garner a better result.
-    #[allow(dead_code)]
-    llm_reply: String,
+    pub llm_reply: String,
     /// Message that can be sent to the user, in case our retry policy has
     /// been exceeded.
     pub user_abort_msg: String,

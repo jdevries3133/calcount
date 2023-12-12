@@ -1,8 +1,8 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use openai_api_rs::v1::{
     api::Client,
     chat_completion::{
-        ChatCompletionMessage, ChatCompletionRequest, MessageRole,
+        ChatCompletionMessage, ChatCompletionRequest, FinishReason,
     },
     common::GPT3_5_TURBO_1106,
 };
@@ -19,33 +19,23 @@ impl OpenAI {
             client: Client::new(api_key),
         })
     }
-    pub fn send_message(
-        &self,
-        system_msg: String,
-        usr_msg: String,
-    ) -> Result<String> {
-        let request = ChatCompletionRequest::new(
-            GPT3_5_TURBO_1106.into(),
-            vec![
-                ChatCompletionMessage {
-                    role: MessageRole::system,
-                    content: system_msg,
-                    name: None,
-                    function_call: None,
+    pub fn send(&self, messages: Vec<ChatCompletionMessage>) -> Result<String> {
+        let request =
+            ChatCompletionRequest::new(GPT3_5_TURBO_1106.into(), messages);
+        let result = &self.client.chat_completion(request)?.choices[0];
+        match &result.finish_reason {
+            Some(ref reason) => match reason {
+                FinishReason::stop => match &result.message.content {
+                    Some(c) => Ok(c.clone()),
+                    None => {
+                        Err(Error::msg("message does not have any content"))
+                    }
                 },
-                ChatCompletionMessage {
-                    role: MessageRole::user,
-                    content: usr_msg,
-                    name: None,
-                    function_call: None,
-                },
-            ],
-        );
-        let result = self.client.chat_completion(request)?;
-        Ok(result.choices[0]
-            .message
-            .content
-            .clone()
-            .unwrap_or("".into()))
+                reason => Err(Error::msg(format!(
+                    "finish reason is {reason:?}, not 'stop'"
+                ))),
+            },
+            None => Err(Error::msg("finish reason is missing")),
+        }
     }
 }
