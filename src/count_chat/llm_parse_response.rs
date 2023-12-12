@@ -7,12 +7,7 @@ use regex::{Captures, Regex};
 
 #[derive(Debug)]
 pub struct FollowUp {
-    /// Response to send back to the LLM, hopefully to garner a better result.
-    #[allow(dead_code)]
-    llm_reply: String,
-    /// Message that can be sent to the user, in case our retry policy has
-    /// been exceeded.
-    pub user_abort_msg: String,
+    pub parsing_error: String,
 }
 
 #[derive(Debug)]
@@ -80,26 +75,31 @@ impl MealInfo {
         );
 
         match (calories, protein, fat, carbohydrates) {
-        (Ok(calories), Ok(protein_grams), Ok(fat_grams), Ok(carbohydrates_grams)) => {
-            ParserResult::Ok(MealInfo {
+            (
+                Ok(calories),
+                Ok(protein_grams),
+                Ok(fat_grams),
+                Ok(carbohydrates_grams),
+            ) => ParserResult::Ok(MealInfo {
                 calories,
                 protein_grams,
                 carbohydrates_grams,
-                fat_grams
-            })
-        },
-        (calories, protein, fat, carbs) => {
-            ParserResult::FollowUp(FollowUp {
-                llm_reply: [calories, protein, fat, carbs].iter().fold(String::new(), |mut acc, res| {
-                    if let Err(e) = res {
-                        acc.push_str(e);
-                    }
-                    acc
-                }),
-                user_abort_msg: "Could not parse meal info from the LLM response. Try adding more specific details about your meal.".to_string()
-            })
+                fat_grams,
+            }),
+            (calories, protein, fat, carbs) => {
+                ParserResult::FollowUp(FollowUp {
+                    parsing_error: [calories, protein, fat, carbs].iter().fold(
+                        String::new(),
+                        |mut acc, res| {
+                            if let Err(e) = res {
+                                acc.push_str(e);
+                            }
+                            acc
+                        },
+                    ),
+                })
+            }
         }
-    }
     }
 }
 
@@ -122,7 +122,7 @@ fn handle_capture<'a>(
                             Ok((l + u) / 2)
                         }
                         _ => Err(format!(
-                            "I could not parse the range of {describe_to_llm} ({}-{}) as a number.\n",
+                            "Could not parse the range of {describe_to_llm} ({}-{}) as a number.\n",
                             s.as_str(),
                             e.as_str())
                         ),
@@ -133,17 +133,17 @@ fn handle_capture<'a>(
                     match value {
                         Ok(v) => Ok(v),
                         _ => Err(format!(
-                            "I could not parse the string describing {describe_to_llm} ({}) as a number.\n",
+                            "Could not parse the string describing {describe_to_llm} ({}) as a number.\n",
                             s.as_str()))
                     }
                 }
                 _ => {
-                    Err(format!("I could not find a count of {describe_to_llm} in that response.\n"))
+                    Err(format!("Could not find a count of {describe_to_llm} in that response.\n"))
                 }
             }
         }
         None => Err(format!(
-            "I could not find a count of {describe_to_llm} in that response.\n"
+            "Could not find a count of {describe_to_llm} in that response.\n"
         )),
     }
 }
@@ -165,7 +165,7 @@ mod test {
                 assert_eq!(meal.carbohydrates_grams, 12);
             }
             ParserResult::FollowUp(err) => {
-                print!("{}", err.llm_reply);
+                print!("{}", err.parsing_error);
                 panic!("We should be able to parse this input");
             }
         }
@@ -184,7 +184,7 @@ mod test {
                 assert_eq!(meal.carbohydrates_grams, 12);
             }
             ParserResult::FollowUp(err) => {
-                print!("{}", err.llm_reply);
+                print!("{}", err.parsing_error);
                 panic!("We should be able to parse this input");
             }
         }
@@ -197,8 +197,8 @@ mod test {
         );
         if let ParserResult::FollowUp(err) = result {
             assert_eq!(
-                err.llm_reply,
-                "I could not find a count of calories in that response.\n"
+                err.parsing_error,
+                "Could not find a count of calories in that response.\n"
             );
         } else {
             panic!("expected an error");
@@ -211,7 +211,10 @@ mod test {
             "100 calories, 10 of fat, 11g of protein, 12g of carbs",
         );
         if let ParserResult::FollowUp(err) = result {
-            assert_eq!(err.llm_reply, "I could not find a count of fat (in grams) in that response.\n");
+            assert_eq!(
+                err.parsing_error,
+                "Could not find a count of fat (in grams) in that response.\n"
+            );
         } else {
             panic!("expected an error");
         }
@@ -222,7 +225,10 @@ mod test {
         let result =
             MealInfo::parse("100 calories, 11g of protein, 12g of carbs");
         if let ParserResult::FollowUp(err) = result {
-            assert_eq!(err.llm_reply, "I could not find a count of fat (in grams) in that response.\n");
+            assert_eq!(
+                err.parsing_error,
+                "Could not find a count of fat (in grams) in that response.\n"
+            );
         } else {
             panic!("expected an error");
         }
@@ -232,7 +238,7 @@ mod test {
     fn test_missing_two_properties() {
         let result = MealInfo::parse("100 calories, 12g of carbs");
         if let ParserResult::FollowUp(err) = result {
-            assert_eq!(err.llm_reply, "I could not find a count of protein (in grams) in that response.\nI could not find a count of fat (in grams) in that response.\n");
+            assert_eq!(err.parsing_error, "Could not find a count of protein (in grams) in that response.\nCould not find a count of fat (in grams) in that response.\n");
         } else {
             panic!("expected an error");
         }
@@ -263,7 +269,7 @@ mod test {
                 assert_eq!(meal.carbohydrates_grams, 15);
             }
             ParserResult::FollowUp(err) => {
-                print!("{}", err.llm_reply);
+                print!("{}", err.parsing_error);
                 panic!("We should be able to parse this input");
             }
         }

@@ -36,12 +36,12 @@ pub struct CannotParse<'a> {
 }
 impl Component for CannotParse<'_> {
     fn render(&self) -> String {
-        let msg = clean(self.parser_msg);
+        let parser_msg = clean(self.parser_msg);
         let llm_response = clean(self.llm_response);
         format!(
             r#"
-            <p>{msg}</p>
-            <p><b>LLM response: </b>{llm_response}</p>
+            <p><b>LLM response:</b> {llm_response}</p>
+            <p class="text-sm text-slate-600"><b>Error parsing LLM Response:</b> {parser_msg}</p>
             "#
         )
     }
@@ -64,7 +64,7 @@ pub async fn handle_chat(
     match parse_result {
         ParserResult::Ok(meal) => Ok(meal.render()),
         ParserResult::FollowUp(msg) => {
-            let msg = clean(&msg.user_abort_msg);
+            let msg = clean(&msg.parsing_error);
             Ok(CannotParse {
                 parser_msg: &msg,
                 llm_response: &response,
