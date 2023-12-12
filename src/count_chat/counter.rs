@@ -1,8 +1,12 @@
 //! The core calorie counting feature (models, components, and controllers
 //! are colocated here).
 
-use super::openai::OpenAI;
+use super::{
+    llm_parse_response::{MealInfo, ParserResult},
+    openai::OpenAI,
+};
 use crate::{components::Component, errors::ServerError, routes::Route};
+use ammonia::clean;
 use axum::{extract::Form, response::IntoResponse};
 use serde::Deserialize;
 
@@ -19,8 +23,25 @@ impl Component for Chat {
                 hx-post="{handler}"
             >
                 <label for="chat">Describe what you're eating</label>
-                <input type="text" id="chat" name="chat" placeholder="I am eating..." />
+                <input autocomplete="one-time-code" type="text" id="chat" name="chat" placeholder="I am eating..." />
             </form>
+            "#
+        )
+    }
+}
+
+pub struct CannotParse<'a> {
+    parser_msg: &'a str,
+    llm_response: &'a str,
+}
+impl Component for CannotParse<'_> {
+    fn render(&self) -> String {
+        let msg = clean(self.parser_msg);
+        let llm_response = clean(self.llm_response);
+        format!(
+            r#"
+            <p>{msg}</p>
+            <p><b>LLM response: </b>{llm_response}</p>
             "#
         )
     }
@@ -39,5 +60,16 @@ pub async fn handle_chat(
     let mut msg = String::from("The meal I'd like a calorie estimate for is ");
     msg.push_str(&chat);
     let response = OpenAI::from_env()?.send_message(SYSTEM_MSG.into(), msg)?;
-    Ok(response)
+    let parse_result = MealInfo::parse(&response);
+    match parse_result {
+        ParserResult::Ok(meal) => Ok(meal.render()),
+        ParserResult::FollowUp(msg) => {
+            let msg = clean(&msg.user_abort_msg);
+            Ok(CannotParse {
+                parser_msg: &msg,
+                llm_response: &response,
+            }
+            .render())
+        }
+    }
 }
