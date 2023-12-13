@@ -2,8 +2,10 @@
 //! next time an a resonably well-structured declarative way. Inspired by
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
-use crate::components::Component;
+use crate::{components::Component, routes::Route};
+use ammonia::clean;
 use regex::{Captures, Regex};
+use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct FollowUp {
@@ -20,33 +22,79 @@ pub enum ParserResult<T> {
     FollowUp(FollowUp),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct MealInfo {
-    calories: u16,
-    protein_grams: u16,
-    carbohydrates_grams: u16,
-    fat_grams: u16,
+    pub calories: i32,
+    pub protein_grams: i32,
+    pub carbohydrates_grams: i32,
+    pub fat_grams: i32,
+    pub meal_name: String,
 }
 impl Component for MealInfo {
     fn render(&self) -> String {
+        let save_route = Route::SaveMeal;
+        let retry_route = Route::ChatForm;
+        let meal_name = &self.meal_name;
         let calories = self.calories;
         let protein = self.protein_grams;
         let carbs = self.carbohydrates_grams;
         let fat = self.fat_grams;
         format!(
-            r#"
+            r##"
             <div class="bg-gradient-to-tr from-green-100 to-blue-100 rounded p-2 m-2 shadow">
+                <h1 class="text-xl serif">{meal_name}</h1>
                 <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
                 <p><b>Protein:</b> {protein} grams</p>
                 <p><b>Carbs:</b> {carbs} grams</p>
                 <p><b>Fat:</b> {fat} grams</p>
+                <form hx-post="{save_route}" hx-target="#cal-chat-container">
+                    <input type="hidden" value="{meal_name}" name="meal_name" />
+                    <input type="hidden" value="{calories}" name="calories" />
+                    <input type="hidden" value="{protein}" name="protein_grams" />
+                    <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
+                    <input type="hidden" value="{fat}" name="fat_grams" />
+                    <button
+                        class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                    >Save</button>
+                    <button
+                        hx-get="{retry_route}"
+                        hx-target="#cal-chat-container"
+                        class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
+                    >Try Again</button>
+                </form>
             </div>
-            "#
+            "##
         )
     }
 }
+
+pub struct MealCard<'a> {
+    pub info: &'a MealInfo,
+}
+impl Component for MealCard<'_> {
+    fn render(&self) -> String {
+        let meal_name = clean(&self.info.meal_name);
+        let calories = self.info.calories;
+        let protein = self.info.protein_grams;
+        let carbs = self.info.carbohydrates_grams;
+        let fat = self.info.fat_grams;
+        format!(
+            r##"
+            <div class="bg-gradient-to-tr from-green-100 to-blue-100 rounded p-2 m-2 shadow">
+                <h1 class="text-xl serif">{meal_name}</h1>
+                <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
+                <p><b>Protein:</b> {protein} grams</p>
+                <p><b>Carbs:</b> {carbs} grams</p>
+                <p><b>Fat:</b> {fat} grams</p>
+                <p class="text-sm italic">(todo: add delete button!)</p>
+            </div>
+            "##
+        )
+    }
+}
+
 impl MealInfo {
-    pub fn parse(llm_text: &str) -> ParserResult<Self> {
+    pub fn parse(llm_text: &str, meal_name: &str) -> ParserResult<Self> {
         let calories_mo =
             Regex::new(r"(\d+)-?(\d+)? (of |in |total |the )*calories")
                 .expect("cal regex is valid")
@@ -81,6 +129,7 @@ impl MealInfo {
                 Ok(fat_grams),
                 Ok(carbohydrates_grams),
             ) => ParserResult::Ok(MealInfo {
+                meal_name: meal_name.to_string(),
                 calories,
                 protein_grams,
                 carbohydrates_grams,
@@ -103,20 +152,20 @@ impl MealInfo {
     }
 }
 
-/// Returns the parsed u16 inside the match object, or a response message for
+/// Returns the parsed i32 inside the match object, or a response message for
 /// the LLM.
 fn handle_capture<'a>(
     mo: Option<&'a Captures>,
     describe_to_llm: &'a str,
-) -> Result<u16, String> {
+) -> Result<i32, String> {
     match mo {
         Some(v) => {
             let start = v.get(1);
             let end = v.get(2);
             match (start, end) {
                 (Some(s), Some(e)) => {
-                    let lower_end = s.as_str().parse::<u16>();
-                    let upper_end = e.as_str().parse::<u16>();
+                    let lower_end = s.as_str().parse::<i32>();
+                    let upper_end = e.as_str().parse::<i32>();
                     match (lower_end, upper_end) {
                         (Ok(l), Ok(u)) => {
                             Ok((l + u) / 2)
@@ -129,7 +178,7 @@ fn handle_capture<'a>(
                     }
                 }
                 (Some(s), None) => {
-                    let value = s.as_str().parse::<u16>();
+                    let value = s.as_str().parse::<i32>();
                     match value {
                         Ok(v) => Ok(v),
                         _ => Err(format!(
@@ -156,6 +205,7 @@ mod test {
     fn test_parse_meal_info() {
         let result = MealInfo::parse(
             "100-200 calories, 10g of fat, 11g of protein, 12g of carbs",
+            "name",
         );
         match result {
             ParserResult::Ok(meal) => {
@@ -175,6 +225,7 @@ mod test {
     fn test_other_filler_words() {
         let result = MealInfo::parse(
             "100-200 calories, 10g in fat, 11g in total protein, 12g of total carbs",
+            "name"
         );
         match result {
             ParserResult::Ok(meal) => {
@@ -194,6 +245,7 @@ mod test {
     fn test_missing_calories() {
         let result = MealInfo::parse(
             "100 calgories, 10g of fat, 11g of protein, 12g of carbs",
+            "name",
         );
         if let ParserResult::FollowUp(err) = result {
             assert_eq!(
@@ -209,6 +261,7 @@ mod test {
     fn test_missing_unit() {
         let result = MealInfo::parse(
             "100 calories, 10 of fat, 11g of protein, 12g of carbs",
+            "name",
         );
         if let ParserResult::FollowUp(err) = result {
             assert_eq!(
@@ -222,8 +275,10 @@ mod test {
 
     #[test]
     fn test_missing_fat() {
-        let result =
-            MealInfo::parse("100 calories, 11g of protein, 12g of carbs");
+        let result = MealInfo::parse(
+            "100 calories, 11g of protein, 12g of carbs",
+            "name",
+        );
         if let ParserResult::FollowUp(err) = result {
             assert_eq!(
                 err.parsing_error,
@@ -236,7 +291,7 @@ mod test {
 
     #[test]
     fn test_missing_two_properties() {
-        let result = MealInfo::parse("100 calories, 12g of carbs");
+        let result = MealInfo::parse("100 calories, 12g of carbs", "name");
         if let ParserResult::FollowUp(err) = result {
             assert_eq!(err.parsing_error, "Could not find a count of protein (in grams) in that response.\nCould not find a count of fat (in grams) in that response.\n");
         } else {
@@ -248,6 +303,7 @@ mod test {
     fn test_verbose_carbs() {
         let result = MealInfo::parse(
             "100 calories, 12g of fat, 13g of protein, 14g of carbohydrates",
+            "name",
         );
         if let ParserResult::Ok(res) = result {
             assert_eq!(res.carbohydrates_grams, 14);
@@ -260,6 +316,7 @@ mod test {
     fn real_world_ex_1() {
         let result = MealInfo::parse(
             "Chex Mix usually contains around 120 calories, 2 grams of protein, 15 grams of carbohydrates, and 6 grams of fat per 1/2 cup serving.",
+            "name"
         );
         match result {
             ParserResult::Ok(meal) => {

@@ -1,6 +1,7 @@
 use super::{
-    auth, components, components::Component, db_ops, errors::ServerError, htmx,
-    models::AppState, pw, routes::Route, session, session::Session,
+    auth, components, components::Component, count_chat, db_ops,
+    errors::ServerError, htmx, models::AppState, pw, routes::Route, session,
+    session::Session,
 };
 use anyhow::Result;
 use axum::{
@@ -70,11 +71,16 @@ pub async fn get_htmx_js() -> impl IntoResponse {
 }
 
 pub async fn user_home(
+    State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let Session { user, .. } =
         Session::from_headers(&headers).expect("user is authenticated");
-    let content = Box::new(components::UserHome { user: &user });
+    let meals = count_chat::get_meals(&db, user.id).await?;
+    let content = Box::new(components::UserHome {
+        user: &user,
+        meals: &meals,
+    });
     let html = components::Page {
         title: "Home Page",
         children: content,

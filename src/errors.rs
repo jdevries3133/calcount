@@ -25,6 +25,15 @@ impl IntoResponse for ServerError {
         (self.status, self.response_message).into_response()
     }
 }
+impl ServerError {
+    pub fn forbidden(msg: &'static str) -> Self {
+        ServerError {
+            err: Error::msg(msg),
+            status: StatusCode::FORBIDDEN,
+            response_message: "Forbidden",
+        }
+    }
+}
 
 /// This enables using `?` on functions that return `Result<_, anyhow::Error>`
 /// to turn them into `Result<_, AppError>`. That way you don't need to do that

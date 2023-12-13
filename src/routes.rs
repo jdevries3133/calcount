@@ -21,6 +21,8 @@ use axum::routing::{get, post, Router};
 /// for the Axum router.
 pub enum Route<'a> {
     HandleChat,
+    ChatForm,
+    SaveMeal,
     /// The `String` slug is unnecessary here, but this is the general pattern
     /// for handling routes that have slug parameters.
     UserHome(Option<&'a str>),
@@ -37,6 +39,8 @@ impl Route<'_> {
     pub fn as_string(&self) -> String {
         match self {
             Self::HandleChat => "/chat".into(),
+            Self::ChatForm => "/chat-form".into(),
+            Self::SaveMeal => "/save-meal".into(),
             Self::UserHome(slug) => match slug {
                 Some(value) => format!("/home/{value}"),
                 None => "/home/:slug".into(),
@@ -69,6 +73,11 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(
             &Route::HandleChat.as_string(),
             post(count_chat::handle_chat),
+        )
+        .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
+        .route(
+            &Route::SaveMeal.as_string(),
+            post(count_chat::handle_save_meal),
         )
 }
 
