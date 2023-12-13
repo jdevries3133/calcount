@@ -107,6 +107,13 @@ shell-db:
 	$(ENV) PGPASSWORD=$$POSTGRES_PASSWORD \
 		psql -U "$$POSTGRES_USER" -h 0.0.0.0 $$POSTGRES_DB
 
+prod-shell-db:
+	kubectl exec \
+		-it \
+		-n calcount \
+		pod/db-postgresql-0 \
+		-- /bin/sh -c 'psql postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount'
+
 build-container: setup
 	pnpm run build
 	rustup target add x86_64-unknown-linux-musl
