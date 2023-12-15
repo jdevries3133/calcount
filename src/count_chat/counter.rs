@@ -52,7 +52,9 @@ impl Component for Chat<'_> {
         let meals = self.meals.iter().enumerate().fold(
             String::new(),
             |mut acc, (i, meal)| {
-                if is_yesterday(&meal.info.created_at) && i != self.meals.len()
+                if !found_meal_before_today
+                    && is_yesterday(&meal.info.created_at)
+                    && i != self.meals.len()
                 {
                     found_meal_before_today = true;
                     acc.push_str(
