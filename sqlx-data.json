@@ -17,36 +17,55 @@
     },
     "query": "insert into meal (user_id, name, calories, fat, protein, carbohydrates)\n        values ($1, $2, $3, $4, $5, $6)"
   },
-  "4eae706064c5ddfeb72d5f5c9babc0f7ea7a4519454bc1ccc0b4e6af1f60ca4b": {
+  "21d97a21e8486f639820b3b00f89ba477a5443acfc3493413cef15ecf4d51f07": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "delete from meal where user_id = $1 and id = $2"
+  },
+  "62c068b9691dd48e0d6634b951ddd8d4b0d7957b7fd9f54d5d580ae9d812c052": {
     "describe": {
       "columns": [
         {
-          "name": "meal_name",
+          "name": "id",
           "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "meal_name",
+          "ordinal": 1,
           "type_info": "Text"
         },
         {
           "name": "calories",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "fat_grams",
           "ordinal": 2,
           "type_info": "Int4"
         },
         {
-          "name": "protein_grams",
+          "name": "fat_grams",
           "ordinal": 3,
           "type_info": "Int4"
         },
         {
-          "name": "carbohydrates_grams",
+          "name": "protein_grams",
           "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "carbohydrates_grams",
+          "ordinal": 5,
           "type_info": "Int4"
         }
       ],
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -59,7 +78,7 @@
         ]
       }
     },
-    "query": "select name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams\n        from meal\n        where user_id = $1\n        order by id desc\n        "
+    "query": "select id, name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams\n        from meal\n        where user_id = $1\n        order by id desc\n        "
   },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {

@@ -189,7 +189,7 @@ impl Component for ExternalLink<'_> {
 
 pub struct UserHome<'a> {
     pub user: &'a models::User,
-    pub meals: &'a Vec<count_chat::MealInfo>,
+    pub meals: &'a Vec<count_chat::Meal>,
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {

@@ -1,7 +1,7 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{controllers, count_chat, models};
-use axum::routing::{get, post, Router};
+use axum::routing::{delete, get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
 /// solves several problems.
@@ -23,6 +23,7 @@ pub enum Route<'a> {
     HandleChat,
     ChatForm,
     SaveMeal,
+    DeleteMeal(Option<i32>),
     /// The `String` slug is unnecessary here, but this is the general pattern
     /// for handling routes that have slug parameters.
     UserHome(Option<&'a str>),
@@ -41,6 +42,10 @@ impl Route<'_> {
             Self::HandleChat => "/chat".into(),
             Self::ChatForm => "/chat-form".into(),
             Self::SaveMeal => "/save-meal".into(),
+            Self::DeleteMeal(slug) => match slug {
+                Some(value) => format!("/delete-meal/{value}"),
+                None => "/delete-meal/:id".into(),
+            },
             Self::UserHome(slug) => match slug {
                 Some(value) => format!("/home/{value}"),
                 None => "/home/:slug".into(),
@@ -78,6 +83,10 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(
             &Route::SaveMeal.as_string(),
             post(count_chat::handle_save_meal),
+        )
+        .route(
+            &Route::DeleteMeal(None).as_string(),
+            delete(controllers::delete_meal),
         )
 }
 

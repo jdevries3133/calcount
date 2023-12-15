@@ -5,12 +5,13 @@ use super::{
 };
 use anyhow::Result;
 use axum::{
-    extract::State,
+    extract::{Path, State},
     http::{HeaderMap, HeaderValue},
     response::IntoResponse,
     Form,
 };
 use serde::Deserialize;
+use sqlx::query;
 
 pub async fn root() -> impl IntoResponse {
     components::Page {
@@ -190,4 +191,21 @@ pub async fn handle_login(
             ),
         ))
     }
+}
+
+pub async fn delete_meal(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<i32>,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers(&headers)
+        .ok_or_else(|| ServerError::forbidden("delete meal"))?;
+    query!(
+        "delete from meal where user_id = $1 and id = $2",
+        session.user.id,
+        id
+    )
+    .execute(&db)
+    .await?;
+    Ok("")
 }

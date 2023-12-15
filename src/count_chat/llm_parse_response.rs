@@ -2,10 +2,10 @@
 //! next time an a resonably well-structured declarative way. Inspired by
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
+use super::counter::MealInfo;
 use crate::{components::Component, routes::Route};
 use ammonia::clean;
 use regex::{Captures, Regex};
-use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct FollowUp {
@@ -22,14 +22,6 @@ pub enum ParserResult<T> {
     FollowUp(FollowUp),
 }
 
-#[derive(Debug, Deserialize)]
-pub struct MealInfo {
-    pub calories: i32,
-    pub protein_grams: i32,
-    pub carbohydrates_grams: i32,
-    pub fat_grams: i32,
-    pub meal_name: String,
-}
 impl Component for MealInfo {
     fn render(&self) -> String {
         let save_route = Route::SaveMeal;
@@ -70,9 +62,21 @@ impl Component for MealInfo {
 
 pub struct MealCard<'a> {
     pub info: &'a MealInfo,
+    pub meal_id: Option<i32>,
 }
 impl Component for MealCard<'_> {
     fn render(&self) -> String {
+        let delete_button = match self.meal_id {
+            Some(id) => {
+                let href = Route::DeleteMeal(Some(id));
+                format!(
+                    r#"<button hx-delete="{href}" hx-target="closest div"class="bg-red-100 hover:bg-red-200 rounded p-1">
+                        Delete
+                    </button>"#
+                )
+            }
+            None => "".into(),
+        };
         let meal_name = clean(&self.info.meal_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
@@ -86,7 +90,7 @@ impl Component for MealCard<'_> {
                 <p><b>Protein:</b> {protein} grams</p>
                 <p><b>Carbs:</b> {carbs} grams</p>
                 <p><b>Fat:</b> {fat} grams</p>
-                <p class="text-sm italic">(todo: add delete button!)</p>
+                {delete_button}
             </div>
             "##
         )

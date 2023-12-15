@@ -2,7 +2,7 @@
 //! are colocated here).
 
 use super::{
-    llm_parse_response::{MealCard, MealInfo, ParserResult},
+    llm_parse_response::{MealCard, ParserResult},
     openai::OpenAI,
 };
 use crate::{
@@ -19,14 +19,34 @@ use axum::{
 use serde::Deserialize;
 use sqlx::{query, query_as, PgPool};
 
+pub struct Meal {
+    id: i32,
+    info: MealInfo,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MealInfo {
+    pub calories: i32,
+    pub protein_grams: i32,
+    pub carbohydrates_grams: i32,
+    pub fat_grams: i32,
+    pub meal_name: String,
+}
+
 pub struct Chat<'a> {
-    pub meals: &'a Vec<MealInfo>,
+    pub meals: &'a Vec<Meal>,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
         let handler = Route::HandleChat;
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
-            acc.push_str(&MealCard { info: meal }.render());
+            acc.push_str(
+                &MealCard {
+                    info: &meal.info,
+                    meal_id: Some(meal.id),
+                }
+                .render(),
+            );
             acc
         });
         format!(
@@ -108,16 +128,38 @@ pub async fn chat_form(
     Ok(content)
 }
 
-pub async fn get_meals(db: &PgPool, user_id: i32) -> AResult<Vec<MealInfo>> {
-    Ok(query_as!(
-        MealInfo,
-        "select name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams
+pub async fn get_meals(db: &PgPool, user_id: i32) -> AResult<Vec<Meal>> {
+    struct Qres {
+        id: i32,
+        meal_name: String,
+        calories: i32,
+        fat_grams: i32,
+        protein_grams: i32,
+        carbohydrates_grams: i32,
+    }
+    let mut res = query_as!(
+        Qres,
+        "select id, name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams
         from meal
         where user_id = $1
         order by id desc
         ",
         user_id
-    ).fetch_all(db).await?)
+        ).fetch_all(db).await?;
+
+    Ok(res
+        .drain(..)
+        .map(|r| Meal {
+            id: r.id,
+            info: MealInfo {
+                meal_name: r.meal_name,
+                calories: r.calories,
+                carbohydrates_grams: r.carbohydrates_grams,
+                fat_grams: r.fat_grams,
+                protein_grams: r.protein_grams,
+            },
+        })
+        .collect::<Vec<Meal>>())
 }
 
 pub async fn handle_save_meal(
