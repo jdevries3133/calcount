@@ -3,8 +3,6 @@
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
 use super::counter::MealInfo;
-use crate::{components::Component, routes::Route};
-use ammonia::clean;
 use regex::{Captures, Regex};
 
 #[derive(Debug)]
@@ -20,81 +18,6 @@ pub enum ParserResult<T> {
     /// The follow-up string is intended to be sent back to the LLM for a
     /// retry, though it should also be a
     FollowUp(FollowUp),
-}
-
-impl Component for MealInfo {
-    fn render(&self) -> String {
-        let save_route = Route::SaveMeal;
-        let retry_route = Route::ChatForm;
-        let meal_name = &self.meal_name;
-        let calories = self.calories;
-        let protein = self.protein_grams;
-        let carbs = self.carbohydrates_grams;
-        let fat = self.fat_grams;
-        format!(
-            r##"
-            <div class="bg-gradient-to-tr from-green-100 to-blue-100 rounded p-2 m-2 shadow">
-                <h1 class="text-xl serif">{meal_name}</h1>
-                <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
-                <p><b>Protein:</b> {protein} grams</p>
-                <p><b>Carbs:</b> {carbs} grams</p>
-                <p><b>Fat:</b> {fat} grams</p>
-                <form hx-post="{save_route}" hx-target="#cal-chat-container">
-                    <input type="hidden" value="{meal_name}" name="meal_name" />
-                    <input type="hidden" value="{calories}" name="calories" />
-                    <input type="hidden" value="{protein}" name="protein_grams" />
-                    <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
-                    <input type="hidden" value="{fat}" name="fat_grams" />
-                    <button
-                        class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
-                    >Save</button>
-                    <button
-                        hx-get="{retry_route}"
-                        hx-target="#cal-chat-container"
-                        class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
-                    >Try Again</button>
-                </form>
-            </div>
-            "##
-        )
-    }
-}
-
-pub struct MealCard<'a> {
-    pub info: &'a MealInfo,
-    pub meal_id: Option<i32>,
-}
-impl Component for MealCard<'_> {
-    fn render(&self) -> String {
-        let delete_button = match self.meal_id {
-            Some(id) => {
-                let href = Route::DeleteMeal(Some(id));
-                format!(
-                    r#"<button hx-delete="{href}" hx-target="closest div"class="bg-red-100 hover:bg-red-200 rounded p-1">
-                        Delete
-                    </button>"#
-                )
-            }
-            None => "".into(),
-        };
-        let meal_name = clean(&self.info.meal_name);
-        let calories = self.info.calories;
-        let protein = self.info.protein_grams;
-        let carbs = self.info.carbohydrates_grams;
-        let fat = self.info.fat_grams;
-        format!(
-            r##"
-            <div class="bg-gradient-to-tr from-green-100 to-blue-100 rounded p-2 m-2 shadow">
-                <h1 class="text-xl serif">{meal_name}</h1>
-                <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
-                <p><b>Protein:</b> {protein} grams</p>
-                <p><b>Carbs:</b> {carbs} grams</p>
-                <p><b>Fat:</b> {fat} grams</p>
-                {delete_button}
-            </div>
-            "##
-        )
-    }
 }
 
 impl MealInfo {

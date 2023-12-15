@@ -1,10 +1,7 @@
 //! The core calorie counting feature (models, components, and controllers
 //! are colocated here).
 
-use super::{
-    llm_parse_response::{MealCard, ParserResult},
-    openai::OpenAI,
-};
+use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{
     components::Component, errors::ServerError, models::AppState,
     routes::Route, session::Session,
@@ -39,11 +36,22 @@ pub struct Chat<'a> {
 impl Component for Chat<'_> {
     fn render(&self) -> String {
         let handler = Route::HandleChat;
+        let meal_header = if self.meals.is_empty() {
+            ""
+        } else {
+            // Pushing the top up by just 1px hides the text from revealing
+            // itself behind the top of this sticky header as the user scrolls
+            // through the container; weird browser behavior, weird fix.
+            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
+                dark:text-black text-xl font-bold">
+                Saved Meals</h2>"#
+        };
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
             acc.push_str(
                 &MealCard {
                     info: &meal.info,
                     meal_id: Some(meal.id),
+                    actions: None,
                 }
                 .render(),
             );
@@ -51,18 +59,137 @@ impl Component for Chat<'_> {
         });
         format!(
             r#"
-            <div id="cal-chat-container" class="prose rounded bg-slate-200 shadow m-2 p-2">
-            <h1>Calorie Chat</h1>
-            <form
-                class="flex flex-col gap-2"
-                hx-post="{handler}"
-            >
-                <label for="chat">Describe what you're eating</label>
-                <input autocomplete="one-time-code" type="text" id="chat" name="chat" placeholder="I am eating..." />
-            </form>
-            {meals}
+            <div id="cal-chat-container" class="flex items-center justify-center">
+                <div class="rounded bg-slate-200 shadow m-2 p-2 md:p-4">
+                    <h1 class="border-b-2 border-slate-600 mb-2 border-black prose serif font-extrabold text-3xl">Calorie Chat</h1>
+                    <div class="md:flex md:gap-3 ">
+                    <div>
+                        <form
+                            class="flex flex-col gap-2"
+                            hx-post="{handler}"
+                        >
+                            <label for="chat">
+                                <h2
+                                    class="dark:text-black text-xl serif bold"
+                                >Describe what you're eating</h2>
+                            </label>
+                            <input
+                                class="rounded"
+                                autocomplete="one-time-code"
+                                type="text"
+                                id="chat"
+                                name="chat"
+                                placeholder="I am eating..."
+                            />
+                        </form>
+                    </div>
+                        <div
+                            class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
+                        >
+                            {meal_header}
+                            {meals}
+                        </div>
+                    </div>
+                </div>
             </div>
             "#
+        )
+    }
+}
+
+struct NewMealOptions<'a> {
+    info: &'a MealInfo,
+}
+impl Component for NewMealOptions<'_> {
+    fn render(&self) -> String {
+        let retry_route = Route::ChatForm;
+        let save_route = Route::SaveMeal;
+        let calories = self.info.calories;
+        let protein = self.info.protein_grams;
+        let carbs = self.info.carbohydrates_grams;
+        let fat = self.info.fat_grams;
+        let meal_name = clean(&self.info.meal_name);
+        format!(
+            r##"
+            <form hx-post="{save_route}" hx-target="#cal-chat-container">
+                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{calories}" name="calories" />
+                <input type="hidden" value="{protein}" name="protein_grams" />
+                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
+                <input type="hidden" value="{fat}" name="fat_grams" />
+                <button
+                    class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                >Save</button>
+                <button
+                    hx-get="{retry_route}"
+                    hx-target="#cal-chat-container"
+                    class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
+                >Try Again</button>
+            </form>
+            "##
+        )
+    }
+}
+
+impl Component for MealInfo {
+    fn render(&self) -> String {
+        MealCard {
+            info: self,
+            meal_id: None,
+            actions: Some(&NewMealOptions { info: self }),
+        }
+        .render()
+    }
+}
+
+pub struct MealCard<'a> {
+    pub info: &'a MealInfo,
+    pub meal_id: Option<i32>,
+    pub actions: Option<&'a dyn Component>,
+}
+impl Component for MealCard<'_> {
+    fn render(&self) -> String {
+        let meal_name = clean(&self.info.meal_name);
+        let calories = self.info.calories;
+        let protein = self.info.protein_grams;
+        let carbs = self.info.carbohydrates_grams;
+        let fat = self.info.fat_grams;
+        let actions = match &self.actions {
+            Some(action) => action.render(),
+            None => match self.meal_id {
+                Some(id) => {
+                    let href = Route::DeleteMeal(Some(id));
+                    format!(
+                        r#"<button
+                            hx-delete="{href}"
+                            hx-target="closest div[data-name='meal-card']"
+                            class="align-self-right bg-red-100 hover:bg-red-200 rounded p-1"
+                        >
+                        Delete
+                    </button>"#
+                    )
+                }
+                None => "".into(),
+            },
+        };
+        format!(
+            r##"
+            <div
+                class="dark:text-black bg-gradient-to-tr from-violet-200
+                to-sky-100 rounded p-2 shadow sm:w-[20rem] border-t-4 border-l-4
+                border-slate-300 mr-4"
+                data-name="meal-card"
+            >
+                <h1 class="text-2xl bold serif">{meal_name}</h1>
+                <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
+                <p class="text-sm"><b>Protein:</b> {protein} grams</p>
+                <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>
+                <p class="text-sm"><b>Fat:</b> {fat} grams</p>
+                <div class="flex justify-end">
+                    {actions}
+                </div>
+            </div>
+            "##
         )
     }
 }
@@ -77,13 +204,17 @@ impl Component for CannotParse<'_> {
         let llm_response = clean(self.llm_response);
         format!(
             r##"
-            <p><b>LLM response:</b> {llm_response}</p>
-            <p class="text-sm text-slate-600"><b>Error parsing LLM Response:</b> {parser_msg}</p>
-                <button
-                    hx-get="/chat-form"
-                    hx-target="#cal-chat-container"
-                    class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
-                >Try Again</button>
+            <div class="prose">
+                <p><b>LLM response:</b> {llm_response}</p>
+                <p
+                    class="text-sm text-slate-600"
+                ><b>Error parsing LLM Response:</b> {parser_msg}</p>
+                    <button
+                        hx-get="/chat-form"
+                        hx-target="#cal-chat-container"
+                        class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                    >Try Again</button>
+            </div>
             "##
         )
     }
