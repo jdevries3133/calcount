@@ -29,16 +29,6 @@ impl ServerError {
     /// This can be used for things like bad requests or 404 errors, where
     /// nothing is really "wrong," it's just the expected beahvior of the
     /// API.
-    pub fn custom_expected_error(
-        status: StatusCode,
-        response_body: String,
-    ) -> Self {
-        ServerError {
-            err: None,
-            status,
-            response_body,
-        }
-    }
     pub fn forbidden(msg: &'static str) -> Self {
         ServerError {
             err: Some(Error::msg(msg)),

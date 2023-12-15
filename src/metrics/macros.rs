@@ -5,10 +5,8 @@ use crate::{
     routes::Route,
     session::Session,
 };
-use axum::{
-    extract::State, headers::HeaderMap, http::StatusCode,
-    response::IntoResponse,
-};
+use anyhow::Result as Aresult;
+use axum::{extract::State, headers::HeaderMap, response::IntoResponse};
 use sqlx::{query_as, PgPool};
 
 /// For now, these are implicitly an aggregation of all meals during the
@@ -37,10 +35,21 @@ impl Component for Macros {
     }
 }
 
-pub async fn get_macros(
-    db: &PgPool,
-    user: &User,
-) -> Result<Macros, ServerError> {
+pub struct MacroPlaceholder;
+impl Component for MacroPlaceholder {
+    fn render(&self) -> String {
+        let macros = Route::DisplayMacros;
+        format!(
+            r#"
+            <p hx-get="{macros}" hx-trigger="reload-macros from:body">
+                Enter some food to get macro information.
+            </p>
+            "#
+        )
+    }
+}
+
+pub async fn get_macros(db: &PgPool, user: &User) -> Aresult<Option<Macros>> {
     struct Qres {
         calories: Option<i64>,
         protein_grams: Option<i64>,
@@ -67,16 +76,13 @@ pub async fn get_macros(
             protein_grams: Some(protein_grams),
             fat_grams: Some(fat_grams),
             carbohydrates_grams: Some(carbohydrates_grams),
-        } => Ok(Macros {
+        } => Ok(Some(Macros {
             calories,
             protein_grams,
             fat_grams,
             carbohydrates_grams,
-        }),
-        _ => Err(ServerError::custom_expected_error(
-            StatusCode::NOT_FOUND,
-            "".into(),
-        )),
+        })),
+        _ => Ok(None),
     }
 }
 
@@ -86,5 +92,9 @@ pub async fn display_macros(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "display macros")?;
     let macros = get_macros(&db, &session.user).await?;
-    Ok(macros.render())
+    if let Some(macros) = macros {
+        Ok(macros.render())
+    } else {
+        Ok(MacroPlaceholder {}.render())
+    }
 }

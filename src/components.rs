@@ -190,12 +190,16 @@ impl Component for ExternalLink<'_> {
 pub struct UserHome<'a> {
     pub user: &'a models::User,
     pub meals: &'a Vec<count_chat::Meal>,
-    pub macros: &'a metrics::Macros,
+    pub macros: Option<&'a metrics::Macros>,
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let username = clean(&self.user.username);
-        let macros = self.macros.render();
+        let macros = if let Some(m) = self.macros {
+            m.render()
+        } else {
+            metrics::MacroPlaceholder {}.render()
+        };
         let chat = count_chat::ChatContainer { meals: self.meals }.render();
         format!(
             r#"
