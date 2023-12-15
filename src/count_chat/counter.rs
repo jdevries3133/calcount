@@ -49,11 +49,14 @@ impl Component for Chat<'_> {
                 Saved Items</h2>"#
         };
         let mut found_meal_before_today = false;
-        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
-            if is_yesterday(&meal.info.created_at) {
-                found_meal_before_today = true;
-                acc.push_str(
-                    r#"
+        let meals = self.meals.iter().enumerate().fold(
+            String::new(),
+            |mut acc, (i, meal)| {
+                if is_yesterday(&meal.info.created_at) && i != self.meals.len()
+                {
+                    found_meal_before_today = true;
+                    acc.push_str(
+                        r#"
                     <div class="w-full border-b-4 border-black">
                         <p class="text-xs my-4 dark:text-black">
                             Items after this line were input yesterday, and are
@@ -61,18 +64,19 @@ impl Component for Chat<'_> {
                         </p>
                     </div>
                     "#,
-                )
-            };
-            acc.push_str(
-                &MealCard {
-                    info: &meal.info,
-                    meal_id: Some(meal.id),
-                    actions: None,
-                }
-                .render(),
-            );
-            acc
-        });
+                    )
+                };
+                acc.push_str(
+                    &MealCard {
+                        info: &meal.info,
+                        meal_id: Some(meal.id),
+                        actions: None,
+                    }
+                    .render(),
+                );
+                acc
+            },
+        );
         format!(
             r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
