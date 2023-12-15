@@ -44,7 +44,7 @@ impl Component for Chat<'_> {
             // through the container; weird browser behavior, weird fix.
             r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
                 dark:text-black text-xl font-bold">
-                Saved Meals</h2>"#
+                Saved Items</h2>"#
         };
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
             acc.push_str(
