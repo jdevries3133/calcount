@@ -1,7 +1,7 @@
 use super::{
-    auth, components, components::Component, count_chat, db_ops,
-    errors::ServerError, htmx, models::AppState, pw, routes::Route, session,
-    session::Session,
+    auth, client_events, components, components::Component, count_chat, db_ops,
+    errors::ServerError, htmx, metrics, models::AppState, pw, routes::Route,
+    session, session::Session,
 };
 use anyhow::Result;
 use axum::{
@@ -10,6 +10,7 @@ use axum::{
     response::IntoResponse,
     Form,
 };
+use futures::join;
 use serde::Deserialize;
 use sqlx::query;
 
@@ -76,11 +77,17 @@ pub async fn user_home(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let Session { user, .. } =
-        Session::from_headers(&headers).expect("user is authenticated");
-    let meals = count_chat::get_meals(&db, user.id).await?;
+        Session::from_headers_err(&headers, "user home")?;
+    let (macros, meals) = join![
+        metrics::get_macros(&db, &user),
+        count_chat::get_meals(&db, user.id),
+    ];
+    let macros = macros?;
+    let meals = meals?;
     let content = Box::new(components::UserHome {
         user: &user,
         meals: &meals,
+        macros: &macros,
     });
     let html = components::Page {
         title: "Home Page",
@@ -207,5 +214,5 @@ pub async fn delete_meal(
     )
     .execute(&db)
     .await?;
-    Ok("")
+    Ok((client_events::reload_macros(HeaderMap::new()), ""))
 }

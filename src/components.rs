@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{count_chat, models, routes::Route};
+use super::{count_chat, metrics, models, routes::Route};
 use ammonia::clean;
 
 #[cfg(feature = "live_reload")]
@@ -190,14 +190,17 @@ impl Component for ExternalLink<'_> {
 pub struct UserHome<'a> {
     pub user: &'a models::User,
     pub meals: &'a Vec<count_chat::Meal>,
+    pub macros: &'a metrics::Macros,
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let username = clean(&self.user.username);
+        let macros = self.macros.render();
         let chat = count_chat::ChatContainer { meals: self.meals }.render();
         format!(
             r#"
-            <h1>Hi, {username}</h1>
+            <h1>Hi, {username}!</h1>
+            {macros}
             {chat}
             "#
         )

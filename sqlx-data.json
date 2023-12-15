@@ -153,6 +153,44 @@
     },
     "query": "select id, username, email from users\n            where username = $1 or email = $1"
   },
+  "c558b8fcde69cb2de9f02843c0dc5acb1b8d3d2187d91a22355635c46b0dfeb1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "calories",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "protein_grams",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "fat_grams",
+          "ordinal": 2,
+          "type_info": "Int8"
+        },
+        {
+          "name": "carbohydrates_grams",
+          "ordinal": 3,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select\n            sum(calories) calories,\n            sum(protein) protein_grams,\n            sum(fat) fat_grams,\n            sum(carbohydrates) carbohydrates_grams\n        from meal\n        where user_id = $1"
+  },
   "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e": {
     "describe": {
       "columns": [

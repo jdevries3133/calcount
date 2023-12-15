@@ -14,23 +14,36 @@ use axum::{
 #[derive(Debug)]
 pub struct ServerError {
     /// The actuall error, which will be logged.
-    err: Error,
+    err: Option<Error>,
     status: StatusCode,
     /// Public-facing response message
-    response_message: &'static str,
+    response_body: String,
 }
 impl IntoResponse for ServerError {
     fn into_response(self) -> Response {
         println!("HTTP {} {:?}", self.status, self.err);
-        (self.status, self.response_message).into_response()
+        (self.status, self.response_body).into_response()
     }
 }
 impl ServerError {
+    /// This can be used for things like bad requests or 404 errors, where
+    /// nothing is really "wrong," it's just the expected beahvior of the
+    /// API.
+    pub fn custom_expected_error(
+        status: StatusCode,
+        response_body: String,
+    ) -> Self {
+        ServerError {
+            err: None,
+            status,
+            response_body,
+        }
+    }
     pub fn forbidden(msg: &'static str) -> Self {
         ServerError {
-            err: Error::msg(msg),
+            err: Some(Error::msg(msg)),
             status: StatusCode::FORBIDDEN,
-            response_message: "Forbidden",
+            response_body: "Forbidden".into(),
         }
     }
 }
@@ -44,9 +57,9 @@ where
 {
     fn from(err: E) -> Self {
         Self {
-            err: err.into(),
+            err: Some(err.into()),
             status: StatusCode::INTERNAL_SERVER_ERROR,
-            response_message: "something went wrong",
+            response_body: "something went wrong".into(),
         }
     }
 }

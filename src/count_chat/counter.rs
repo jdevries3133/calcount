@@ -3,8 +3,8 @@
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{
-    components::Component, errors::ServerError, models::AppState,
-    routes::Route, session::Session,
+    client_events, components::Component, errors::ServerError,
+    models::AppState, routes::Route, session::Session,
 };
 use ammonia::clean;
 use anyhow::Result as AResult;
@@ -312,6 +312,7 @@ pub async fn handle_save_meal(
     )
     .execute(&db)
     .await?;
+    let response_headers = client_events::reload_macros(HeaderMap::new());
     let meals = get_meals(&db, session.user.id).await?;
-    Ok(Chat { meals: &meals }.render())
+    Ok((response_headers, Chat { meals: &meals }.render()))
 }

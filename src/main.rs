@@ -6,6 +6,7 @@ use dotenvy::dotenv;
 use std::net::SocketAddr;
 
 mod auth;
+mod client_events;
 mod components;
 mod config;
 mod controllers;
@@ -14,6 +15,7 @@ mod crypto;
 mod db_ops;
 mod errors;
 mod htmx;
+mod metrics;
 mod middleware;
 mod models;
 mod pw;

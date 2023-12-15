@@ -1,6 +1,6 @@
 //! All possible routes with their params are defined in a big enum.
 
-use super::{controllers, count_chat, models};
+use super::{controllers, count_chat, metrics, models};
 use axum::routing::{delete, get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
@@ -24,15 +24,14 @@ pub enum Route<'a> {
     ChatForm,
     SaveMeal,
     DeleteMeal(Option<i32>),
-    /// The `String` slug is unnecessary here, but this is the general pattern
-    /// for handling routes that have slug parameters.
+
+    DisplayMacros,
+
     UserHome(Option<&'a str>),
     Root,
     Ping,
     Register,
     Login,
-    /// The static content route where HTMX javascript library is served, which
-    /// we are vendoring.
     Htmx,
 }
 
@@ -46,6 +45,7 @@ impl Route<'_> {
                 Some(value) => format!("/delete-meal/{value}"),
                 None => "/delete-meal/:id".into(),
             },
+            Self::DisplayMacros => "/metrics/macros".into(),
             Self::UserHome(slug) => match slug {
                 Some(value) => format!("/home/{value}"),
                 None => "/home/:slug".into(),
@@ -87,6 +87,10 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(
             &Route::DeleteMeal(None).as_string(),
             delete(controllers::delete_meal),
+        )
+        .route(
+            &Route::DisplayMacros.as_string(),
+            get(metrics::display_macros),
         )
 }
 
