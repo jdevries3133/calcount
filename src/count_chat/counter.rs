@@ -58,8 +58,10 @@ impl Component for Chat<'_> {
                 {
                     found_meal_before_today = true;
                     acc.push_str(
+                        // Note: the 20rem width matches the width of
+                        // `MealCard`
                         r#"
-                    <div class="w-full border-b-4 border-black">
+                        <div class="w-[20rem] border-b-4 border-black">
                         <p class="text-xs my-4 dark:text-black">
                             Items after this line were input yesterday, and are
                             not included in your daily totals at the top.
