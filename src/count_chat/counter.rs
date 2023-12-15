@@ -13,6 +13,7 @@ use axum::{
     headers::HeaderMap,
     response::IntoResponse,
 };
+use chrono::prelude::*;
 use serde::Deserialize;
 use sqlx::{query, query_as, PgPool};
 
@@ -28,6 +29,7 @@ pub struct MealInfo {
     pub carbohydrates_grams: i32,
     pub fat_grams: i32,
     pub meal_name: String,
+    pub created_at: DateTime<Utc>,
 }
 
 pub struct Chat<'a> {
@@ -46,7 +48,21 @@ impl Component for Chat<'_> {
                 dark:text-black text-xl font-bold">
                 Saved Items</h2>"#
         };
+        let mut found_meal_before_today = false;
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
+            if is_yesterday(&meal.info.created_at) {
+                found_meal_before_today = true;
+                acc.push_str(
+                    r#"
+                    <div class="w-full border-b-4 border-black">
+                        <p class="text-xs my-4 dark:text-black">
+                            Items after this line were input yesterday, and are
+                            not included in your daily totals at the top.
+                        </p>
+                    </div>
+                    "#,
+                )
+            };
             acc.push_str(
                 &MealCard {
                     info: &meal.info,
@@ -172,12 +188,17 @@ impl Component for MealCard<'_> {
                 None => "".into(),
             },
         };
+        let background_style = if is_today(&self.info.created_at) {
+            "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
+        } else {
+            "border-4 border-black"
+        };
         format!(
             r##"
             <div
-                class="dark:text-black bg-gradient-to-tr from-violet-200
-                to-sky-100 rounded p-2 shadow sm:w-[20rem] border-t-4 border-l-4
-                border-slate-300 mr-4"
+                class="dark:text-black to-sky-100 rounded p-2 shadow sm:w-[20rem] mr-4
+                {background_style}
+                "
                 data-name="meal-card"
             >
                 <h1 class="text-2xl bold serif">{meal_name}</h1>
@@ -267,16 +288,26 @@ pub async fn get_meals(db: &PgPool, user_id: i32) -> AResult<Vec<Meal>> {
         fat_grams: i32,
         protein_grams: i32,
         carbohydrates_grams: i32,
+        created_at: DateTime<Utc>,
     }
     let mut res = query_as!(
         Qres,
-        "select id, name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams
+        "select
+            id,
+            name meal_name,
+            calories,
+            fat fat_grams,
+            protein protein_grams,
+            carbohydrates carbohydrates_grams,
+            created_at
         from meal
         where user_id = $1
-        order by id desc
+        order by created_at desc
         ",
         user_id
-        ).fetch_all(db).await?;
+    )
+    .fetch_all(db)
+    .await?;
 
     Ok(res
         .drain(..)
@@ -288,6 +319,7 @@ pub async fn get_meals(db: &PgPool, user_id: i32) -> AResult<Vec<Meal>> {
                 carbohydrates_grams: r.carbohydrates_grams,
                 fat_grams: r.fat_grams,
                 protein_grams: r.protein_grams,
+                created_at: r.created_at,
             },
         })
         .collect::<Vec<Meal>>())
@@ -315,4 +347,12 @@ pub async fn handle_save_meal(
     let response_headers = client_events::reload_macros(HeaderMap::new());
     let meals = get_meals(&db, session.user.id).await?;
     Ok((response_headers, Chat { meals: &meals }.render()))
+}
+
+fn is_yesterday(time: &DateTime<Utc>) -> bool {
+    Utc::now().signed_duration_since(time).num_days() > 0
+}
+
+fn is_today(time: &DateTime<Utc>) -> bool {
+    !is_yesterday(time)
 }

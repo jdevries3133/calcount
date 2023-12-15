@@ -30,7 +30,7 @@
     },
     "query": "delete from meal where user_id = $1 and id = $2"
   },
-  "62c068b9691dd48e0d6634b951ddd8d4b0d7957b7fd9f54d5d580ae9d812c052": {
+  "2a1401586a0ab50dc6adbd094a5a76ac912f8f4691c1ecd755db82255a500a93": {
     "describe": {
       "columns": [
         {
@@ -62,9 +62,15 @@
           "name": "carbohydrates_grams",
           "ordinal": 5,
           "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 6,
+          "type_info": "Timestamptz"
         }
       ],
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -78,7 +84,7 @@
         ]
       }
     },
-    "query": "select id, name meal_name, calories, fat fat_grams, protein protein_grams, carbohydrates carbohydrates_grams\n        from meal\n        where user_id = $1\n        order by id desc\n        "
+    "query": "select\n            id,\n            name meal_name,\n            calories,\n            fat fat_grams,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where user_id = $1\n        order by created_at desc\n        "
   },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {

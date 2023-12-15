@@ -61,6 +61,7 @@ impl MealInfo {
                 protein_grams,
                 carbohydrates_grams,
                 fat_grams,
+                created_at: chrono::Utc::now(),
             }),
             (calories, protein, fat, carbs) => {
                 ParserResult::FollowUp(FollowUp {
