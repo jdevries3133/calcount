@@ -121,39 +121,7 @@
     },
     "query": "insert into users (username, email, salt, digest) values ($1, $2, $3, $4)\n        returning id"
   },
-  "8fbb2f266c986f05be884dda779c30e2024fe49e7f8663a6373732628765c5cf": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "email",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "select id, username, email from users\n            where username = $1 or email = $1"
-  },
-  "c558b8fcde69cb2de9f02843c0dc5acb1b8d3d2187d91a22355635c46b0dfeb1": {
+  "78848c1d48ecc9f9842d775f409d69f54e29e5008fb179d80b0a848288bd6501": {
     "describe": {
       "columns": [
         {
@@ -189,7 +157,39 @@
         ]
       }
     },
-    "query": "select\n            sum(calories) calories,\n            sum(protein) protein_grams,\n            sum(fat) fat_grams,\n            sum(carbohydrates) carbohydrates_grams\n        from meal\n        where user_id = $1"
+    "query": "select\n            sum(calories) calories,\n            sum(protein) protein_grams,\n            sum(fat) fat_grams,\n            sum(carbohydrates) carbohydrates_grams\n        from meal\n        where\n            user_id = $1\n            and date_trunc('day', created_at) = CURRENT_DATE\n        "
+  },
+  "8fbb2f266c986f05be884dda779c30e2024fe49e7f8663a6373732628765c5cf": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select id, username, email from users\n            where username = $1 or email = $1"
   },
   "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e": {
     "describe": {

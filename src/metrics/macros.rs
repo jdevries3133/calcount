@@ -64,7 +64,10 @@ pub async fn get_macros(db: &PgPool, user: &User) -> Aresult<Option<Macros>> {
             sum(fat) fat_grams,
             sum(carbohydrates) carbohydrates_grams
         from meal
-        where user_id = $1",
+        where
+            user_id = $1
+            and date_trunc('day', created_at) = CURRENT_DATE
+        ",
         user.id
     )
     .fetch_one(db)
