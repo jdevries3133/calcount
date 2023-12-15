@@ -130,6 +130,7 @@ impl Component for NewMealOptions<'_> {
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
         let fat = self.info.fat_grams;
+        let created_at = self.info.created_at;
         let meal_name = clean(&self.info.meal_name);
         format!(
             r##"
@@ -139,6 +140,7 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{protein}" name="protein_grams" />
                 <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
                 <input type="hidden" value="{fat}" name="fat_grams" />
+                <input type="hidden" value="{created_at}" name="created_at" />
                 <button
                     class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
                 >Save</button>
