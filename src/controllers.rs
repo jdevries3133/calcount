@@ -7,7 +7,7 @@ use anyhow::Result;
 use axum::{
     extract::{Path, State},
     http::{HeaderMap, HeaderValue},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
     Form,
 };
 use futures::join;
@@ -157,15 +157,37 @@ pub async fn handle_registration(
 
 pub async fn get_login_form(headers: HeaderMap) -> impl IntoResponse {
     let form = components::LoginForm {};
+    let session = Session::from_headers(&headers);
 
+    let response_headers = HeaderMap::new();
     if headers.contains_key("Hx-Request") {
-        form.render()
-    } else {
-        components::Page {
-            title: "Login",
-            children: Box::new(form),
+        if let Some(session) = session {
+            let response_headers = htmx::redirect(
+                response_headers,
+                &Route::UserHome(Some(&session.user.username)).as_string(),
+            );
+            (response_headers, "OK").into_response()
+        } else {
+            (response_headers, form.render()).into_response()
         }
-        .render()
+    } else if let Some(session) = session {
+        (
+            response_headers,
+            Redirect::temporary(
+                &Route::UserHome(Some(&session.user.username)).as_string(),
+            ),
+        )
+            .into_response()
+    } else {
+        (
+            response_headers,
+            components::Page {
+                title: "Login",
+                children: Box::new(form),
+            }
+            .render(),
+        )
+            .into_response()
     }
 }
 
