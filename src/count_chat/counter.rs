@@ -208,9 +208,9 @@ impl Component for MealCard<'_> {
             &self.info.created_at,
             Tz::US__Eastern,
         ) {
-            "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
-        } else {
             "border-4 border-black"
+        } else {
+            "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
         };
         format!(
             r##"
