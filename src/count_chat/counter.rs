@@ -14,9 +14,12 @@ use axum::{
     response::IntoResponse,
 };
 use chrono::prelude::*;
+use chrono_tz::Tz;
 use serde::Deserialize;
 use sqlx::{query, query_as, PgPool};
+use std::time::Duration;
 
+#[derive(Debug)]
 pub struct Meal {
     id: i32,
     info: MealInfo,
@@ -53,7 +56,10 @@ impl Component for Chat<'_> {
             String::new(),
             |mut acc, (i, meal)| {
                 if !found_meal_before_today
-                    && is_yesterday(&meal.info.created_at)
+                    && is_before_today(
+                        &meal.info.created_at,
+                        chrono_tz::US::Eastern,
+                    )
                     && i != self.meals.len()
                 {
                     found_meal_before_today = true;
@@ -198,7 +204,10 @@ impl Component for MealCard<'_> {
                 None => "".into(),
             },
         };
-        let background_style = if is_today(&self.info.created_at) {
+        let background_style = if is_before_today(
+            &self.info.created_at,
+            Tz::US__Eastern,
+        ) {
             "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
         } else {
             "border-4 border-black"
@@ -359,10 +368,15 @@ pub async fn handle_save_meal(
     Ok((response_headers, Chat { meals: &meals }.render()))
 }
 
-fn is_yesterday(time: &DateTime<Utc>) -> bool {
-    Utc::now().signed_duration_since(time).num_days() > 0
-}
-
-fn is_today(time: &DateTime<Utc>) -> bool {
-    !is_yesterday(time)
+/// Check if `time` is yesterday or before.
+fn is_before_today(
+    datetime: &DateTime<Utc>,
+    user_timezone: chrono_tz::Tz,
+) -> bool {
+    let local_dt = datetime.with_timezone(&user_timezone);
+    let date = local_dt.date_naive();
+    let yesterday = (Utc::now() - Duration::from_secs(60 * 60 * 24))
+        .with_timezone(&user_timezone)
+        .date_naive();
+    date <= yesterday
 }
