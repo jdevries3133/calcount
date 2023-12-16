@@ -17,6 +17,56 @@
     },
     "query": "insert into meal (user_id, name, calories, fat, protein, carbohydrates)\n        values ($1, $2, $3, $4, $5, $6)"
   },
+  "1c477a851d4290c230462a5662eff60fa598661bd73824380eb43758099fbda8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "meal_name",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "calories",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "protein_grams",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fat_grams",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "carbohydrates_grams",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select\n            name meal_name,\n            calories calories,\n            protein protein_grams,\n            fat fat_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where\n            user_id = $1\n            and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'\n        "
+  },
   "21d97a21e8486f639820b3b00f89ba477a5443acfc3493413cef15ecf4d51f07": {
     "describe": {
       "columns": [],
@@ -126,44 +176,6 @@
       }
     },
     "query": "insert into users (username, email, salt, digest) values ($1, $2, $3, $4)\n        returning id"
-  },
-  "78848c1d48ecc9f9842d775f409d69f54e29e5008fb179d80b0a848288bd6501": {
-    "describe": {
-      "columns": [
-        {
-          "name": "calories",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "protein_grams",
-          "ordinal": 1,
-          "type_info": "Int8"
-        },
-        {
-          "name": "fat_grams",
-          "ordinal": 2,
-          "type_info": "Int8"
-        },
-        {
-          "name": "carbohydrates_grams",
-          "ordinal": 3,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      }
-    },
-    "query": "select\n            sum(calories) calories,\n            sum(protein) protein_grams,\n            sum(fat) fat_grams,\n            sum(carbohydrates) carbohydrates_grams\n        from meal\n        where\n            user_id = $1\n            and date_trunc('day', created_at) = CURRENT_DATE\n        "
   },
   "8fbb2f266c986f05be884dda779c30e2024fe49e7f8663a6373732628765c5cf": {
     "describe": {

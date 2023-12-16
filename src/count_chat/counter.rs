@@ -3,8 +3,8 @@
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{
-    client_events, components::Component, errors::ServerError,
-    models::AppState, routes::Route, session::Session,
+    chrono_utils::is_before_today, client_events, components::Component,
+    errors::ServerError, models::AppState, routes::Route, session::Session,
 };
 use ammonia::clean;
 use anyhow::Result as AResult;
@@ -17,7 +17,6 @@ use chrono::prelude::*;
 use chrono_tz::Tz;
 use serde::Deserialize;
 use sqlx::{query, query_as, PgPool};
-use std::time::Duration;
 
 #[derive(Debug)]
 pub struct Meal {
@@ -366,17 +365,4 @@ pub async fn handle_save_meal(
     let response_headers = client_events::reload_macros(HeaderMap::new());
     let meals = get_meals(&db, session.user.id).await?;
     Ok((response_headers, Chat { meals: &meals }.render()))
-}
-
-/// Check if `time` is yesterday or before.
-fn is_before_today(
-    datetime: &DateTime<Utc>,
-    user_timezone: chrono_tz::Tz,
-) -> bool {
-    let local_dt = datetime.with_timezone(&user_timezone);
-    let date = local_dt.date_naive();
-    let yesterday = (Utc::now() - Duration::from_secs(60 * 60 * 24))
-        .with_timezone(&user_timezone)
-        .date_naive();
-    date <= yesterday
 }

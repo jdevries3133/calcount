@@ -87,7 +87,7 @@ pub async fn user_home(
     let content = Box::new(components::UserHome {
         user: &user,
         meals: &meals,
-        macros: macros.as_ref(),
+        macros: &macros,
     });
     let html = components::Page {
         title: "Home Page",

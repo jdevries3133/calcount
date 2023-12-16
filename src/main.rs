@@ -6,6 +6,7 @@ use dotenvy::dotenv;
 use std::net::SocketAddr;
 
 mod auth;
+mod chrono_utils;
 mod client_events;
 mod components;
 mod config;
