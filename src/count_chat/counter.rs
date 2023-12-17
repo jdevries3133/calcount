@@ -217,7 +217,7 @@ impl Component for MealCard<'_> {
                 <p class="text-sm"><b>Protein:</b> {protein} grams</p>
                 <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>
                 <p class="text-sm"><b>Fat:</b> {fat} grams</p>
-                <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
                     {actions}
                 </div>
             </div>
