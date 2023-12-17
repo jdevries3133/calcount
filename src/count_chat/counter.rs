@@ -27,16 +27,10 @@ pub struct Chat<'a> {
 impl Component for Chat<'_> {
     fn render(&self) -> String {
         let handler = Route::HandleChat;
-        let meal_header = if self.meals.is_empty() {
-            ""
-        } else {
-            // Pushing the top up by just 1px hides the text from revealing
-            // itself behind the top of this sticky header as the user scrolls
-            // through the container; weird browser behavior, weird fix.
-            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
-                dark:text-black text-xl font-bold">
-                Saved Items</h2>"#
-        };
+        let is_any_meal_during_today = self
+            .meals
+            .iter()
+            .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
         let mut found_meal_before_today = false;
         let meals = self.meals.iter().enumerate().fold(
             String::new(),
@@ -47,6 +41,7 @@ impl Component for Chat<'_> {
                         self.user_timezone,
                     )
                     && i != self.meals.len()
+                    && is_any_meal_during_today
                 {
                     found_meal_before_today = true;
                     acc.push_str(
@@ -75,6 +70,20 @@ impl Component for Chat<'_> {
                 acc
             },
         );
+        let meal_header = if self.meals.is_empty() {
+            ""
+        } else if is_any_meal_during_today {
+            // Pushing the top up by just 1px hides the text from revealing
+            // itself behind the top of this sticky header as the user scrolls
+            // through the container; weird browser behavior, weird fix.
+            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
+                dark:text-black text-xl font-bold">
+                Today's Items</h2>"#
+        } else {
+            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
+                dark:text-black text-xl font-bold">
+                Previously Saved Items</h2>"#
+        };
         format!(
             r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
