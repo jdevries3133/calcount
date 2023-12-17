@@ -53,7 +53,7 @@ impl Route {
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
             Self::SaveMeal => "/save-meal".into(),
-            Self::UserHome => "/home/".into(),
+            Self::UserHome => "/home".into(),
             Self::UserPreference => "/preferences".into(),
             Self::Void => "/void".into(),
         }
