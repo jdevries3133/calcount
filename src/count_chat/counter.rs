@@ -55,8 +55,9 @@ impl Component for Chat<'_> {
                         r#"
                         <div class="w-[20rem] border-b-4 border-black">
                         <p class="text-xs my-4 dark:text-black">
-                            Items after this line were input yesterday, and are
-                            not included in your daily totals at the top.
+                            Items after this line were input yesterday or
+                            before, and are not included in your daily totals
+                            at the top.
                         </p>
                     </div>
                     "#,

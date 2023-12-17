@@ -211,6 +211,7 @@ impl Component for UserHome<'_> {
         .render();
         format!(
             r#"
+            <div class="flex flex-col gap-2">
             <a href={preferences}>
                 <p class="text-black p-2 inline-block bg-blue-100 rounded-2xl">
                     Hi, {username}!
@@ -218,6 +219,7 @@ impl Component for UserHome<'_> {
             </a>
             {macros}
             {chat}
+            </div>
             "#
         )
     }
