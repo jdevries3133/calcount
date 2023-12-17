@@ -207,6 +207,7 @@ impl Component for UserHome<'_> {
         let chat = count_chat::ChatContainer {
             meals: self.meals,
             user_timezone: self.preferences.timezone,
+            prompt: None,
         }
         .render();
         format!(

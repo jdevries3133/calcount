@@ -78,6 +78,7 @@ pub fn get_protected_routes() -> Router<models::AppState> {
             post(count_chat::handle_chat),
         )
         .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
+        .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
             &Route::SaveMeal.as_string(),
             post(count_chat::handle_save_meal),

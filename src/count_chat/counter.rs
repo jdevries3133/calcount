@@ -3,6 +3,7 @@
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{chrono_utils::is_before_today, client_events, prelude::*};
+use std::default::Default;
 
 #[derive(Debug)]
 pub struct Meal {
@@ -23,6 +24,7 @@ pub struct MealInfo {
 pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
     pub user_timezone: Tz,
+    pub prompt: Option<&'a str>,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
@@ -70,6 +72,7 @@ impl Component for Chat<'_> {
                 acc
             },
         );
+        let prompt = self.prompt.unwrap_or_default();
         let meal_header = if self.meals.is_empty() {
             ""
         } else if is_any_meal_during_today {
@@ -107,6 +110,7 @@ impl Component for Chat<'_> {
                                 id="chat"
                                 name="chat"
                                 placeholder="I am eating..."
+                                value="{prompt}"
                             />
                         </form>
                     </div>
@@ -149,9 +153,10 @@ impl Component for NewMealOptions<'_> {
                 <button
                     class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
                 >Save</button>
+            </form>
+            <form hx-post="{retry_route}" hx-target="#cal-chat-container">
+                <input type="hidden" value="{meal_name}" name="meal_name" />
                 <button
-                    hx-get="{retry_route}"
-                    hx-target="#cal-chat-container"
                     class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
                 >Try Again</button>
             </form>
@@ -224,11 +229,14 @@ impl Component for MealCard<'_> {
 pub struct CannotParse<'a> {
     parser_msg: &'a str,
     llm_response: &'a str,
+    original_user_prompt: &'a str,
 }
 impl Component for CannotParse<'_> {
     fn render(&self) -> String {
+        let retry_route = Route::ChatForm;
         let parser_msg = clean(self.parser_msg);
         let llm_response = clean(self.llm_response);
+        let prompt = clean(self.original_user_prompt);
         format!(
             r##"
             <div class="prose">
@@ -236,11 +244,12 @@ impl Component for CannotParse<'_> {
                 <p
                     class="text-sm text-slate-600"
                 ><b>Error parsing LLM Response:</b> {parser_msg}</p>
+                <form hx-post="{retry_route}" hx-target="#cal-chat-container">
+                    <input type="hidden" value="{prompt}" name="meal_name" />
                     <button
-                        hx-get="/chat-form"
-                        hx-target="#cal-chat-container"
-                        class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                        class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
                     >Try Again</button>
+                </form>
             </div>
             "##
         )
@@ -276,21 +285,32 @@ pub async fn handle_chat(
             Ok(CannotParse {
                 parser_msg: &msg,
                 llm_response: &response,
+                original_user_prompt: &chat,
             }
             .render())
         }
     }
 }
 
+#[derive(Deserialize)]
+pub struct PrevPrompt {
+    meal_name: String,
+}
+
 pub async fn chat_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
+    prev_prompt: Option<Form<PrevPrompt>>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "chat form")?;
     let meals = get_meals(&db, session.user.id, &session.preferences).await?;
     let chat = Chat {
         meals: &meals,
         user_timezone: session.preferences.timezone,
+        prompt: match prev_prompt {
+            Some(ref form) => Some(&form.meal_name),
+            None => None,
+        },
     };
     let content = chat.render();
     Ok(content)
@@ -371,6 +391,7 @@ pub async fn handle_save_meal(
         Chat {
             meals: &meals,
             user_timezone: session.preferences.timezone,
+            prompt: None,
         }
         .render(),
     ))
