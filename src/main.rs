@@ -1,4 +1,4 @@
-//! A notion clone!
+//! A GPT-powered calorie counter.
 
 use anyhow::Result;
 use axum::{middleware::from_fn, Router};
@@ -25,10 +25,6 @@ mod pw;
 mod routes;
 mod session;
 
-/// The Notion Clone entrypoint. Note that I envision this binary some day
-/// becoming a CLI to support the prod backfill operations from our propval
-/// system. See also [DESIGN.md on
-/// GitHub](https://github.com/jdevries3133/nc/blob/main/DESIGN.md#page-props-can-backfill-the-database).
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();

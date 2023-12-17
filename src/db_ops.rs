@@ -27,19 +27,6 @@ pub async fn create_pg_pool() -> Result<sqlx::Pool<sqlx::Postgres>> {
         .await?)
 }
 
-/// Note that in this starter repo, this trait only has one implementer;
-/// `models::User`. This trait also doesn't really make much sense for the
-/// user model, though it does make sense for other object types.
-///
-/// Notet that this trait as it is definitely has some issues.
-///
-/// - methods receive [sqlx::postgres::PgPool] as inputs, so we can't use
-///   operations within transaction isolation because we can't pass transactions
-///   to them.
-/// - we're not passing any `user_id` or other authorization info into database
-///   operations. I actually never got to the point of adding authorization into
-///   my Notion clone, so this is something that would certainly needed to be
-///   added.
 #[async_trait]
 pub trait DbModel<GetQuery, ListQuery>: Sync + Send {
     /// Get exactly one object from the database, matching the query. WIll
