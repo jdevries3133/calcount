@@ -66,12 +66,11 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
         if let Some(created_time) =
             NaiveDateTime::from_timestamp_opt(session.created_at, 0)
         {
-            if Local::now()
+            let token_age_days = Local::now()
                 .naive_local()
                 .signed_duration_since(created_time)
-                .num_days()
-                < config::SESSION_EXPIRY_TIME_DAYS
-            {
+                .num_days();
+            if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
                 let path = request.uri().path();
                 let method = request.method().as_str();
                 let username = session.user.username;
@@ -79,7 +78,7 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
                 next.run(request).await
             } else {
                 let username = session.user.username;
-                println!("{username} has an expired token");
+                println!("{username} has an expired token (created at {created_time}, is {token_age_days} days old)");
                 Redirect::to(&Route::Login.to_string()).into_response()
             }
         } else {
