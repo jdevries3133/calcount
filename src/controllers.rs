@@ -1,7 +1,7 @@
 use super::{
     auth, client_events, components, components::Component, count_chat, db_ops,
-    errors::ServerError, htmx, metrics, models::AppState, pw, routes::Route,
-    session, session::Session,
+    errors::ServerError, htmx, metrics, models::AppState,
+    preferences::UserPreference, pw, routes::Route, session, session::Session,
 };
 use anyhow::Result;
 use axum::{
@@ -76,11 +76,12 @@ pub async fn user_home(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
-    let Session { user, .. } =
-        Session::from_headers_err(&headers, "user home")?;
+    let Session {
+        user, preferences, ..
+    } = Session::from_headers_err(&headers, "user home")?;
     let (macros, meals) = join![
-        metrics::get_macros(&db, &user),
-        count_chat::get_meals(&db, user.id),
+        metrics::get_macros(&db, &user, &preferences),
+        count_chat::get_meals(&db, user.id, &preferences),
     ];
     let macros = macros?;
     let meals = meals?;
@@ -88,6 +89,7 @@ pub async fn user_home(
         user: &user,
         meals: &meals,
         macros: &macros,
+        preferences,
     });
     let html = components::Page {
         title: "Home Page",
@@ -147,10 +149,11 @@ pub async fn handle_registration(
         .expect("today can fit in i64");
     let session = session::Session {
         user,
+        preferences: UserPreference::default(),
         created_at: now,
     };
     let headers = session.update_headers(headers);
-    let home = Route::UserHome(Some(&session.user.username)).as_string();
+    let home = Route::UserHome.as_string();
     let headers = htmx::redirect(headers, &home);
     Ok((headers, "OK".to_string()))
 }
@@ -161,21 +164,17 @@ pub async fn get_login_form(headers: HeaderMap) -> impl IntoResponse {
 
     let response_headers = HeaderMap::new();
     if headers.contains_key("Hx-Request") {
-        if let Some(session) = session {
-            let response_headers = htmx::redirect(
-                response_headers,
-                &Route::UserHome(Some(&session.user.username)).as_string(),
-            );
+        if session.is_some() {
+            let response_headers =
+                htmx::redirect(response_headers, &Route::UserHome.as_string());
             (response_headers, "OK").into_response()
         } else {
             (response_headers, form.render()).into_response()
         }
-    } else if let Some(session) = session {
+    } else if session.is_some() {
         (
             response_headers,
-            Redirect::temporary(
-                &Route::UserHome(Some(&session.user.username)).as_string(),
-            ),
+            Redirect::temporary(&Route::UserHome.as_string()),
         )
             .into_response()
     } else {
@@ -206,8 +205,7 @@ pub async fn handle_login(
         auth::authenticate(&db, &form.identifier, &form.password).await;
     let headers = HeaderMap::new();
     if let Ok(session) = session {
-        let homepage =
-            Route::UserHome(Some(&session.user.username)).as_string();
+        let homepage = Route::UserHome.as_string();
         let headers = session.update_headers(headers);
         let headers = htmx::redirect(headers, &homepage);
         Ok((headers, "OK".to_string()))

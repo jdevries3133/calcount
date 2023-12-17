@@ -22,6 +22,7 @@ pub struct MealInfo {
 
 pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
+    pub user_timezone: Tz,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
@@ -43,7 +44,7 @@ impl Component for Chat<'_> {
                 if !found_meal_before_today
                     && is_before_today(
                         &meal.info.created_at,
-                        chrono_tz::US::Eastern,
+                        self.user_timezone,
                     )
                     && i != self.meals.len()
                 {
@@ -66,6 +67,7 @@ impl Component for Chat<'_> {
                         info: &meal.info,
                         meal_id: Some(meal.id),
                         actions: None,
+                        user_timezone: self.user_timezone,
                     }
                     .render(),
                 );
@@ -148,21 +150,11 @@ impl Component for NewMealOptions<'_> {
     }
 }
 
-impl Component for MealInfo {
-    fn render(&self) -> String {
-        MealCard {
-            info: self,
-            meal_id: None,
-            actions: Some(&NewMealOptions { info: self }),
-        }
-        .render()
-    }
-}
-
 pub struct MealCard<'a> {
     pub info: &'a MealInfo,
     pub meal_id: Option<i32>,
     pub actions: Option<&'a dyn Component>,
+    pub user_timezone: Tz,
 }
 impl Component for MealCard<'_> {
     fn render(&self) -> String {
@@ -191,7 +183,7 @@ impl Component for MealCard<'_> {
         };
         let background_style = if is_before_today(
             &self.info.created_at,
-            Tz::US__Eastern,
+            self.user_timezone,
         ) {
             "border-4 border-black"
         } else {
@@ -253,14 +245,22 @@ pub struct ChatPayload {
 const SYSTEM_MSG: &str = "I am overweight, and I've been trying to lose weight for a long time. My biggest problem is counting calories, and understanding the macronutrients of the food I eat. As we both know, nutrition is a somewhat inexact science. A close answer to questions about calories has a lot of value to me, and as long as many answers over time are roughly correct on average, I can finally make progress in my weight loss journey. When I ask you about the food I eat, please provide a concise and concrete estimate of the amount of calories and macronutrient breakdown of the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat to ensure that I can parse your message using some simple regular expressions. Do not, for example, identify the macros of a single portion and then provide the exact macros at the end. I'll probably get confused and ignore the second set of macros. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
 
 pub async fn handle_chat(
+    headers: HeaderMap,
     Form(ChatPayload { chat }): Form<ChatPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "handle chat")?;
     let mut msg = String::from("The meal I'd like a calorie estimate for is ");
     msg.push_str(&chat);
     let response = OpenAI::from_env()?.send_message(SYSTEM_MSG.into(), msg)?;
     let parse_result = MealInfo::parse(&response, &chat);
     match parse_result {
-        ParserResult::Ok(meal) => Ok(meal.render()),
+        ParserResult::Ok(meal) => Ok(MealCard {
+            info: &meal,
+            meal_id: None,
+            actions: Some(&NewMealOptions { info: &meal }),
+            user_timezone: session.preferences.timezone,
+        }
+        .render()),
         ParserResult::FollowUp(msg) => {
             let msg = clean(&msg.parsing_error);
             Ok(CannotParse {
@@ -276,15 +276,21 @@ pub async fn chat_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
-    let session = Session::from_headers(&headers)
-        .ok_or_else(|| ServerError::forbidden("chat form"))?;
-    let meals = get_meals(&db, session.user.id).await?;
-    let chat = Chat { meals: &meals };
+    let session = Session::from_headers_err(&headers, "chat form")?;
+    let meals = get_meals(&db, session.user.id, &session.preferences).await?;
+    let chat = Chat {
+        meals: &meals,
+        user_timezone: session.preferences.timezone,
+    };
     let content = chat.render();
     Ok(content)
 }
 
-pub async fn get_meals(db: &PgPool, user_id: i32) -> Aresult<Vec<Meal>> {
+pub async fn get_meals<'a>(
+    db: &PgPool,
+    user_id: i32,
+    _user_preferences: &'a UserPreference,
+) -> Aresult<Vec<Meal>> {
     struct Qres {
         id: i32,
         meal_name: String,
@@ -349,6 +355,13 @@ pub async fn handle_save_meal(
     .execute(&db)
     .await?;
     let response_headers = client_events::reload_macros(HeaderMap::new());
-    let meals = get_meals(&db, session.user.id).await?;
-    Ok((response_headers, Chat { meals: &meals }.render()))
+    let meals = get_meals(&db, session.user.id, &session.preferences).await?;
+    Ok((
+        response_headers,
+        Chat {
+            meals: &meals,
+            user_timezone: session.preferences.timezone,
+        }
+        .render(),
+    ))
 }

@@ -1,7 +1,7 @@
 //! All possible routes with their params are defined in a big enum.
 
-use super::{controllers, count_chat, metrics, models};
-use axum::routing::{delete, get, post, Router};
+use super::{controllers, count_chat, metrics, models, preferences};
+use axum::routing::{any, delete, get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
 /// solves several problems.
@@ -19,47 +19,44 @@ use axum::routing::{delete, get, post, Router};
 /// For each route, the parameters are inside an Option<T>. If no parameters
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
-pub enum Route<'a> {
-    HandleChat,
+pub enum Route {
     ChatForm,
-    SaveMeal,
     DeleteMeal(Option<i32>),
-
     DisplayMacros,
-
-    UserHome(Option<&'a str>),
-    Root,
+    HandleChat,
+    Htmx,
+    Login,
     Ping,
     Register,
-    Login,
-    Htmx,
+    Root,
+    SaveMeal,
+    UserHome,
+    UserPreferences,
 }
 
-impl Route<'_> {
+impl Route {
     pub fn as_string(&self) -> String {
         match self {
-            Self::HandleChat => "/chat".into(),
             Self::ChatForm => "/chat-form".into(),
-            Self::SaveMeal => "/save-meal".into(),
             Self::DeleteMeal(slug) => match slug {
                 Some(value) => format!("/delete-meal/{value}"),
                 None => "/delete-meal/:id".into(),
             },
             Self::DisplayMacros => "/metrics/macros".into(),
-            Self::UserHome(slug) => match slug {
-                Some(value) => format!("/home/{value}"),
-                None => "/home/:slug".into(),
-            },
-            Self::Root => "/".into(),
+            Self::HandleChat => "/chat".into(),
+            Self::Htmx => "/static/htmx-1.9.9".into(),
+            Self::Login => "/authentication/login".into(),
             Self::Ping => "/ping".into(),
             Self::Register => "/authentication/register".into(),
-            Self::Login => "/authentication/login".into(),
-            Self::Htmx => "/static/htmx-1.9.9".into(),
+            Self::Root => "/".into(),
+            Self::SaveMeal => "/save-meal".into(),
+            Self::UserHome => "/home/".into(),
+            Self::UserPreferences => "/preferences".into(),
         }
     }
 }
 
-impl std::fmt::Display for Route<'_> {
+impl std::fmt::Display for Route {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_string())
     }
@@ -71,10 +68,7 @@ impl std::fmt::Display for Route<'_> {
 /// are called.
 pub fn get_protected_routes() -> Router<models::AppState> {
     Router::new()
-        .route(
-            &Route::UserHome(None).as_string(),
-            get(controllers::user_home),
-        )
+        .route(&Route::UserHome.as_string(), get(controllers::user_home))
         .route(
             &Route::HandleChat.as_string(),
             post(count_chat::handle_chat),
@@ -91,6 +85,10 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(
             &Route::DisplayMacros.as_string(),
             get(metrics::display_macros),
+        )
+        .route(
+            &Route::UserPreferences.as_string(),
+            any(preferences::user_preference_controller),
         )
 }
 

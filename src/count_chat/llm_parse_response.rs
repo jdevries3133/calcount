@@ -153,7 +153,7 @@ mod test {
     fn test_other_filler_words() {
         let result = MealInfo::parse(
             "100-200 calories, 10g in fat, 11g in total protein, 12g of total carbs",
-            "name"
+            "name",
         );
         match result {
             ParserResult::Ok(meal) => {
@@ -244,7 +244,7 @@ mod test {
     fn real_world_ex_1() {
         let result = MealInfo::parse(
             "Chex Mix usually contains around 120 calories, 2 grams of protein, 15 grams of carbohydrates, and 6 grams of fat per 1/2 cup serving.",
-            "name"
+            "name",
         );
         match result {
             ParserResult::Ok(meal) => {

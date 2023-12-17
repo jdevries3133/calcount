@@ -2,7 +2,10 @@
 //! Auth will authenticate users by fetching user info from the database and
 //! authenticating a user with the provided credentials.
 
-use super::{db_ops, db_ops::DbModel, models, pw, session};
+use super::{
+    db_ops, db_ops::DbModel, models, preferences::get_user_preference, pw,
+    session,
+};
 use anyhow::{bail, Result};
 use sqlx::{postgres::PgPool, query_as};
 
@@ -27,6 +30,7 @@ pub async fn authenticate(
         },
     )
     .await?;
+    let preferences = get_user_preference(db, &user).await?.unwrap_or_default();
     // This is kept out of the `User` model because I don't want to leak
     // password digests in autnentication tokens. The entire User object is
     // serialized into the user's session token, which is signed but not
@@ -47,6 +51,7 @@ pub async fn authenticate(
             .expect("today can fit into i64");
         Ok(session::Session {
             user,
+            preferences,
             created_at: now,
         })
     } else {

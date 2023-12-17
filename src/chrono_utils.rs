@@ -4,6 +4,8 @@ use std::time::Duration;
 
 /// Check if `time` is yesterday or before.
 pub fn is_before_today(datetime: &DateTime<Utc>, user_timezone: Tz) -> bool {
+    dbg!(datetime);
+    dbg!(user_timezone);
     let local_dt = datetime.with_timezone(&user_timezone);
     let date = local_dt.date_naive();
     let yesterday = (Utc::now() - Duration::from_secs(60 * 60 * 24))

@@ -4,11 +4,12 @@ pub use crate::{
     components::Component,
     errors::ServerError,
     models::{AppState, User},
+    preferences::UserPreference,
     routes::Route,
     session::Session,
 };
 pub use ammonia::clean;
-pub use anyhow::Result as Aresult;
+pub use anyhow::{Error, Result as Aresult};
 pub use axum::{
     extract::{Form, State},
     headers::HeaderMap,

@@ -46,9 +46,25 @@ impl Component for MacroPlaceholder {
     }
 }
 
-pub async fn get_macros(db: &PgPool, user: &User) -> Aresult<Macros> {
+/// Macros depend on the user's timezone, because we need to aggregate meals
+/// which happened "today," in the user's local timezone. At eactly midnight
+/// for the user, meals should rollover into the previous day, and they should
+/// get a clean slate for macros.
+pub async fn get_macros(
+    db: &PgPool,
+    user: &User,
+    user_preferences: &UserPreference,
+) -> Aresult<Macros> {
+    struct Qres {
+        calories: i32,
+        protein_grams: i32,
+        carbohydrates_grams: i32,
+        fat_grams: i32,
+        meal_name: String,
+        created_at: DateTime<Utc>,
+    }
     let result = query_as!(
-        MealInfo,
+        Qres,
         "select
             name meal_name,
             calories calories,
@@ -63,6 +79,14 @@ pub async fn get_macros(db: &PgPool, user: &User) -> Aresult<Macros> {
         ",
         user.id
     )
+    .map(|row| MealInfo {
+        calories: row.calories,
+        protein_grams: row.protein_grams,
+        fat_grams: row.fat_grams,
+        carbohydrates_grams: row.carbohydrates_grams,
+        meal_name: row.meal_name,
+        created_at: row.created_at,
+    })
     .fetch_all(db)
     .await?;
 
@@ -71,7 +95,7 @@ pub async fn get_macros(db: &PgPool, user: &User) -> Aresult<Macros> {
     // UTC days.
     Ok(result
         .iter()
-        .filter(|m| !is_before_today(&m.created_at, Tz::US__Eastern))
+        .filter(|m| !is_before_today(&m.created_at, user_preferences.timezone))
         .fold(Macros::default(), |mut macros, meal| {
             macros.calories += meal.calories;
             macros.carbohydrates_grams += meal.carbohydrates_grams;
@@ -86,7 +110,7 @@ pub async fn display_macros(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "display macros")?;
-    let macros = get_macros(&db, &session.user).await?;
+    let macros = get_macros(&db, &session.user, &session.preferences).await?;
     if macros.is_empty() {
         Ok(macros.render())
     } else {

@@ -1,5 +1,5 @@
 //! Cookie-based session, secured by a HMAC signature.
-use super::{crypto, errors::ServerError, models::User};
+use super::{crypto, errors::ServerError, models::User, preferences};
 use axum::headers::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use regex::Regex;
@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Session {
     pub user: User,
+    pub preferences: preferences::UserPreference,
     /// Unix seconds timestamp when the token was issued. I'll do token
     /// revocation later.
     pub created_at: i64,
@@ -124,12 +125,15 @@ mod tests {
                 username: "Jack".to_string(),
                 email: "jack@jack.com".to_string(),
             },
+            preferences: preferences::UserPreference {
+                timezone: chrono_tz::Tz::US__Samoa,
+            },
             created_at: 0,
         }
     }
 
     const SERIALIZED_SESSION: &str =
-    "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20ifSwiY3JlYXRlZF9hdCI6MH0:tTtL11Cqgbd3jzCWiPinY8oMJUi6TdqOHlhCIo+gyBk";
+    "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20ifSwicHJlZmVyZW5jZXMiOnsidGltZXpvbmUiOiJVUy9TYW1vYSJ9LCJjcmVhdGVkX2F0IjowfQ:XxIVBh+CfpnrVEFNFG2d4SYWCdiGHisuSLfORaTD/rw";
 
     #[test]
     fn test_serialize_session() {

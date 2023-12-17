@@ -19,6 +19,7 @@ mod htmx;
 mod metrics;
 mod middleware;
 mod models;
+mod preferences;
 mod prelude;
 mod pw;
 mod routes;

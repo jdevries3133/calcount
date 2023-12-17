@@ -17,6 +17,26 @@
     },
     "query": "insert into meal (user_id, name, calories, fat, protein, carbohydrates)\n        values ($1, $2, $3, $4, $5, $6)"
   },
+  "10b29475de0b4326534cede9d05c55067eb25d059a386766c720c3c54de08521": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timezone",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select timezone from user_preference\n        where user_id = $1"
+  },
   "1c477a851d4290c230462a5662eff60fa598661bd73824380eb43758099fbda8": {
     "describe": {
       "columns": [
@@ -208,6 +228,19 @@
       }
     },
     "query": "select id, username, email from users\n            where username = $1 or email = $1"
+  },
+  "d1a81c47116df8bd12f8e8936c93e8b921f36d28c377aa066899d57a626fabf1": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into user_preference\n        (user_id, timezone) values ($1, $2)\n        on conflict (user_id)\n        do update set timezone = $2"
   },
   "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e": {
     "describe": {
