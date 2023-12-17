@@ -1,8 +1,8 @@
 //! Axum middlewares, modeled as async functions.
 
-use super::{config, routes::Route, session};
+use super::{config, htmx, routes::Route, session};
 use axum::{
-    http::{HeaderValue, Request},
+    http::{HeaderMap, HeaderValue, Request},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
@@ -62,6 +62,18 @@ pub async fn html_headers<B>(request: Request<B>, next: Next<B>) -> Response {
 pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
     let headers = request.headers();
     let session = session::Session::from_headers(headers);
+
+    // We want to perform a htmx redirect with the Hx-Redirect header in
+    // addition to a regular browser redirect if the user is not authenticated.
+    // Otherwise, a hx-get request might visit an authenticated route and then
+    // receive the login form as a response, since htmx just follows the
+    // browser redirect to get the final content. It's a bit weird to click
+    // a button and have the login form pop up inline inside pages!!
+    let response_headers = || {
+        let h = HeaderMap::new();
+        htmx::redirect(h, &Route::Login.to_string())
+    };
+
     if let Some(session) = session {
         if let Some(created_time) =
             NaiveDateTime::from_timestamp_opt(session.created_at, 0)
@@ -79,12 +91,15 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
             } else {
                 let username = session.user.username;
                 println!("{username} has an expired token (created at {created_time}, is {token_age_days} days old)");
-                Redirect::to(&Route::Login.to_string()).into_response()
+                (response_headers(), Redirect::to(&Route::Login.to_string()))
+                    .into_response()
             }
         } else {
-            Redirect::to(&Route::Login.to_string()).into_response()
+            (response_headers(), Redirect::to(&Route::Login.to_string()))
+                .into_response()
         }
     } else {
-        Redirect::to(&Route::Login.to_string()).into_response()
+        (response_headers(), Redirect::to(&Route::Login.to_string()))
+            .into_response()
     }
 }
