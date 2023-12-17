@@ -31,7 +31,10 @@ pub enum Route {
     Root,
     SaveMeal,
     UserHome,
-    UserPreferences,
+    UserPreference,
+    /// Route which will return an empty string. This is mainly an HTMX utility
+    /// to allow a component to easily be swapped with nothing.
+    Void,
 }
 
 impl Route {
@@ -51,7 +54,8 @@ impl Route {
             Self::Root => "/".into(),
             Self::SaveMeal => "/save-meal".into(),
             Self::UserHome => "/home/".into(),
-            Self::UserPreferences => "/preferences".into(),
+            Self::UserPreference => "/preferences".into(),
+            Self::Void => "/void".into(),
         }
     }
 }
@@ -87,7 +91,7 @@ pub fn get_protected_routes() -> Router<models::AppState> {
             get(metrics::display_macros),
         )
         .route(
-            &Route::UserPreferences.as_string(),
+            &Route::UserPreference.as_string(),
             any(preferences::user_preference_controller),
         )
 }
@@ -109,4 +113,5 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(&Route::Login.as_string(), get(controllers::get_login_form))
         .route(&Route::Login.as_string(), post(controllers::handle_login))
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
+        .route(&Route::Void.as_string(), get(controllers::void))
 }

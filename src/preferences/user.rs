@@ -1,6 +1,9 @@
 //! User preferences
 
-use crate::{components::Page, prelude::*};
+use crate::{
+    components::{Page, Saved},
+    prelude::*,
+};
 use axum::http::Method;
 use chrono_tz::TZ_VARIANTS;
 use serde::Serialize;
@@ -28,11 +31,11 @@ impl Component for UserPreference {
             acc.push_str(&format!(r#"<option {selected} value="{tz_choice}">{tz_choice}</option>\n"#));
             acc
         });
-        let self_url = Route::UserPreferences;
+        let self_url = Route::UserPreference;
         let home = Route::UserHome;
         format!(
             r#"
-            <div class="flex items-center justify-center">
+            <div class="flex flex-col items-center justify-center">
                 <form
                     hx-post="{self_url}"
                     class="p-4 bg-slate-200 text-black rounded w-prose flex flex-col gap-2"
@@ -49,6 +52,25 @@ impl Component for UserPreference {
                             href="{home}">Go back</a>
                 </form>
             </div>
+            "#
+        )
+    }
+}
+
+struct SavedPreference {
+    preferences: UserPreference,
+}
+impl Component for SavedPreference {
+    fn render(&self) -> String {
+        let saved = Saved {
+            message: "User preferences saved",
+        }
+        .render();
+        let form = self.preferences.render();
+        format!(
+            r#"
+            {saved}
+            {form}
             "#
         )
     }
@@ -137,7 +159,10 @@ pub async fn user_preference_controller(
                 };
                 let response_headers =
                     new_session.update_headers(response_headers);
-                Ok((response_headers, pref.render()))
+                Ok((
+                    response_headers,
+                    SavedPreference { preferences: *pref }.render(),
+                ))
             }
             None => Err(ServerError::bad_request(
                 "form data is missing",

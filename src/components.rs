@@ -197,7 +197,7 @@ pub struct UserHome<'a> {
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
-        let preferences = Route::UserPreferences;
+        let preferences = Route::UserPreference;
         let username = clean(&self.user.username);
         let macros = if self.macros.is_empty() {
             self.macros.render()
@@ -219,6 +219,38 @@ impl Component for UserHome<'_> {
             {macros}
             {chat}
             "#
+        )
+    }
+}
+
+pub struct Saved<'a> {
+    pub message: &'a str,
+}
+impl Component for Saved<'_> {
+    fn render(&self) -> String {
+        let void = Route::Void;
+        let message = clean(self.message);
+        format!(
+            r##"
+            <div
+                hx-get="{void}"
+                hx-trigger="load delay:2s"
+                class="my-2"
+                >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline bg-green-800 p-2 rounded-full w-8 h-8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                {message}
+                <script>
+                    setTimeout(() => {{
+                        const iconElement = document.querySelector("#sort-icon");
+                        iconElement.classList.remove('text-black');
+                        iconElement.classList.remove('bg-yellow-100');
+                        htmx.trigger('body', 'toggle-sort-toolbar');
+                    }}, 2000);
+                </script>
+            </div>
+            "##
         )
     }
 }

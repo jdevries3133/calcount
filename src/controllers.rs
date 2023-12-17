@@ -236,3 +236,7 @@ pub async fn delete_meal(
     .await?;
     Ok((client_events::reload_macros(HeaderMap::new()), ""))
 }
+
+pub async fn void() -> &'static str {
+    ""
+}
