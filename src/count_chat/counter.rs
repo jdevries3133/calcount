@@ -2,21 +2,7 @@
 //! are colocated here).
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
-use crate::{
-    chrono_utils::is_before_today, client_events, components::Component,
-    errors::ServerError, models::AppState, routes::Route, session::Session,
-};
-use ammonia::clean;
-use anyhow::Result as AResult;
-use axum::{
-    extract::{Form, State},
-    headers::HeaderMap,
-    response::IntoResponse,
-};
-use chrono::prelude::*;
-use chrono_tz::Tz;
-use serde::Deserialize;
-use sqlx::{query, query_as, PgPool};
+use crate::{chrono_utils::is_before_today, client_events, prelude::*};
 
 #[derive(Debug)]
 pub struct Meal {
@@ -298,7 +284,7 @@ pub async fn chat_form(
     Ok(content)
 }
 
-pub async fn get_meals(db: &PgPool, user_id: i32) -> AResult<Vec<Meal>> {
+pub async fn get_meals(db: &PgPool, user_id: i32) -> Aresult<Vec<Meal>> {
     struct Qres {
         id: i32,
         meal_name: String,
