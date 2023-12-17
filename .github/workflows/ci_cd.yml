@@ -68,6 +68,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: terraform cache
+        uses: actions/cache@v3
+        with:
+          path: .terraform
+          key: ${{ hashFiles('.terraform.lock.hcl') }}-prod
+
       - name: setup kubectl
         run: |
           mkdir ~/.kube
