@@ -3,6 +3,7 @@
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{chrono_utils::is_before_today, client_events, prelude::*};
+use axum::extract::Query;
 use std::default::Default;
 
 #[derive(Debug)]
@@ -25,53 +26,21 @@ pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
     pub user_timezone: Tz,
     pub prompt: Option<&'a str>,
+    pub next_page: i64,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
         let handler = Route::HandleChat;
+        let meals = MealSet {
+            meals: &self.meals[..],
+            user_timezone: self.user_timezone,
+            next_page: self.next_page,
+        }
+        .render();
         let is_any_meal_during_today = self
             .meals
             .iter()
             .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
-        let mut found_meal_before_today = false;
-        let meals = self.meals.iter().enumerate().fold(
-            String::new(),
-            |mut acc, (i, meal)| {
-                if !found_meal_before_today
-                    && is_before_today(
-                        &meal.info.created_at,
-                        self.user_timezone,
-                    )
-                    && i != self.meals.len()
-                    && is_any_meal_during_today
-                {
-                    found_meal_before_today = true;
-                    acc.push_str(
-                        // Note: the 20rem width matches the width of
-                        // `MealCard`
-                        r#"
-                        <div class="w-[20rem] border-b-4 border-black">
-                        <p class="text-xs my-4 dark:text-black">
-                            Items after this line were input yesterday or
-                            before, and are not included in your daily totals
-                            at the top.
-                        </p>
-                    </div>
-                    "#,
-                    )
-                };
-                acc.push_str(
-                    &MealCard {
-                        info: &meal.info,
-                        meal_id: Some(meal.id),
-                        actions: None,
-                        user_timezone: self.user_timezone,
-                    }
-                    .render(),
-                );
-                acc
-            },
-        );
         let prompt = self.prompt.unwrap_or_default();
         let meal_header = if self.meals.is_empty() {
             ""
@@ -226,6 +195,68 @@ impl Component for MealCard<'_> {
     }
 }
 
+struct MealSet<'a> {
+    meals: &'a [Meal],
+    user_timezone: Tz,
+    next_page: i64,
+}
+impl Component for MealSet<'_> {
+    fn render(&self) -> String {
+        let mut found_meal_before_today = false;
+        let is_any_meal_during_today = self
+            .meals
+            .iter()
+            .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
+        let meals = self.meals.iter().enumerate().fold(
+            String::new(),
+            |mut acc, (i, meal)| {
+                if !found_meal_before_today
+                    && is_before_today(
+                        &meal.info.created_at,
+                        self.user_timezone,
+                    )
+                    && i != self.meals.len()
+                    && is_any_meal_during_today
+                {
+                    found_meal_before_today = true;
+                    acc.push_str(
+                        // Note: the 20rem width matches the width of
+                        // `MealCard`
+                        r#"
+                        <div class="w-[20rem] border-b-4 border-black">
+                        <p class="text-xs my-4 dark:text-black">
+                            Items after this line were input yesterday or
+                            before, and are not included in your daily totals
+                            at the top.
+                        </p>
+                    </div>
+                    "#,
+                    )
+                };
+                acc.push_str(
+                    &MealCard {
+                        info: &meal.info,
+                        meal_id: Some(meal.id),
+                        actions: None,
+                        user_timezone: self.user_timezone,
+                    }
+                    .render(),
+                );
+                acc
+            },
+        );
+
+        let next_page_href =
+            format!("{}?page={}", Route::ListMeals, self.next_page);
+        format!(
+            r#"
+            {meals}
+            <div hx-get="{next_page_href}" hx-trigger="revealed"></div>
+            "#
+        )
+    }
+}
+
 pub struct CannotParse<'a> {
     parser_msg: &'a str,
     llm_response: &'a str,
@@ -297,13 +328,20 @@ pub struct PrevPrompt {
     meal_name: String,
 }
 
+#[derive(Deserialize)]
+pub struct Pagination {
+    page: i64,
+}
+
 pub async fn chat_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
+    page: Option<Query<Pagination>>,
     prev_prompt: Option<Form<PrevPrompt>>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "chat form")?;
-    let meals = get_meals(&db, session.user.id, &session.preferences).await?;
+    let page = page.map_or(0, |p| p.page);
+    let meals = list_meals_op(&db, session.user.id, page).await?;
     let chat = Chat {
         meals: &meals,
         user_timezone: session.preferences.timezone,
@@ -311,16 +349,20 @@ pub async fn chat_form(
             Some(ref form) => Some(&form.meal_name),
             None => None,
         },
+        next_page: page + 1,
     };
     let content = chat.render();
     Ok(content)
 }
 
-pub async fn get_meals<'a>(
+pub async fn list_meals_op<'a>(
     db: &PgPool,
     user_id: i32,
-    _user_preferences: &'a UserPreference,
+    page: i64,
 ) -> Aresult<Vec<Meal>> {
+    let limit = 20;
+    let offset = limit * page;
+
     struct Qres {
         id: i32,
         meal_name: String,
@@ -343,8 +385,12 @@ pub async fn get_meals<'a>(
         from meal
         where user_id = $1
         order by created_at desc
+        limit $2
+        offset $3
         ",
-        user_id
+        user_id,
+        limit,
+        offset
     )
     .fetch_all(db)
     .await?;
@@ -385,14 +431,31 @@ pub async fn handle_save_meal(
     .execute(&db)
     .await?;
     let response_headers = client_events::reload_macros(HeaderMap::new());
-    let meals = get_meals(&db, session.user.id, &session.preferences).await?;
+    let meals = list_meals_op(&db, session.user.id, 0).await?;
     Ok((
         response_headers,
         Chat {
             meals: &meals,
             user_timezone: session.preferences.timezone,
             prompt: None,
+            next_page: 1,
         }
         .render(),
     ))
+}
+
+pub async fn list_meals(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+    Query(Pagination { page }): Query<Pagination>,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "list meals")?;
+    let meals = list_meals_op(&db, session.user.id, page).await?;
+
+    Ok(MealSet {
+        meals: &meals[..],
+        next_page: page + 1,
+        user_timezone: session.preferences.timezone,
+    }
+    .render())
 }

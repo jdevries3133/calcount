@@ -20,11 +20,14 @@ use axum::routing::{any, delete, get, post, Router};
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
 pub enum Route {
+    /// Route which will return an empty string. This is mainly an HTMX utility
+    /// to allow a component to easily be swapped with nothing.
     ChatForm,
     DeleteMeal(Option<i32>),
     DisplayMacros,
     HandleChat,
     Htmx,
+    ListMeals,
     Login,
     Ping,
     Register,
@@ -32,14 +35,13 @@ pub enum Route {
     SaveMeal,
     UserHome,
     UserPreference,
-    /// Route which will return an empty string. This is mainly an HTMX utility
-    /// to allow a component to easily be swapped with nothing.
     Void,
 }
 
 impl Route {
     pub fn as_string(&self) -> String {
         match self {
+            Self::ListMeals => "/list-meals".into(),
             Self::ChatForm => "/chat-form".into(),
             Self::DeleteMeal(slug) => match slug {
                 Some(value) => format!("/delete-meal/{value}"),
@@ -95,6 +97,7 @@ pub fn get_protected_routes() -> Router<models::AppState> {
             &Route::UserPreference.as_string(),
             any(preferences::user_preference_controller),
         )
+        .route(&Route::ListMeals.as_string(), get(count_chat::list_meals))
 }
 
 /// In [crate::main], these routes are not protected by any authentication, so

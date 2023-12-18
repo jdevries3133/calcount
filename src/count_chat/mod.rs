@@ -3,6 +3,6 @@ mod llm_parse_response;
 mod openai;
 
 pub use self::counter::{
-    chat_form, get_meals, handle_chat, handle_save_meal, Chat as ChatContainer,
-    Meal, MealInfo,
+    chat_form, handle_chat, handle_save_meal, list_meals, list_meals_op,
+    Chat as ChatContainer, Meal, MealInfo,
 };

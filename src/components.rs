@@ -208,6 +208,7 @@ impl Component for UserHome<'_> {
             meals: self.meals,
             user_timezone: self.preferences.timezone,
             prompt: None,
+            next_page: 1,
         }
         .render();
         format!(

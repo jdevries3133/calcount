@@ -81,7 +81,7 @@ pub async fn user_home(
     } = Session::from_headers_err(&headers, "user home")?;
     let (macros, meals) = join![
         metrics::get_macros(&db, &user, &preferences),
-        count_chat::get_meals(&db, user.id, &preferences),
+        count_chat::list_meals_op(&db, user.id, 0),
     ];
     let macros = macros?;
     let meals = meals?;
