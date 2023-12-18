@@ -1,6 +1,6 @@
 use super::{
-    auth, client_events, components, components::Component, count_chat, db_ops,
-    errors::ServerError, htmx, metrics, models::AppState,
+    auth, chrono_utils, client_events, components, components::Component,
+    count_chat, db_ops, errors::ServerError, htmx, metrics, models::AppState,
     preferences::UserPreference, pw, routes::Route, session, session::Session,
 };
 use anyhow::Result;
@@ -10,9 +10,10 @@ use axum::{
     response::{IntoResponse, Redirect},
     Form,
 };
+use chrono::{DateTime, Utc};
 use futures::join;
 use serde::Deserialize;
-use sqlx::query;
+use sqlx::{query, query_as};
 
 pub async fn root() -> impl IntoResponse {
     components::Page {
@@ -227,6 +228,17 @@ pub async fn delete_meal(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("delete meal"))?;
+    struct Qres {
+        created_at: DateTime<Utc>,
+    }
+    let Qres { created_at } = query_as!(
+        Qres,
+        "select created_at from meal where user_id = $1 and id = $2",
+        session.user.id,
+        id
+    )
+    .fetch_one(&db)
+    .await?;
     query!(
         "delete from meal where user_id = $1 and id = $2",
         session.user.id,
@@ -234,7 +246,15 @@ pub async fn delete_meal(
     )
     .execute(&db)
     .await?;
-    Ok((client_events::reload_macros(HeaderMap::new()), ""))
+    if !chrono_utils::is_before_today(&created_at, session.preferences.timezone)
+    {
+        Ok(
+            (client_events::reload_macros(HeaderMap::new()), "")
+                .into_response(),
+        )
+    } else {
+        Ok("".into_response())
+    }
 }
 
 pub async fn void() -> &'static str {

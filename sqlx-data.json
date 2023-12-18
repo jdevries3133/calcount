@@ -95,6 +95,27 @@
     },
     "query": "select timezone from user_preference\n        where user_id = $1"
   },
+  "14eae1fe6a09754b945207ee31e8fd73449ff163d206739c0f52693c587f4262": {
+    "describe": {
+      "columns": [
+        {
+          "name": "created_at",
+          "ordinal": 0,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "select created_at from meal where user_id = $1 and id = $2"
+  },
   "1c477a851d4290c230462a5662eff60fa598661bd73824380eb43758099fbda8": {
     "describe": {
       "columns": [
