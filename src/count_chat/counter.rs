@@ -50,7 +50,7 @@ impl Component for Chat<'_> {
             // through the container; weird browser behavior, weird fix.
             r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
                 dark:text-black text-xl font-bold">
-                Today's Items</h2>"#
+                Today's Food</h2>"#
         } else {
             r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
                 dark:text-black text-xl font-bold">
@@ -223,6 +223,9 @@ impl Component for MealSet<'_> {
                         // Note: the 20rem width matches the width of
                         // `MealCard`
                         r#"
+                        <h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
+                            dark:text-black text-xl font-bold">
+                            Previous Food</h2>
                         <div class="w-[20rem] border-b-4 border-black">
                         <p class="text-xs my-4 dark:text-black">
                             Items after this line were input yesterday or
