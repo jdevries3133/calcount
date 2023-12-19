@@ -32,6 +32,10 @@ variable "openai_api_key" {
   type = string
 }
 
+variable "stripe_api_key" {
+  type = string
+}
+
 resource "random_password" "secret_key" {
   length  = 48
   special = false
@@ -58,5 +62,6 @@ module "basic-deployment" {
   extra_env = {
     SESSION_SECRET = random_password.secret_key.result
     OPENAI_API_KEY = var.openai_api_key
+    STRIPE_API_KEY = var.stripe_api_key
   }
 }

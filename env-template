@@ -19,4 +19,4 @@ POSTGRES_HOST=localhost
 POSTGRES_PASSWORD=somepassword
 POSTGRES_DB=calcount
 OPENAI_API_KEY=<your api key goes here>
-REGISTRATION_KEY=blorp
+STRIPE_API_KEY=<your api key goes here>
