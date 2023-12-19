@@ -1,5 +1,29 @@
 {
   "db": "PostgreSQL",
+  "05c3ec4d518ae44fd85647d9f599bbd1fa323095e8c7b09edaaf30adecb29b1c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "insert into users (username, email, salt, digest, stripe_customer_id) values ($1, $2, $3, $4, $5)\n        returning id"
+  },
   "0dae0a824801783b7b121bc231c669e86ebaeab5621ea2d39eab8f38cc4bc502": {
     "describe": {
       "columns": [],
@@ -197,61 +221,6 @@
     },
     "query": "select key from registration_key"
   },
-  "70110c383b7af1407cf18775e6765b82504230e636ab7793e8b21de6924fff2e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "insert into users (username, email, salt, digest) values ($1, $2, $3, $4)\n        returning id"
-  },
-  "8fbb2f266c986f05be884dda779c30e2024fe49e7f8663a6373732628765c5cf": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "email",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "select id, username, email from users\n            where username = $1 or email = $1"
-  },
   "d1a81c47116df8bd12f8e8936c93e8b921f36d28c377aa066899d57a626fabf1": {
     "describe": {
       "columns": [],
@@ -290,5 +259,43 @@
       }
     },
     "query": "SELECT salt, digest FROM users WHERE id = $1"
+  },
+  "ec25adbd65f858084be8f2a68093ff9c12916790246fc5284995b8ac67956bb2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "stripe_customer_id",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select id, username, email, stripe_customer_id from users\n            where username = $1 or email = $1"
   }
 }

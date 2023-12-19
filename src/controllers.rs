@@ -2,6 +2,7 @@ use super::{
     auth, chrono_utils, client_events, components, components::Component,
     count_chat, db_ops, errors::ServerError, htmx, metrics, models::AppState,
     preferences::UserPreference, pw, routes::Route, session, session::Session,
+    stripe,
 };
 use anyhow::Result;
 use axum::{
@@ -141,8 +142,18 @@ pub async fn handle_registration(
         ));
     };
     let hashed_pw = pw::hash_new(&form.password);
-    let user =
-        db_ops::create_user(&db, form.username, form.email, &hashed_pw).await?;
+
+    let stripe_id =
+        stripe::create_customer(&form.username, &form.email).await?;
+
+    let user = db_ops::create_user(
+        &db,
+        form.username,
+        form.email,
+        &hashed_pw,
+        stripe_id,
+    )
+    .await?;
     let now: i64 = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()

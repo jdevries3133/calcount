@@ -70,7 +70,7 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
     async fn get(db: &PgPool, query: &GetUserQuery) -> Result<Self> {
         Ok(query_as!(
             Self,
-            "select id, username, email from users
+            "select id, username, email, stripe_customer_id from users
             where username = $1 or email = $1",
             query.identifier
         )
@@ -93,18 +93,20 @@ pub async fn create_user(
     username: String,
     email: String,
     pw: &pw::HashedPw,
+    stripe_customer_id: String,
 ) -> Result<models::User> {
     let id = query_as!(
         Id,
-        "insert into users (username, email, salt, digest) values ($1, $2, $3, $4)
+        "insert into users (username, email, salt, digest, stripe_customer_id) values ($1, $2, $3, $4, $5)
         returning id",
-        username, email, pw.salt, pw.digest
+        username, email, pw.salt, pw.digest, stripe_customer_id
     ).fetch_one(db).await?;
 
     Ok(models::User {
         id: id.id,
         username,
         email,
+        stripe_customer_id,
     })
 }
 

@@ -124,6 +124,7 @@ mod tests {
                 id: 1,
                 username: "Jack".to_string(),
                 email: "jack@jack.com".to_string(),
+                stripe_customer_id: "".to_string(),
             },
             preferences: preferences::UserPreference {
                 timezone: chrono_tz::Tz::US__Samoa,
@@ -133,7 +134,7 @@ mod tests {
     }
 
     const SERIALIZED_SESSION: &str =
-    "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20ifSwicHJlZmVyZW5jZXMiOnsidGltZXpvbmUiOiJVUy9TYW1vYSJ9LCJjcmVhdGVkX2F0IjowfQ:XxIVBh+CfpnrVEFNFG2d4SYWCdiGHisuSLfORaTD/rw";
+        "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIifSwicHJlZmVyZW5jZXMiOnsidGltZXpvbmUiOiJVUy9TYW1vYSJ9LCJjcmVhdGVkX2F0IjowfQ:oKc6GeVlc3knOV8HWHX2L7+hVZR93dVoVhJvCDthgJM";
 
     #[test]
     fn test_serialize_session() {
