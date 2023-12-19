@@ -114,6 +114,15 @@ prod-shell-db:
 		pod/db-postgresql-0 \
 		-- /bin/sh -c 'psql postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount'
 
+backup-prod:
+	kubectl exec \
+		-it \
+		-n calcount \
+		pod/db-postgresql-0 \
+		-- /bin/sh -c 'pg_dump postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount' \
+		> backup_$(shell date '+%m-%d-%Y').sql
+	mv backup* ~/Desktop/calcount_backups
+
 build-container: setup
 	pnpm run build
 	rustup target add x86_64-unknown-linux-musl
