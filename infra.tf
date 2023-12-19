@@ -2,7 +2,7 @@ terraform {
 
   backend "s3" {
     bucket = "my-sites-terraform-remote-state"
-    key    = "beancount-state"
+    key    = "calcount-state"
     region = "us-east-2"
   }
 
@@ -53,7 +53,7 @@ module "basic-deployment" {
 
   app_name  = "calcount"
   container = "jdevries3133/calcount:${data.external.git_describe.result.output}"
-  domain    = "beancount.bot"
+  domain    = "calcount.jackdevries.com"
 
   extra_env = {
     SESSION_SECRET = random_password.secret_key.result
