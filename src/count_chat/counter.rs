@@ -304,7 +304,9 @@ pub async fn handle_chat(
     let session = Session::from_headers_err(&headers, "handle chat")?;
     let mut msg = String::from("The meal I'd like a calorie estimate for is ");
     msg.push_str(&chat);
-    let response = OpenAI::from_env()?.send_message(SYSTEM_MSG.into(), msg)?;
+    let response = OpenAI::from_env()?
+        .send_message(SYSTEM_MSG.into(), msg)
+        .await?;
     let parse_result = MealInfo::parse(&response, &chat);
     match parse_result {
         ParserResult::Ok(meal) => Ok(MealCard {
