@@ -6,6 +6,8 @@ use crate::{chrono_utils::is_before_today, client_events, prelude::*};
 use axum::extract::Query;
 use std::default::Default;
 
+const MEAL_PAGE_SIZE: u8 = 20;
+
 #[derive(Debug)]
 pub struct Meal {
     id: i32,
@@ -249,12 +251,21 @@ impl Component for MealSet<'_> {
             },
         );
 
-        let next_page_href =
-            format!("{}?page={}", Route::ListMeals, self.next_page);
+        let page_usize: usize = MEAL_PAGE_SIZE.into();
+        let next_page_div = if meals.len() == page_usize {
+            let href = format!("{}?page={}", Route::ListMeals, self.next_page);
+            format!(
+                r#"
+                <div hx-get="{href}" hx-trigger="revealed"></div>
+                "#
+            )
+        } else {
+            "".into()
+        };
         format!(
             r#"
             {meals}
-            <div hx-get="{next_page_href}" hx-trigger="revealed"></div>
+            {next_page_div}
             "#
         )
     }
@@ -365,7 +376,7 @@ pub async fn list_meals_op<'a>(
     user_id: i32,
     page: i64,
 ) -> Aresult<Vec<Meal>> {
-    let limit = 20;
+    let limit: i64 = MEAL_PAGE_SIZE.into();
     let offset = limit * page;
 
     struct Qres {
