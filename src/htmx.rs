@@ -35,3 +35,31 @@ pub fn trigger_event(
     }
     headers
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_trigger_event() {
+        let headers = trigger_event(HeaderMap::new(), "test-event");
+        let header_val = headers
+            .get("Hx-Trigger")
+            .expect("we have a trigger header")
+            .to_str()
+            .expect("trigger header can be stringified");
+        assert_eq!(header_val, "test-event")
+    }
+
+    #[test]
+    fn test_trigger_event_with_multiple_events() {
+        let headers = trigger_event(HeaderMap::new(), "test-event");
+        let headers = trigger_event(headers, "second-test-event");
+        let header_val = headers
+            .get("Hx-Trigger")
+            .expect("we have a trigger header")
+            .to_str()
+            .expect("trigger header can be stringified");
+        assert_eq!(header_val, "test-event, second-test-event")
+    }
+}
