@@ -24,6 +24,7 @@ pub enum Route {
     /// to allow a component to easily be swapped with nothing.
     ChatForm,
     DeleteMeal(Option<i32>),
+    AddMealToToday(Option<i32>),
     DisplayMacros,
     HandleChat,
     Htmx,
@@ -46,6 +47,10 @@ impl Route {
             Self::DeleteMeal(slug) => match slug {
                 Some(value) => format!("/delete-meal/{value}"),
                 None => "/delete-meal/:id".into(),
+            },
+            Self::AddMealToToday(slug) => match slug {
+                Some(value) => format!("/add-meal-to-today/{value}"),
+                None => "/add-meal-to-today/:id".into(),
             },
             Self::DisplayMacros => "/metrics/macros".into(),
             Self::HandleChat => "/chat".into(),
@@ -88,6 +93,10 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(
             &Route::DeleteMeal(None).as_string(),
             delete(controllers::delete_meal),
+        )
+        .route(
+            &Route::AddMealToToday(None).as_string(),
+            post(controllers::add_meal_to_today),
         )
         .route(
             &Route::DisplayMacros.as_string(),

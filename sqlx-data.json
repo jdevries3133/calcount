@@ -221,6 +221,74 @@
     },
     "query": "select key from registration_key"
   },
+  "7ac64c0826a89e9d73c97d59caa22ff90d2c0ecd23546188365ab71811dee1bc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Text",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into meal (calories, protein, carbohydrates, fat, name, user_id)\n        values ($1, $2, $3, $4, $5, $6)"
+  },
+  "bd5b2a741b1fefc53879270f9524e11572fc62070e2710a4da1b5a5c9355eff7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "calories",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "protein_grams",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "carbohydrates_grams",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fat_grams",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "meal_name",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "select\n            calories,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fat fat_grams,\n            name meal_name,\n            created_at\n        from meal\n        where id = $1 and user_id = $2"
+  },
   "d1a81c47116df8bd12f8e8936c93e8b921f36d28c377aa066899d57a626fabf1": {
     "describe": {
       "columns": [],

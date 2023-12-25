@@ -269,6 +269,46 @@ pub async fn delete_meal(
     }
 }
 
+pub async fn add_meal_to_today(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<i32>,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "add meal to today")?;
+    let existing_meal = query_as!(
+        count_chat::MealInfo,
+        "select
+            calories,
+            protein protein_grams,
+            carbohydrates carbohydrates_grams,
+            fat fat_grams,
+            name meal_name,
+            created_at
+        from meal
+        where id = $1 and user_id = $2",
+        id,
+        session.user.id
+    )
+    .fetch_one(&db)
+    .await?;
+    query!(
+        "insert into meal (calories, protein, carbohydrates, fat, name, user_id)
+        values ($1, $2, $3, $4, $5, $6)",
+        existing_meal.calories,
+        existing_meal.protein_grams,
+        existing_meal.carbohydrates_grams,
+        existing_meal.fat_grams,
+        existing_meal.meal_name,
+        session.user.id
+    )
+    .execute(&db)
+    .await?;
+
+    let headers = client_events::reload_meals(HeaderMap::new());
+    let headers = client_events::reload_macros(headers);
+    Ok((headers, ""))
+}
+
 pub async fn void() -> &'static str {
     ""
 }

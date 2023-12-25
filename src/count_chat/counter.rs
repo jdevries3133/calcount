@@ -58,6 +58,7 @@ impl Component for Chat<'_> {
                 dark:text-black text-xl font-bold">
                 Previously Saved Items</h2>"#
         };
+        let refresh_meals_href = format!("{}?page=0", Route::ListMeals);
         format!(
             r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
@@ -89,7 +90,14 @@ impl Component for Chat<'_> {
                             class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
                         >
                             {meal_header}
+                            <div
+                                hx-get="{refresh_meals_href}"
+                                hx-swap="innerHTML"
+                                hx-trigger="reload-meals from:body"
+                                class="flex flex-col gap-2"
+                            >
                             {meals}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -144,6 +152,8 @@ pub struct MealCard<'a> {
 }
 impl Component for MealCard<'_> {
     fn render(&self) -> String {
+        let is_meal_before_today =
+            is_before_today(&self.info.created_at, self.user_timezone);
         let meal_name = clean(&self.info.meal_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
@@ -153,10 +163,33 @@ impl Component for MealCard<'_> {
             Some(action) => action.render(),
             None => match self.meal_id {
                 Some(id) => {
-                    let href = Route::DeleteMeal(Some(id));
+                    let delete_href = Route::DeleteMeal(Some(id));
+                    let add_to_today_button = if is_meal_before_today {
+                        let add_to_today_href = Route::AddMealToToday(Some(id));
+                        format!(
+                            r#"
+                            <button
+                                hx-post="{add_to_today_href}"
+                                hx-target="closest div[data-name='meal-card']"
+                                class="
+                                    align-self-right
+                                    bg-green-100
+                                    hover:bg-green-200
+                                    rounded
+                                    p-1
+                                ">
+                                Add to Today
+                            </button>
+                            "#
+                        )
+                    } else {
+                        "".into()
+                    };
                     format!(
-                        r#"<button
-                            hx-delete="{href}"
+                        r#"
+                        {add_to_today_button}
+                        <button
+                            hx-delete="{delete_href}"
                             hx-target="closest div[data-name='meal-card']"
                             class="align-self-right bg-red-100 hover:bg-red-200 rounded p-1"
                         >
@@ -167,10 +200,7 @@ impl Component for MealCard<'_> {
                 None => "".into(),
             },
         };
-        let background_style = if is_before_today(
-            &self.info.created_at,
-            self.user_timezone,
-        ) {
+        let background_style = if is_meal_before_today {
             "border-4 border-black"
         } else {
             "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
@@ -182,6 +212,7 @@ impl Component for MealCard<'_> {
                 {background_style}
                 "
                 data-name="meal-card"
+                hx-swap="outerHTML"
             >
                 <h1 class="text-2xl bold serif">{meal_name}</h1>
                 <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
@@ -256,7 +287,7 @@ impl Component for MealSet<'_> {
             let href = format!("{}?page={}", Route::ListMeals, self.next_page);
             format!(
                 r#"
-                <div hx-get="{href}" hx-trigger="revealed"></div>
+                <div hx-swap="outerHTML" hx-get="{href}" hx-trigger="revealed"></div>
                 "#
             )
         } else {
