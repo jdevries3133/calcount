@@ -252,7 +252,7 @@ impl Component for MealSet<'_> {
         );
 
         let page_usize: usize = MEAL_PAGE_SIZE.into();
-        let next_page_div = if meals.len() == page_usize {
+        let next_page_div = if self.meals.len() == page_usize {
             let href = format!("{}?page={}", Route::ListMeals, self.next_page);
             format!(
                 r#"
