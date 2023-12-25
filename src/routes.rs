@@ -55,7 +55,7 @@ impl Route {
             },
             Self::DisplayMacros => "/metrics/macros".into(),
             Self::HandleChat => "/chat".into(),
-            Self::Htmx => "/static/htmx-1.9.9".into(),
+            Self::Htmx => "/static/htmx-1.9.10".into(),
             Self::Login => "/authentication/login".into(),
             Self::Ping => "/ping".into(),
             Self::Register => "/authentication/register".into(),

@@ -2,6 +2,6 @@
 .env
 node_modules
 tailwind.generated.css
-src/htmx-1.9.9.vendor.js
+src/htmx-1.9.10.vendor.js
 .terraform
 notes.md

@@ -47,8 +47,8 @@ build: setup
 	cargo build --release
 
 setup:
-	[[ ! -f ./src/htmx-1.9.9.vendor.js ]] \
-		&& curl -L https://unpkg.com/htmx.org@1.9.9 > src/htmx-1.9.9.vendor.js \
+	[[ ! -f ./src/htmx-1.9.10.vendor.js ]] \
+		&& curl -L https://unpkg.com/htmx.org@1.9.10 > src/htmx-1.9.10.vendor.js \
 		|| true
 ifdef CI
 	npm i -g pnpm
