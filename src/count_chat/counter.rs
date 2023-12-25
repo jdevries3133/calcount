@@ -6,7 +6,7 @@ use crate::{chrono_utils::is_before_today, client_events, prelude::*};
 use axum::extract::Query;
 use std::default::Default;
 
-const MEAL_PAGE_SIZE: u8 = 20;
+const MEAL_PAGE_SIZE: u8 = 50;
 
 #[derive(Debug)]
 pub struct Meal {
