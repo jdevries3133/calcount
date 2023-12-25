@@ -22,7 +22,7 @@ pub enum SubscriptionTypes {
 impl SubscriptionTypes {
     pub fn as_int(&self) -> i32 {
         match self {
-            Self::Initializing => 2,
+            Self::Initializing => 1,
             Self::Basic => 2,
             Self::Free => 3,
             Self::Unsubscribed => 4,
