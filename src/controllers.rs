@@ -154,6 +154,7 @@ pub async fn handle_registration(
         form.email,
         &hashed_pw,
         stripe_id,
+        stripe::SubscriptionTypes::Initializing,
     )
     .await?;
     let now: i64 = std::time::SystemTime::now()

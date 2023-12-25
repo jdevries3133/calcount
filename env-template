@@ -20,3 +20,4 @@ POSTGRES_PASSWORD=somepassword
 POSTGRES_DB=calcount
 OPENAI_API_KEY=<your api key goes here>
 STRIPE_API_KEY=<your api key goes here>
+STRIPE_WEBHOOK_SIGNING_SECRET=<your secret goes here>

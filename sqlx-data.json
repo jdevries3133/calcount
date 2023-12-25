@@ -1,29 +1,5 @@
 {
   "db": "PostgreSQL",
-  "05c3ec4d518ae44fd85647d9f599bbd1fa323095e8c7b09edaaf30adecb29b1c": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar"
-        ]
-      }
-    },
-    "query": "insert into users (username, email, salt, digest, stripe_customer_id) values ($1, $2, $3, $4, $5)\n        returning id"
-  },
   "0dae0a824801783b7b121bc231c669e86ebaeab5621ea2d39eab8f38cc4bc502": {
     "describe": {
       "columns": [],
@@ -203,6 +179,19 @@
     },
     "query": "delete from meal where user_id = $1 and id = $2"
   },
+  "54d10572f4886df16a0d30c5ec06d7f5ddbd1ff52a4f7d8ef85a134242564937": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Bool"
+        ]
+      }
+    },
+    "query": "insert into audit_stripe_webhooks (payload, includes_usable_update)\n        values ($1, $2)\n        "
+  },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {
       "columns": [
@@ -237,6 +226,75 @@
       }
     },
     "query": "insert into meal (calories, protein, carbohydrates, fat, name, user_id)\n        values ($1, $2, $3, $4, $5, $6)"
+  },
+  "89c5a2355e11c6038f3bfeccd467e4ba118395b31963f3c7b82c190a3125d73f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into users\n        (\n            username,\n            email,\n            salt,\n            digest,\n            stripe_customer_id,\n            subscription_type_id\n        )\n         values ($1, $2, $3, $4, $5, $6)\n        returning id"
+  },
+  "b734bfa0b5eeeec1562038707a2adacda30a73ab9f92a4a9af47bcc633c77a79": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "stripe_customer_id",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "subscription_type_id",
+          "ordinal": 4,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select\n                id,\n                username,\n                email,\n                stripe_customer_id,\n                subscription_type_id\n            from users\n            where username = $1 or email = $1"
   },
   "bd5b2a741b1fefc53879270f9524e11572fc62070e2710a4da1b5a5c9355eff7": {
     "describe": {
@@ -302,6 +360,19 @@
     },
     "query": "insert into user_preference\n        (user_id, timezone) values ($1, $2)\n        on conflict (user_id)\n        do update set timezone = $2"
   },
+  "d316655f3cd158482e5f83c4e62246892091dbf55e74ca48bd7d892c1f3f1104": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "update users set subscription_type_id = $1\n        where stripe_customer_id = $2"
+  },
   "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e": {
     "describe": {
       "columns": [
@@ -327,43 +398,5 @@
       }
     },
     "query": "SELECT salt, digest FROM users WHERE id = $1"
-  },
-  "ec25adbd65f858084be8f2a68093ff9c12916790246fc5284995b8ac67956bb2": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "email",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "stripe_customer_id",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "select id, username, email, stripe_customer_id from users\n            where username = $1 or email = $1"
   }
 }

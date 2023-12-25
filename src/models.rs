@@ -1,5 +1,6 @@
 //! Core data-models for the application.
 
+use super::stripe;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
@@ -14,4 +15,5 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub stripe_customer_id: String,
+    pub stripe_subscription_type: stripe::SubscriptionTypes,
 }

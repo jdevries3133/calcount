@@ -1,6 +1,6 @@
 //! All possible routes with their params are defined in a big enum.
 
-use super::{controllers, count_chat, metrics, models, preferences};
+use super::{controllers, count_chat, metrics, models, preferences, stripe};
 use axum::routing::{any, delete, get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
@@ -37,6 +37,7 @@ pub enum Route {
     UserHome,
     UserPreference,
     Void,
+    StripeWehhook,
 }
 
 impl Route {
@@ -63,6 +64,7 @@ impl Route {
             Self::UserHome => "/home".into(),
             Self::UserPreference => "/preferences".into(),
             Self::Void => "/void".into(),
+            Self::StripeWehhook => "/stripe-webhook".into(),
         }
     }
 }
@@ -127,4 +129,8 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(&Route::Login.as_string(), post(controllers::handle_login))
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
         .route(&Route::Void.as_string(), get(controllers::void))
+        .route(
+            &Route::StripeWehhook.as_string(),
+            post(stripe::handle_stripe_webhook),
+        )
 }

@@ -459,6 +459,8 @@ dependencies = [
  "chrono-tz",
  "dotenvy",
  "futures",
+ "futures-util",
+ "hex",
  "hmac",
  "hyper",
  "markdown",
