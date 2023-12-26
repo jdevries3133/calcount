@@ -109,7 +109,7 @@ impl Component for Home {
         format!(
             r#"
             <div class="prose bg-slate-200 rounded p-2">
-                <h1>calcount</h1>
+                <h1>Bean Count</h1>
                 <a href="{register_route}">
                     <p>Click here to create an account use the app</p>
                 </a>

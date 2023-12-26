@@ -87,7 +87,7 @@ pub async fn create_billing_portal_session(
 ) -> Aresult<String> {
     let url = "https://api.stripe.com/v1/billing_portal/sessions";
     let secret_key = get_b64_encoded_token_from_env()?;
-    let return_url = "https://calcount.jackdevries.com/home";
+    let return_url = "https://beancount.bot/home";
     let request_payload = BillingPortalRequest {
         customer: stripe_customer_id.to_string(),
         return_url: return_url.to_string(),
