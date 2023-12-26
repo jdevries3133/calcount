@@ -9,6 +9,7 @@ use sha2::Sha256;
 use std::{collections::HashMap, env};
 
 const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
+const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOr53AaiRLwV5fg4KNbrcTx";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum SubscriptionTypes {
@@ -71,6 +72,7 @@ pub async fn create_customer(name: &str, email: &str) -> Aresult<String> {
 struct BillingPortalRequest {
     customer: String,
     return_url: String,
+    configuration: String,
 }
 
 #[derive(Deserialize)]
@@ -89,6 +91,7 @@ pub async fn create_billing_portal_session(
     let request_payload = BillingPortalRequest {
         customer: stripe_customer_id.to_string(),
         return_url: return_url.to_string(),
+        configuration: BILLING_PORTAL_CONFIGURATION_ID.to_string(),
     };
     let client = Client::new();
     let response = client
