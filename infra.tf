@@ -72,7 +72,7 @@ module "basic-deployment-beancount" {
 
   app_name  = "beancount"
   container = "jdevries3133/calcount:${data.external.git_describe.result.output}"
-  domain    = "beancount.bot"
+  domain    = "test-certs.jackdevries.com"
 
   extra_env = {
     SESSION_SECRET = random_password.secret_key.result
