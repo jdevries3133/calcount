@@ -57,22 +57,7 @@ module "basic-deployment" {
 
   app_name  = "calcount"
   container = "jdevries3133/calcount:${data.external.git_describe.result.output}"
-  domain    = "calcount.jackdevries.com"
-
-  extra_env = {
-    SESSION_SECRET = random_password.secret_key.result
-    OPENAI_API_KEY = var.openai_api_key
-    STRIPE_API_KEY = var.stripe_api_key
-  }
-}
-
-module "basic-deployment-beancount" {
-  source  = "jdevries3133/basic-deployment/kubernetes"
-  version = "3.0.2"
-
-  app_name  = "beancount"
-  container = "jdevries3133/calcount:${data.external.git_describe.result.output}"
-  domain    = "test-certs.jackdevries.com"
+  domain    = "beancount.bot"
 
   extra_env = {
     SESSION_SECRET = random_password.secret_key.result
