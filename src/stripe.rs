@@ -172,7 +172,6 @@ fn parse_update(stripe_garbage: &str) -> Option<StripeUpdate> {
             .data
             .iter()
             .any(|i| i.price.id == BASIC_PLAN_STRIPE_ID);
-        dbg!(&is_relevant);
         if is_relevant {
             let sub_ty = match subscription.data.object.status {
                 SubscriptionStatus::Active => SubscriptionTypes::Basic,
