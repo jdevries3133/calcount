@@ -62,13 +62,13 @@ pub async fn pong() -> impl IntoResponse {
 pub async fn get_htmx_js() -> impl IntoResponse {
     let mut headers = HeaderMap::new();
     headers.insert(
-        "content-type",
+        "Content-Type",
         HeaderValue::from_str("text/javascript")
             .expect("We can insert text/javascript headers"),
     );
     headers.insert(
-        "cache-control",
-        HeaderValue::from_str("Cache-Control: public, max-age=31536000")
+        "Cache-Control",
+        HeaderValue::from_str("public, max-age=31536000")
             .expect("we can set cache control header"),
     );
     (headers, include_str!("./htmx-1.9.10.vendor.js"))
