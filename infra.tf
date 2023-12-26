@@ -29,11 +29,13 @@ provider "helm" {
 }
 
 variable "openai_api_key" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 variable "stripe_api_key" {
-  type = string
+  type      = string
+  sensitive = true
 }
 
 resource "random_password" "secret_key" {

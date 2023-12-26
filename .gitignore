@@ -5,3 +5,4 @@ tailwind.generated.css
 src/htmx-1.9.10.vendor.js
 .terraform
 notes.md
+terraform.tfvars
