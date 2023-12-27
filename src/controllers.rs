@@ -1,7 +1,15 @@
 use super::{
-    auth, chrono_utils, client_events, components, components::Component,
-    count_chat, db_ops, errors::ServerError, htmx, metrics, models::AppState,
-    preferences::UserPreference, pw, routes::Route, session, session::Session,
+    auth, chrono_utils, client_events, components,
+    components::Component,
+    count_chat, db_ops,
+    errors::ServerError,
+    htmx, metrics,
+    models::AppState,
+    preferences::{save_user_preference, UserPreference},
+    pw,
+    routes::Route,
+    session,
+    session::Session,
     stripe,
 };
 use anyhow::Result;
@@ -12,6 +20,7 @@ use axum::{
     Form,
 };
 use chrono::{DateTime, Utc};
+use chrono_tz::Tz;
 use futures::join;
 use serde::Deserialize;
 use sqlx::{query, query_as};
@@ -122,6 +131,7 @@ pub struct RegisterForm {
     email: String,
     password: String,
     registration_key: String,
+    timezone: Tz,
 }
 
 pub async fn handle_registration(
@@ -157,6 +167,10 @@ pub async fn handle_registration(
         stripe::SubscriptionTypes::Initializing,
     )
     .await?;
+    let preferences = UserPreference {
+        timezone: form.timezone,
+    };
+    save_user_preference(&db, &user, &preferences).await?;
     let now: i64 = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
@@ -164,7 +178,7 @@ pub async fn handle_registration(
         .expect("today can fit in i64");
     let session = session::Session {
         user,
-        preferences: UserPreference::default(),
+        preferences,
         created_at: now,
     };
     let headers = session.update_headers(headers);

@@ -156,6 +156,11 @@ impl Component for RegisterForm {
                 <label for="password">Password</label>
                 <input autocomplete="current-password" type="password" id="password" name="password" />
                 <label for="registration_key">Registration Key</label>
+                <input type="hidden" value="" name="timezone" id="timezone" />
+                <script>
+                    const el = document.getElementById("timezone");
+                    el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                </script>
                 <p class="text-sm dark:text-slate-100">
                     A registration key from the developer is required to create
                     an account at this time.

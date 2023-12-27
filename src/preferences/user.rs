@@ -103,7 +103,7 @@ pub async fn get_user_preference(
     }
 }
 
-async fn save_user_preference(
+pub async fn save_user_preference(
     db: &PgPool,
     user: &User,
     preference: &UserPreference,
