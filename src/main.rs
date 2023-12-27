@@ -24,6 +24,7 @@ mod prelude;
 mod pw;
 mod routes;
 mod session;
+mod smtp;
 mod stripe;
 
 #[tokio::main]

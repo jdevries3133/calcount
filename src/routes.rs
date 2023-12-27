@@ -1,6 +1,8 @@
 //! All possible routes with their params are defined in a big enum.
 
-use super::{controllers, count_chat, metrics, models, preferences, stripe};
+use super::{
+    controllers, count_chat, metrics, models, preferences, pw, stripe,
+};
 use axum::routing::{any, delete, get, post, Router};
 
 /// This enum contains all of the route strings in the application. This
@@ -20,24 +22,26 @@ use axum::routing::{any, delete, get, post, Router};
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
 pub enum Route {
-    /// Route which will return an empty string. This is mainly an HTMX utility
-    /// to allow a component to easily be swapped with nothing.
+    AddMealToToday(Option<i32>),
     ChatForm,
     DeleteMeal(Option<i32>),
-    AddMealToToday(Option<i32>),
     DisplayMacros,
     HandleChat,
     Htmx,
     ListMeals,
     Login,
+    PasswordReset,
+    PasswordResetSecret(Option<String>),
     Ping,
     Register,
     Root,
     SaveMeal,
+    StripeWehhook,
     UserHome,
     UserPreference,
+    /// Route which will return an empty string. This is mainly an HTMX utility
+    /// to allow a component to easily be swapped with nothing.
     Void,
-    StripeWehhook,
 }
 
 impl Route {
@@ -57,6 +61,11 @@ impl Route {
             Self::HandleChat => "/chat".into(),
             Self::Htmx => "/static/htmx-1.9.10".into(),
             Self::Login => "/authentication/login".into(),
+            Self::PasswordReset => "/authentication/reset-password".into(),
+            Self::PasswordResetSecret(slug) => match slug {
+                Some(slug) => format!("/authentication/reset-password/{slug}"),
+                None => "/authentication/reset-password/:slug".into(),
+            },
             Self::Ping => "/ping".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
@@ -116,6 +125,22 @@ pub fn get_protected_routes() -> Router<models::AppState> {
 pub fn get_public_routes() -> Router<models::AppState> {
     Router::new()
         .route(&Route::Root.as_string(), get(controllers::root))
+        .route(
+            &Route::PasswordReset.as_string(),
+            get(pw::get_password_reset_request),
+        )
+        .route(
+            &Route::PasswordReset.as_string(),
+            post(pw::handle_pw_reset_request),
+        )
+        .route(
+            &Route::PasswordResetSecret(None).as_string(),
+            get(pw::get_password_reset_form),
+        )
+        .route(
+            &Route::PasswordResetSecret(None).as_string(),
+            post(pw::handle_password_reset),
+        )
         .route(&Route::Ping.as_string(), get(controllers::pong))
         .route(
             &Route::Register.as_string(),

@@ -179,6 +179,31 @@
     },
     "query": "delete from meal where user_id = $1 and id = $2"
   },
+  "375d5edd228b1196f0a4f39228eee4c127f1df6526f626dd143f5370ba8930ae": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into password_reset_link (user_id, slug) values ($1, $2)"
+  },
+  "48cbf05416b7c8cb95589c62b2983aea6ed5f5b1071d094ed6788f36bd7d0150": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "delete from password_reset_link where user_id = $1"
+  },
   "54d10572f4886df16a0d30c5ec06d7f5ddbd1ff52a4f7d8ef85a134242564937": {
     "describe": {
       "columns": [],
@@ -191,6 +216,18 @@
       }
     },
     "query": "insert into audit_stripe_webhooks (payload, includes_usable_update)\n        values ($1, $2)\n        "
+  },
+  "58f1f3b223bc3818b5657d17367e6f1fc6798db354d30f7cf90fd9e5e831684c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "delete from password_reset_link where slug = $1"
   },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {
@@ -226,6 +263,20 @@
       }
     },
     "query": "insert into meal (calories, protein, carbohydrates, fat, name, user_id)\n        values ($1, $2, $3, $4, $5, $6)"
+  },
+  "7e1bbd30da996015a167adbfd229ee1d9192e36788cbb7f7bbf4d26698ac53e0": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      }
+    },
+    "query": "update users set salt = $1, digest = $2\n                    where id = $3"
   },
   "89c5a2355e11c6038f3bfeccd467e4ba118395b31963f3c7b82c190a3125d73f": {
     "describe": {
@@ -295,6 +346,26 @@
       }
     },
     "query": "select\n                id,\n                username,\n                email,\n                stripe_customer_id,\n                subscription_type_id\n            from users\n            where username = $1 or email = $1"
+  },
+  "ba3452c8eb32bc14739ee17e1ed1c69a34bbd25a5c58bf6b90df09f232f5a0f8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select id from users where email = $1"
   },
   "bd5b2a741b1fefc53879270f9524e11572fc62070e2710a4da1b5a5c9355eff7": {
     "describe": {
@@ -398,5 +469,43 @@
       }
     },
     "query": "SELECT salt, digest FROM users WHERE id = $1"
+  },
+  "ea7979eabc4809357b84ff50151b047d1869093d4f134968c9295ba416c25492": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "slug",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "username",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select\n            r.user_id user_id,\n            r.slug slug,\n            r.created_at created_at,\n            u.username username\n            from password_reset_link r\n        join users u on u.id = r.user_id\n        where slug = $1"
   }
 }

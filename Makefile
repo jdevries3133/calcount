@@ -125,7 +125,10 @@ backup-prod:
 build-container: setup
 	pnpm run build
 	rustup target add x86_64-unknown-linux-musl
-	cargo build --release --target x86_64-unknown-linux-musl
+	cargo build \
+		--release \
+		--target x86_64-unknown-linux-musl \
+		--features enable_smtp_email
 	docker buildx build --load --platform linux/amd64 -t $(CONTAINER_EXACT_REF) .
 
 # Run the above container locally, such that it can talk to the local

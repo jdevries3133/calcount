@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 live_reload = []
 use_stripe_test_instance = []
+enable_smtp_email = []
 
 [dependencies]
 ammonia = "3.3.0"
@@ -22,6 +23,7 @@ futures-util = "0.3.29"
 hex = "0.4.3"
 hmac = "0.12.1"
 hyper = "0.14.27"
+mail-send = "0.4.3"
 markdown = "1.0.0-alpha.12"
 regex = "1.9.1"
 reqwest = { version = "0.11.23", features = ["rustls-tls", "json"], default-features = false }

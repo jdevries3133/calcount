@@ -126,6 +126,7 @@ pub struct LoginForm;
 impl Component for LoginForm {
     fn render(&self) -> String {
         let login_route = Route::Login;
+        let password_reset = Route::PasswordReset;
         format!(
             r#"
             <form class="flex flex-col gap-2 max-w-md" hx-post="{login_route}">
@@ -134,7 +135,16 @@ impl Component for LoginForm {
                 <input type="text" id="identifier" name="identifier" />
                 <label for="passwored">Password</label>
                 <input autocomplete="current-password" type="password" id="password" name="password" />
-                <button class="dark:bg-slate-700 w-36 dark:text-white dark:hover:bg-slate-600 transition shadow hover:shadow-none rounded p-1 block">Log In</button>
+                <div class="flex gap-2">
+                    <button class="dark:bg-green-700 w-36 dark:text-white dark:hover:bg-green-600 transition shadow hover:shadow-none rounded p-1 block">
+                        Log In
+                    </button>
+                    <a href="{password_reset}">
+                        <button class="dark:bg-yellow-700 w-36 dark:text-white dark:hover:bg-yellow-600 transition shadow hover:shadow-none rounded p-1 block">
+                            Reset Password
+                        </button>
+                    </a>
+                </div>
             </form>
             "#
         )
