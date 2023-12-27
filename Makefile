@@ -68,7 +68,7 @@ endif
 dev: setup
 	npx concurrently --names 'tailwind,cargo' \
 		'pnpm run dev' \
-		"cargo watch -x 'run --features live_reload'"
+		"cargo watch -x 'run --features live_reload use_stripe_test_instance'"
 
 bootstrap: setup _stop-db
 	SQLX_OFFLINE=true cargo build

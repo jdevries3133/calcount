@@ -8,8 +8,15 @@ use serde_json::Value;
 use sha2::Sha256;
 use std::{collections::HashMap, env};
 
+#[cfg(use_stripe_test_instance)]
 const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
-const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOr53AaiRLwV5fg4KNbrcTx";
+#[cfg(use_stripe_test_instance)]
+const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOqe5AaiRLwV5fgrDmCz5xE";
+
+#[cfg(not(use_stripe_test_instance))]
+const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
+#[cfg(not(use_stripe_test_instance))]
+const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOqe5AaiRLwV5fgrDmCz5xE";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum SubscriptionTypes {

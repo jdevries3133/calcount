@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 live_reload = []
+use_stripe_test_instance = []
 
 [dependencies]
 ammonia = "3.3.0"
