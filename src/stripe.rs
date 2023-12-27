@@ -103,7 +103,7 @@ pub async fn create_billing_portal_session(
     if response.status().is_success() {
         Ok(response.json::<BillingPortalResponse>().await?.url)
     } else {
-        Err(Error::msg("request to create reigstration session failed"))
+        Err(Error::msg("request to create registration session failed"))
     }
 }
 
