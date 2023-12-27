@@ -134,11 +134,22 @@ build-container: setup
 # Run the above container locally, such that it can talk to the local
 # PostgreSQL database launched by `make _start-db`. We expect here that the
 # local database is already running and the container has already been built.
+#
+# Note: on macOS, you need to change the database host to "host.docker.internal"
+# to allow the container to talk to the local PostgreSQL instance running inside
+# Docker. On Linux, you can add the --net=host flag to the invocation of
+# `docker run` below, to make PostgreSQL at localhost:5432 visible to the
+# container.
 debug-container:
 	$(ENV) docker run \
 		-e RUST_BACKTRACE=1 \
 		-e DATABASE_URL="$$DATABASE_URL" \
 		-e SESSION_SECRET="$$SESSION_SECRET" \
+		-e OPENAI_API_KEY="$$OPENAI_API_KEY" \
+		-e STRIPE_API_KEY="$$STRIPE_API_KEY" \
+		-e STRIPE_WEBHOOK_SIGNING_SECRET="$$STRIPE_WEBHOOK_SIGNING_SECRET" \
+		-e SMTP_EMAIL_USERNAME="$$SMTP_EMAIL_USERNAME" \
+		-e SMTP_EMAIL_PASSWORD="$$SMTP_EMAIL_PASSWORD" \
 		-p 8000:8000 \
 		$(CONTAINER_EXACT_REF)
 

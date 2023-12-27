@@ -1,6 +1,10 @@
 use anyhow::Result;
+#[cfg(feature = "enable_smtp_email")]
+use mail_send::{mail_builder::MessageBuilder, SmtpClientBuilder};
+#[cfg(feature = "enable_smtp_email")]
+use std::env;
 
-#[cfg(enable_smtp_email)]
+#[cfg(feature = "enable_smtp_email")]
 /// Send a simple plain text email to a single recipient.
 pub async fn send_email(to: &str, subject: &str, msg: &str) -> Result<()> {
     // Build a simple multipart message
@@ -25,7 +29,7 @@ pub async fn send_email(to: &str, subject: &str, msg: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(enable_smtp_email))]
+#[cfg(not(feature = "enable_smtp_email"))]
 pub async fn send_email(to: &str, subject: &str, msg: &str) -> Result<()> {
     println!("Would send email:\n\tTo: {to}\n\tSubject: {subject}\n\tBody:\n{msg}\n===\n");
 
