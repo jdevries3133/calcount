@@ -204,6 +204,7 @@ impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let preferences = Route::UserPreference;
         let username = clean(&self.user.username);
+        let timezone = clean(&self.preferences.timezone.to_string());
         let macros = if self.macros.is_empty() {
             self.macros.render()
         } else {
@@ -220,9 +221,10 @@ impl Component for UserHome<'_> {
             r#"
             <div class="flex flex-col gap-2">
             <a href={preferences}>
-                <p class="text-black p-2 inline-block bg-blue-100 rounded-2xl">
-                    Hi, {username}!
-                </p>
+                <div class="text-black p-2 inline-block bg-blue-100 rounded-2xl">
+                    <p class="font-bold">Hi, {username}!</p>
+                    <p class="text-xs">Timezone: {timezone}</p>
+                </div>
             </a>
             {macros}
             {chat}
