@@ -15,7 +15,7 @@ use super::{
 use anyhow::Result;
 use axum::{
     extract::{Path, State},
-    http::{HeaderMap, HeaderValue},
+    http::{HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Redirect},
     Form,
 };
@@ -216,6 +216,15 @@ pub async fn get_login_form(headers: HeaderMap) -> impl IntoResponse {
         )
             .into_response()
     }
+}
+
+pub async fn logout() -> Result<impl IntoResponse, ServerError> {
+    let login = Route::Login;
+    let mut headers = HeaderMap::new();
+    headers.insert("Set-Cookie", HeaderValue::from_str("session=null")?);
+    headers.insert("Location", HeaderValue::from_str(&login.as_string())?);
+
+    Ok((StatusCode::FOUND, headers))
 }
 
 #[derive(Debug, Deserialize)]

@@ -213,6 +213,7 @@ pub struct UserHome<'a> {
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let preferences = Route::UserPreference;
+        let logout = Route::Logout;
         let username = clean(&self.user.username);
         let timezone = clean(&self.preferences.timezone.to_string());
         let macros = if self.macros.is_empty() {
@@ -230,14 +231,24 @@ impl Component for UserHome<'_> {
         format!(
             r#"
             <div class="flex flex-col gap-2">
-            <a href={preferences}>
-                <div class="text-black p-2 inline-block bg-blue-100 rounded-2xl">
-                    <p class="font-bold">Hi, {username}!</p>
-                    <p class="text-xs">Timezone: {timezone}</p>
+                <div class="self-start text-black p-2 bg-blue-100 rounded-2xl">
+                    <div class="flex mb-1 gap-2">
+                        <p class="font-bold">Hi, {username}!</p>
+                        <a class="inline" href="{logout}">
+                            <button style="margin-left: auto" class="text-xs p-1 bg-red-100 hover:bg-red-200 rounded-full">
+                                Log Out
+                            </button>
+                        </a>
+                        <a class="inline" href="{preferences}">
+                            <button style="margin-left: auto" class="text-xs p-1 bg-green-100 hover:bg-green-200 rounded-full">
+                                View Preferences
+                            </button>
+                        </a>
+                    </div>
+                    <p class="text-xs inline-block">Timezone: {timezone}</p>
                 </div>
-            </a>
-            {macros}
-            {chat}
+                {macros}
+                {chat}
             </div>
             "#
         )

@@ -30,6 +30,7 @@ pub enum Route {
     Htmx,
     ListMeals,
     Login,
+    Logout,
     PasswordReset,
     PasswordResetSecret(Option<String>),
     Ping,
@@ -61,6 +62,7 @@ impl Route {
             Self::HandleChat => "/chat".into(),
             Self::Htmx => "/static/htmx-1.9.10".into(),
             Self::Login => "/authentication/login".into(),
+            Self::Logout => "/authentication/logout".into(),
             Self::PasswordReset => "/authentication/reset-password".into(),
             Self::PasswordResetSecret(slug) => match slug {
                 Some(slug) => format!("/authentication/reset-password/{slug}"),
@@ -151,6 +153,7 @@ pub fn get_public_routes() -> Router<models::AppState> {
             post(controllers::handle_registration),
         )
         .route(&Route::Login.as_string(), get(controllers::get_login_form))
+        .route(&Route::Logout.as_string(), get(controllers::logout))
         .route(&Route::Login.as_string(), post(controllers::handle_login))
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
         .route(&Route::Void.as_string(), get(controllers::void))
