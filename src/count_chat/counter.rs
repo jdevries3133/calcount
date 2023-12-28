@@ -340,6 +340,7 @@ pub struct ChatPayload {
 const SYSTEM_MSG: &str = "I am overweight, and I've been trying to lose weight for a long time. My biggest problem is counting calories, and understanding the macronutrients of the food I eat. As we both know, nutrition is a somewhat inexact science. A close answer to questions about calories has a lot of value to me, and as long as many answers over time are roughly correct on average, I can finally make progress in my weight loss journey. When I ask you about the food I eat, please provide a concise and concrete estimate of the amount of calories and macronutrient breakdown of the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat to ensure that I can parse your message using some simple regular expressions. Do not, for example, identify the macros of a single portion and then provide the exact macros at the end. I'll probably get confused and ignore the second set of macros. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
 
 pub async fn handle_chat(
+    State(AppState { db }): State<AppState>,
     headers: HeaderMap,
     Form(ChatPayload { chat }): Form<ChatPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
@@ -349,7 +350,24 @@ pub async fn handle_chat(
     let response = OpenAI::from_env()?
         .send_message(SYSTEM_MSG.into(), msg)
         .await?;
-    let parse_result = MealInfo::parse(&response, &chat);
+    let Id { id } = query_as!(
+        Id,
+        "insert into openai_usage (prompt_tokens, completion_tokens, total_tokens)
+        values ($1, $2, $3)
+        returning id",
+        response.usage.prompt_tokens,
+        response.usage.completion_tokens,
+        response.usage.total_tokens
+    ).fetch_one(&db).await?;
+    query!(
+        "insert into openai_usage_user (usage_id, user_id) values ($1, $2)",
+        id,
+        session.user.id
+    )
+    .execute(&db)
+    .await?;
+
+    let parse_result = MealInfo::parse(&response.message, &chat);
     match parse_result {
         ParserResult::Ok(meal) => Ok(MealCard {
             info: &meal,
@@ -362,7 +380,7 @@ pub async fn handle_chat(
             let msg = clean(&msg.parsing_error);
             Ok(CannotParse {
                 parser_msg: &msg,
-                llm_response: &response,
+                llm_response: &response.message,
                 original_user_prompt: &chat,
             }
             .render())

@@ -17,3 +17,8 @@ pub struct User {
     pub stripe_customer_id: String,
     pub stripe_subscription_type: stripe::SubscriptionTypes,
 }
+
+/// Utility strct for a query returning only an ID
+pub struct Id {
+    pub id: i32,
+}

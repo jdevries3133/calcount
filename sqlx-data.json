@@ -303,6 +303,19 @@
     },
     "query": "insert into users\n        (\n            username,\n            email,\n            salt,\n            digest,\n            stripe_customer_id,\n            subscription_type_id\n        )\n         values ($1, $2, $3, $4, $5, $6)\n        returning id"
   },
+  "9558be18e38b36cad41c1612dd89b1c88ae818d9bff81936e39ce7baa2940ca6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into openai_usage_user (usage_id, user_id) values ($1, $2)"
+  },
   "b734bfa0b5eeeec1562038707a2adacda30a73ab9f92a4a9af47bcc633c77a79": {
     "describe": {
       "columns": [
@@ -366,6 +379,28 @@
       }
     },
     "query": "select id from users where email = $1"
+  },
+  "bbe2e7105fb1025d7b6f0ae6ca3c1275740e5c9e5b8c01fe809cd6afbac19b88": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into openai_usage (prompt_tokens, completion_tokens, total_tokens)\n        values ($1, $2, $3)\n        returning id"
   },
   "bd5b2a741b1fefc53879270f9524e11572fc62070e2710a4da1b5a5c9355eff7": {
     "describe": {

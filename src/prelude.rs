@@ -3,7 +3,7 @@
 pub use crate::{
     components::Component,
     errors::ServerError,
-    models::{AppState, User},
+    models::{AppState, Id, User},
     preferences::UserPreference,
     routes::Route,
     session::Session,

@@ -29,17 +29,30 @@ enum MessageRole {
 
 #[derive(Deserialize)]
 struct ChatCompletionResponse {
-    choices: Vec<Response>,
+    choices: Vec<ChatCompletionResponseMessage>,
+    usage: Usage,
 }
 
 #[derive(Deserialize)]
-struct Response {
-    message: ResponseMessage,
+pub struct Usage {
+    pub prompt_tokens: i32,
+    pub completion_tokens: i32,
+    pub total_tokens: i32,
 }
 
 #[derive(Deserialize)]
-struct ResponseMessage {
+struct ChatCompletionResponseMessage {
+    message: ChatCompletionResponseMessageContent,
+}
+
+#[derive(Deserialize)]
+struct ChatCompletionResponseMessageContent {
     content: Option<String>,
+}
+
+pub struct Response {
+    pub message: String,
+    pub usage: Usage,
 }
 
 impl OpenAI {
@@ -54,7 +67,7 @@ impl OpenAI {
         &self,
         system_msg: String,
         usr_msg: String,
-    ) -> Result<String> {
+    ) -> Result<Response> {
         let payload = ChatCompletionRequest {
             model: "gpt-3.5-turbo-1106".into(),
             messages: vec![
@@ -75,8 +88,12 @@ impl OpenAI {
             req.header("Authorization", format!("Bearer {}", self.api_key));
         let req = req.json(&payload);
         let res = req.send().await?;
-        let res: ChatCompletionResponse = res.json().await?;
+        let text = res.text().await?;
+        let mut res: ChatCompletionResponse = serde_json::from_str(&text)?;
 
-        Ok(res.choices[0].message.content.clone().unwrap_or("".into()))
+        Ok(Response {
+            message: res.choices[0].message.content.take().unwrap_or("".into()),
+            usage: res.usage,
+        })
     }
 }
