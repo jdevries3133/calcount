@@ -92,7 +92,47 @@ pub async fn get_favicon() -> impl IntoResponse {
         HeaderValue::from_str("image/x-icon")
             .expect("We can insert image/x-icon header"),
     );
-    (headers, include_bytes!("./favicon.ico"))
+    (headers, include_bytes!("./static/favicon.ico"))
+}
+
+fn png_controller(bytes: &'static [u8]) -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("image/png")
+            .expect("We can insert image/png header"),
+    );
+    (headers, bytes)
+}
+
+pub async fn get_tiny_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/icon-16x16.png"))
+}
+
+pub async fn get_small_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/icon-32x32.png"))
+}
+
+pub async fn get_medium_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/icon-192x192.png"))
+}
+
+pub async fn get_large_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/icon-512x512.png"))
+}
+
+pub async fn get_apple_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/apple-touch-icon.png"))
+}
+
+pub async fn get_manifest() -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("application/manifest+json")
+            .expect("We can insert application/manifest+json header"),
+    );
+    (headers, include_str!("./static/manifest.json"))
 }
 
 pub async fn user_home(

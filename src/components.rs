@@ -75,6 +75,8 @@ impl Component for Page<'_> {
         // both to happen together
         let tailwind = include_str!("./tailwind.generated.css");
         let htmx = Route::Htmx;
+        let apple_icon = Route::StaticAppleIcon;
+        let manifest = Route::StaticManifest;
         format!(
             r#"
             <html lang="en">
@@ -85,6 +87,8 @@ impl Component for Page<'_> {
                         {tailwind}
                     </style>
                     {LIVE_RELOAD_SCRIPT}
+                    <link rel="manifest" href="{manifest}" />
+                    <link rel="apple-touch-icon" href="{apple_icon}">
                 </head>
                 <body hx-boost="true" class="dark:bg-indigo-1000 dark:text-white">
                     {body_html}

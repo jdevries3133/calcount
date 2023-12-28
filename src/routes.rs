@@ -39,6 +39,12 @@ pub enum Route {
     Register,
     Root,
     SaveMeal,
+    StaticTinyIcon,
+    StaticSmallIcon,
+    StaticMediumIcon,
+    StaticLargeIcon,
+    StaticManifest,
+    StaticAppleIcon,
     StripeWehhook,
     UserHome,
     UserPreference,
@@ -82,6 +88,12 @@ impl Route {
             Self::Void => "/void".into(),
             Self::StripeWehhook => "/stripe-webhook".into(),
             Self::Favicon => "/favicon.ico".into(),
+            Self::StaticTinyIcon => "/static/xxs-icon".into(),
+            Self::StaticSmallIcon => "/static/xs-icon".into(),
+            Self::StaticMediumIcon => "/static/icon".into(),
+            Self::StaticLargeIcon => "/static/large-icon".into(),
+            Self::StaticManifest => "/static/manifest".into(),
+            Self::StaticAppleIcon => "/static/apple_icon".into(),
         }
     }
 }
@@ -182,4 +194,28 @@ pub fn get_public_routes() -> Router<models::AppState> {
             post(controllers::wait_list),
         )
         .route(&Route::Favicon.as_string(), get(controllers::get_favicon))
+        .route(
+            &Route::StaticTinyIcon.as_string(),
+            get(controllers::get_tiny_icon),
+        )
+        .route(
+            &Route::StaticSmallIcon.as_string(),
+            get(controllers::get_small_icon),
+        )
+        .route(
+            &Route::StaticMediumIcon.as_string(),
+            get(controllers::get_medium_icon),
+        )
+        .route(
+            &Route::StaticLargeIcon.as_string(),
+            get(controllers::get_large_icon),
+        )
+        .route(
+            &Route::StaticAppleIcon.as_string(),
+            get(controllers::get_apple_icon),
+        )
+        .route(
+            &Route::StaticManifest.as_string(),
+            get(controllers::get_manifest),
+        )
 }
