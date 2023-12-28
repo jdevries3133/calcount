@@ -34,7 +34,6 @@ pub enum Route {
     Logout,
     PasswordReset,
     PasswordResetSecret(Option<String>),
-    PublicChatDemo,
     Ping,
     Register,
     Root,
@@ -77,7 +76,6 @@ impl Route {
                 Some(slug) => format!("/authentication/reset-password/{slug}"),
                 None => "/authentication/reset-password/:slug".into(),
             },
-            Self::PublicChatDemo => "/chat-demo".into(),
             Self::Ping => "/ping".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
@@ -115,6 +113,8 @@ pub fn get_protected_routes() -> Router<models::AppState> {
             &Route::HandleChat.as_string(),
             post(count_chat::handle_chat),
         )
+        .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
+        .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
             &Route::SaveMeal.as_string(),
             post(count_chat::handle_save_meal),
@@ -176,18 +176,6 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(
             &Route::StripeWehhook.as_string(),
             post(stripe::handle_stripe_webhook),
-        )
-        .route(
-            &Route::ChatForm.as_string(),
-            get(count_chat::get_public_chat_form),
-        )
-        .route(
-            &Route::ChatForm.as_string(),
-            post(count_chat::get_public_chat_form),
-        )
-        .route(
-            &Route::PublicChatDemo.as_string(),
-            post(count_chat::handle_public_chat_demo),
         )
         .route(
             &Route::WaitlistSignup.as_string(),

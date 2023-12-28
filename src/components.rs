@@ -10,7 +10,6 @@ use super::{
     count_chat, metrics, models, preferences::UserPreference, routes::Route,
 };
 use ammonia::clean;
-use chrono_tz::Tz;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>
@@ -161,17 +160,6 @@ impl Component for Home {
             "".into()
         };
         let login_route = Route::Login;
-        let chat_demo = count_chat::ChatContainer {
-            meals: &vec![],
-            // See the docs for [chat_demo::handle_public_chat_demo] re the
-            // choice of this time zone for the demo.
-            user_timezone: Tz::US__Samoa,
-            prompt: None,
-            next_page: None,
-            post_handler: Route::PublicChatDemo,
-        }
-        .render();
-
         let waitlist_signup = Route::WaitlistSignup;
 
         format!(
@@ -208,7 +196,7 @@ impl Component for Home {
                 <div class="grid md:grid-cols-2 gap-3 max-w-[1200px]">
                     <div class="p-4 border-8 border-slate-800">
                         <h2 class="text-xl font-bold text-center">Try it Out</h2>
-                        {chat_demo}
+                        todo -- put chat demo here
                     </div>
                     <div class="p-4 border-8 border-slate-800">
                         <h2 class="text-xl text-center font-bold">Join the Wait List</h2>
@@ -406,8 +394,7 @@ impl Component for UserHome<'_> {
             meals: self.meals,
             user_timezone: self.preferences.timezone,
             prompt: None,
-            next_page: Some(1),
-            post_handler: Route::HandleChat,
+            next_page: 1,
         }
         .render();
         format!(
