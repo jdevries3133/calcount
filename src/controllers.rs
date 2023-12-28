@@ -400,12 +400,14 @@ pub async fn wait_list(
     State(AppState { db }): State<AppState>,
     Form(WaitListPayload { email }): Form<WaitListPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
-    query!(
-        "insert into wait_list values ($1) on conflict do nothing",
-        email
-    )
-    .execute(&db)
-    .await?;
+    if !email.is_empty() {
+        query!(
+            "insert into wait_list values ($1) on conflict do nothing",
+            email
+        )
+        .execute(&db)
+        .await?;
+    };
     Ok(r#"
         <p class="text-center text-slate-200">
             Email received; we will let you know when there is news to share!

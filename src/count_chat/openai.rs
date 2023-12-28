@@ -66,8 +66,11 @@ impl OpenAI {
     pub async fn send_message(
         &self,
         system_msg: String,
-        usr_msg: String,
+        meal_description: &str,
     ) -> Result<Response> {
+        let mut user_message =
+            String::from("The meal I'd like a calorie estimate for is ");
+        user_message.push_str(meal_description);
         let payload = ChatCompletionRequest {
             model: "gpt-3.5-turbo-1106".into(),
             messages: vec![
@@ -77,7 +80,7 @@ impl OpenAI {
                 },
                 ChatCompletionMessage {
                     role: MessageRole::user,
-                    content: usr_msg,
+                    content: user_message,
                 },
             ],
         };

@@ -28,6 +28,8 @@ pub enum Route {
     DisplayMacros,
     Favicon,
     HandleChat,
+    ChatDemo,
+    ChatDemoRetry,
     Htmx,
     ListMeals,
     Login,
@@ -68,6 +70,8 @@ impl Route {
             },
             Self::DisplayMacros => "/metrics/macros".into(),
             Self::HandleChat => "/chat".into(),
+            Self::ChatDemo => "/chat-demo".into(),
+            Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::Htmx => "/static/htmx-1.9.10".into(),
             Self::Login => "/authentication/login".into(),
             Self::Logout => "/authentication/logout".into(),
@@ -205,5 +209,14 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(
             &Route::StaticManifest.as_string(),
             get(controllers::get_manifest),
+        )
+        .route(
+            &Route::ChatDemo.as_string(),
+            post(count_chat::handle_demo_chat),
+        )
+        .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
+        .route(
+            &Route::ChatDemoRetry.as_string(),
+            post(count_chat::handle_retry),
         )
 }

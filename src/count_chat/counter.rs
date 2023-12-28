@@ -137,7 +137,11 @@ impl Component for ChatUI<'_> {
                                     name="chat"
                                     placeholder="I am eating..."
                                     value="{prompt}"
+                                    required
                                 />
+                                <button class="text-black bg-green-100 hover:bg-green-200 rounded p-2">
+                                    Count It
+                                </button>
                             </form>
                         </div>
                         {children}
@@ -345,13 +349,14 @@ impl Component for MealSet<'_> {
 }
 
 pub struct CannotParse<'a> {
-    parser_msg: &'a str,
-    llm_response: &'a str,
-    original_user_prompt: &'a str,
+    pub parser_msg: &'a str,
+    pub llm_response: &'a str,
+    pub original_user_prompt: &'a str,
+    pub retry_route: Route,
 }
 impl Component for CannotParse<'_> {
     fn render(&self) -> String {
-        let retry_route = Route::ChatForm;
+        let retry_route = &self.retry_route;
         let parser_msg = clean(self.parser_msg);
         let llm_response = clean(self.llm_response);
         let prompt = clean(self.original_user_prompt);
@@ -376,10 +381,10 @@ impl Component for CannotParse<'_> {
 
 #[derive(Deserialize)]
 pub struct ChatPayload {
-    chat: String,
+    pub chat: String,
 }
 
-const SYSTEM_MSG: &str = "I am overweight, and I've been trying to lose weight for a long time. My biggest problem is counting calories, and understanding the macronutrients of the food I eat. As we both know, nutrition is a somewhat inexact science. A close answer to questions about calories has a lot of value to me, and as long as many answers over time are roughly correct on average, I can finally make progress in my weight loss journey. When I ask you about the food I eat, please provide a concise and concrete estimate of the amount of calories and macronutrient breakdown of the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat to ensure that I can parse your message using some simple regular expressions. Do not, for example, identify the macros of a single portion and then provide the exact macros at the end. I'll probably get confused and ignore the second set of macros. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
+pub const SYSTEM_MSG: &str = "I am overweight, and I've been trying to lose weight for a long time. My biggest problem is counting calories, and understanding the macronutrients of the food I eat. As we both know, nutrition is a somewhat inexact science. A close answer to questions about calories has a lot of value to me, and as long as many answers over time are roughly correct on average, I can finally make progress in my weight loss journey. When I ask you about the food I eat, please provide a concise and concrete estimate of the amount of calories and macronutrient breakdown of the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat to ensure that I can parse your message using some simple regular expressions. Do not, for example, identify the macros of a single portion and then provide the exact macros at the end. I'll probably get confused and ignore the second set of macros. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
 
 pub async fn handle_chat(
     State(AppState { db }): State<AppState>,
@@ -387,10 +392,8 @@ pub async fn handle_chat(
     Form(ChatPayload { chat }): Form<ChatPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "handle chat")?;
-    let mut msg = String::from("The meal I'd like a calorie estimate for is ");
-    msg.push_str(&chat);
     let response = OpenAI::from_env()?
-        .send_message(SYSTEM_MSG.into(), msg)
+        .send_message(SYSTEM_MSG.into(), &chat)
         .await?;
     let Id { id } = query_as!(
         Id,
@@ -424,6 +427,7 @@ pub async fn handle_chat(
                 parser_msg: &msg,
                 llm_response: &response.message,
                 original_user_prompt: &chat,
+                retry_route: Route::ChatForm,
             }
             .render())
         }

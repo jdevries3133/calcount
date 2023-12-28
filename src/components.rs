@@ -10,6 +10,7 @@ use super::{
     count_chat, metrics, models, preferences::UserPreference, routes::Route,
 };
 use ammonia::clean;
+use rand::random;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>
@@ -161,6 +162,22 @@ impl Component for Home {
         };
         let login_route = Route::Login;
         let waitlist_signup = Route::WaitlistSignup;
+        let options = vec![
+            "5 second squeeze of honey",
+            "hummus on brioche bread",
+            "gigantic cheese burger",
+            "half a dunkin boston cream",
+            "3 handfuls of chex mix",
+            "a greasy cheese burger",
+            "a frozen chicken cutlet",
+            "really big diner breakfast (traditional American)",
+            "caesar salad & 10 stolen fries",
+        ];
+        let i = random::<usize>() % options.len();
+        let chat_demo = count_chat::ChatDemo {
+            prefill_prompt: Some(options[i]),
+        }
+        .render();
 
         format!(
             r#"
@@ -196,7 +213,13 @@ impl Component for Home {
                 <div class="grid md:grid-cols-2 gap-3 max-w-[1200px]">
                     <div class="p-4 border-8 border-slate-800">
                         <h2 class="text-xl font-bold text-center">Try it Out</h2>
-                        todo -- put chat demo here
+                        <p class="text-center text-sm max-w-md">
+                            With Bean Count, you can describe your food using
+                            natural language. Since you don't need to measure
+                            or lookup precise calorie information, calorie
+                            counting becomes easier than ever before!
+                        </p>
+                        {chat_demo}
                     </div>
                     <div class="p-4 border-8 border-slate-800">
                         <h2 class="text-xl text-center font-bold">Join the Wait List</h2>
@@ -211,6 +234,7 @@ impl Component for Home {
                                     name="email"
                                     id="email"
                                     placeholder="Your Email"
+                                    required
                                 />
                                 <button class="block bg-green-800
                                 hover:bg-green-700 p-2 rounded font-semibold">
@@ -218,6 +242,14 @@ impl Component for Home {
                                 </button>
                             </div>
                         </form>
+                        <p class="text-center text-xs">
+                            Join the waitlist to find out when we're ready
+                            for unrestricted sign-ups. These emails will
+                            never be shared with a 3rd party, and will only
+                            be used to provide important updates about this
+                            product, and you can be removed from this list
+                            at anytime.
+                        </p>
                     </div>
                 </div>
             </div>

@@ -35,7 +35,7 @@ impl Component for UserPreference {
         let home = Route::UserHome;
         format!(
             r#"
-            <div class="flex flex-col items-center justify-center">
+            <div class="flex flex-col items-center justify-center m-2 sm:m-4 md:m-8">
                 <form
                     hx-post="{self_url}"
                     class="p-4 bg-slate-200 text-black rounded w-prose flex flex-col gap-2"

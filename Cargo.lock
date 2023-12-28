@@ -504,6 +504,7 @@ dependencies = [
  "hyper",
  "mail-send",
  "markdown",
+ "rand",
  "regex",
  "reqwest",
  "rustls 0.21.10",
