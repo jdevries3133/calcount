@@ -220,7 +220,10 @@ pub async fn get_login_form(headers: HeaderMap) -> impl IntoResponse {
 pub async fn logout() -> Result<impl IntoResponse, ServerError> {
     let login = Route::Login;
     let mut headers = HeaderMap::new();
-    headers.insert("Set-Cookie", HeaderValue::from_str("session=null")?);
+    headers.insert(
+        "Set-Cookie",
+        HeaderValue::from_str("session=null; Path=/; HttpOnly")?,
+    );
     headers.insert("Location", HeaderValue::from_str(&login.as_string())?);
 
     Ok((StatusCode::FOUND, headers))
