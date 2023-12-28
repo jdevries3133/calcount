@@ -2,7 +2,7 @@
 //! are colocated here).
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
-use crate::{chrono_utils::is_before_today, client_events, prelude::*};
+use crate::{chrono_utils::is_before_today, client_events, config, prelude::*};
 use axum::extract::Query;
 use std::default::Default;
 
@@ -109,7 +109,7 @@ pub struct ChatUI<'a> {
 impl Component for ChatUI<'_> {
     fn render(&self) -> String {
         let handler = &self.post_request_handler;
-        let prompt = self.prefill_prompt.unwrap_or_default();
+        let prompt = clean(self.prefill_prompt.unwrap_or_default());
         let children = self.children.map_or("".to_string(), |c| c.render());
         format!(
             r#"
@@ -379,6 +379,25 @@ impl Component for CannotParse<'_> {
     }
 }
 
+pub struct InputTooLong;
+impl Component for InputTooLong {
+    fn render(&self) -> String {
+        let route = Route::ChatDemo;
+        format!(
+            r##"
+            <div class="prose">
+                <p>Input is too long; please try again.</p>
+                <button
+                    class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
+                    hx-get="{route}"
+                    hx-target="#cal-chat-container"
+                >Try Again</button>
+            </div>
+            "##
+        )
+    }
+}
+
 #[derive(Deserialize)]
 pub struct ChatPayload {
     pub chat: String,
@@ -391,6 +410,9 @@ pub async fn handle_chat(
     headers: HeaderMap,
     Form(ChatPayload { chat }): Form<ChatPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
+    if chat.len() > config::CHAT_MAX_LEN {
+        return Ok(InputTooLong {}.render());
+    }
     let session = Session::from_headers_err(&headers, "handle chat")?;
     let response = OpenAI::from_env()?
         .send_message(SYSTEM_MSG.into(), &chat)

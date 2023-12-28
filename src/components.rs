@@ -162,7 +162,7 @@ impl Component for Home {
         };
         let login_route = Route::Login;
         let waitlist_signup = Route::WaitlistSignup;
-        let options = vec![
+        let options = [
             "5 second squeeze of honey",
             "hummus on brioche bread",
             "gigantic cheese burger",
@@ -391,7 +391,7 @@ pub struct ExternalLink<'a> {
 impl Component for ExternalLink<'_> {
     fn render(&self) -> String {
         let children = self.children.render();
-        let href = self.href;
+        let href = clean(self.href);
         format!(
             r#"
             <a href={href}>

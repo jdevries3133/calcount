@@ -1,5 +1,5 @@
 use super::{counter, llm_parse_response, openai};
-use crate::prelude::*;
+use crate::{config, prelude::*};
 
 struct DemoMealOptions;
 impl Component for DemoMealOptions {
@@ -54,6 +54,9 @@ pub async fn handle_chat(
     State(AppState { db }): State<AppState>,
     Form(counter::ChatPayload { chat }): Form<counter::ChatPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
+    if chat.len() > config::CHAT_MAX_LEN {
+        return Ok(counter::InputTooLong {}.render());
+    };
     let response = openai::OpenAI::from_env()?
         .send_message(counter::SYSTEM_MSG.into(), &chat)
         .await?;

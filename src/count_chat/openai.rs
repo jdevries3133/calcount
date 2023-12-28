@@ -1,4 +1,5 @@
-use anyhow::Result;
+use crate::config;
+use anyhow::{Error, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -68,6 +69,9 @@ impl OpenAI {
         system_msg: String,
         meal_description: &str,
     ) -> Result<Response> {
+        if meal_description.len() > config::CHAT_MAX_LEN {
+            return Err(Error::msg("tried to send a chat which is too long"));
+        };
         let mut user_message =
             String::from("The meal I'd like a calorie estimate for is ");
         user_message.push_str(meal_description);
