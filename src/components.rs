@@ -10,6 +10,7 @@ use super::{
     count_chat, metrics, models, preferences::UserPreference, routes::Route,
 };
 use ammonia::clean;
+use chrono_tz::Tz;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>
@@ -85,7 +86,7 @@ impl Component for Page<'_> {
                     </style>
                     {LIVE_RELOAD_SCRIPT}
                 </head>
-                <body hx-boost="true" class="dark:bg-indigo-1000 dark:text-white mt-2 ml-2 sm:mt-8 sm:ml-8">
+                <body hx-boost="true" class="dark:bg-indigo-1000 dark:text-white">
                     {body_html}
                     <script src="{htmx}"></script>
                     <script>
@@ -101,22 +102,161 @@ impl Component for Page<'_> {
     }
 }
 
-pub struct Home;
+pub struct Home {
+    pub trial_accounts_remaining: i64,
+}
 impl Component for Home {
     fn render(&self) -> String {
-        let register_route = Route::Register;
+        let trial_acct_container = if self.trial_accounts_remaining > 0 {
+            let trial_accounts = TrialAccountCounter {
+                count_remaining: self.trial_accounts_remaining,
+            }
+            .render();
+            let register_route = Route::Register;
+            format!(
+                r#"
+                <div class="flex items-center justify-center my-12">
+                    <div
+                        class="bg-gradient-to-tr from-blue-300 to-indigo-300
+                        rounded-full p-12 text-black"
+                    >
+                        <h2 class="text-xl font-bold">Create a Trial Account</h2>
+                        <p class="italic text-sm">Limited availability;
+                        {trial_accounts}
+                        trial accounts remain!</p>
+                        <p>
+                            To create a 3 month free trial account, use
+                            registration code
+                            <span class="font-mono">"a-reddit-new-year"</span>.
+                        </p>
+                        <a href="{register_route}">
+                            <button
+                                class="
+                                    bg-gradient-to-tr
+                                    dark:from-blue-700
+                                    dark:to-indigo-700
+                                    from-blue-100
+                                    to-indigo-200
+                                    p-2
+                                    rounded
+                                    shadow-md
+                                    hover:shadow-sm
+                                    dark:shadow-purple-200
+                                    text-xl
+                                    font-extrabold
+                                    text-white
+                                    my-4
+                                "
+                            >Sign Up</button>
+                        </a>
+                    </div>
+                </div>
+                "#
+            )
+        } else {
+            "".into()
+        };
         let login_route = Route::Login;
+        let chat_demo = count_chat::ChatContainer {
+            meals: &vec![],
+            // See the docs for [chat_demo::handle_public_chat_demo] re the
+            // choice of this time zone for the demo.
+            user_timezone: Tz::US__Samoa,
+            prompt: None,
+            next_page: None,
+            post_handler: Route::PublicChatDemo,
+        }
+        .render();
+
+        let waitlist_signup = Route::WaitlistSignup;
+
         format!(
             r#"
-            <div class="prose bg-slate-200 rounded p-2">
-                <h1>Bean Count</h1>
-                <a href="{register_route}">
-                    <p>Click here to create an account use the app</p>
-                </a>
-                <a href="{login_route}">
-                    <p>Click here to login.</p>
-                </a>
+            <div class="text-slate-200 m-2 sm:m-4 md:m-8">
+            <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
+                &#127793; Bean Count &#129752;
+            </h1>
+            <div class="grid md:grid-cols-3 gap-24 justfiy-center m-12">
+                <div
+                    class="bg-blue-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Bean Count is an AI-powered  calorie counter, making calorie
+                    counting easy, effortless, and fun!
+                </div>
+                <div
+                    class="bg-indigo-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Use natural language to ask about food, and get back quick
+                    calorie estimates.
+                </div>
+                <div
+                    class="bg-purple-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Keep track of total calories and grams of macros (carbs, fat,
+                    and protein) as they accumulate throughout the day.
+                </div>
             </div>
+            {trial_acct_container}
+            <div class="flex justify-center">
+                <div class="grid md:grid-cols-2 gap-3 max-w-[1200px]">
+                    <div class="p-4 border-8 border-slate-800">
+                        <h2 class="text-xl font-bold text-center">Try it Out</h2>
+                        {chat_demo}
+                    </div>
+                    <div class="p-4 border-8 border-slate-800">
+                        <h2 class="text-xl text-center font-bold">Join the Wait List</h2>
+                        <form class="flex items-start justify-center" hx-post="{waitlist_signup}">
+                            <div class="flex flex-col gap-2">
+                                <label class="block" for="email">
+                                    Email Address
+                                </label>
+                                <input
+                                    class="block"
+                                    type="email"
+                                    name="email"
+                                    id="email"
+                                    placeholder="Your Email"
+                                />
+                                <button class="block bg-green-800
+                                hover:bg-green-700 p-2 rounded font-semibold">
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-center">
+                <div class="bg-indigo-50 dark:bg-indigo-900 border-2
+                    border-indigo-800 inline-flex p-6 rounded-full
+                    items-center gap-3 mt-2"
+                >
+                    <p>Have an account?</p>
+                    <a href="{login_route}">
+                        <button
+                            class="border-2 border-slate-800 rounded p-2"
+                        >Log In</button>
+                    </a>
+                </div>
+            </div>
+            </div>
+            "#
+        )
+    }
+}
+
+pub struct TrialAccountCounter {
+    count_remaining: i64,
+}
+impl Component for TrialAccountCounter {
+    fn render(&self) -> String {
+        let count_remaining = self.count_remaining;
+        format!(
+            r#"
+            <span hx-trigger="load delay:5s">{count_remaining}</span>
             "#
         )
     }
@@ -129,18 +269,47 @@ impl Component for LoginForm {
         let password_reset = Route::PasswordReset;
         format!(
             r#"
-            <form class="flex flex-col gap-2 max-w-md" hx-post="{login_route}">
+            <form class="m-2 sm:m-4 md:m-8 flex flex-col gap-2 max-w-md" hx-post="{login_route}">
                 <h1 class="text-xl">Login</h1>
-                <label autocomplete="username" for="identifier">Username or Email</label>
+                <label autocomplete="username" for="identifier">
+                    Username or Email
+                </label>
                 <input type="text" id="identifier" name="identifier" />
                 <label for="passwored">Password</label>
-                <input autocomplete="current-password" type="password" id="password" name="password" />
+                <input
+                    autocomplete="current-password"
+                    type="password"
+                    id="password"
+                    name="password"
+                    />
                 <div class="flex gap-2">
-                    <button class="dark:bg-green-700 w-36 dark:text-white dark:hover:bg-green-600 transition shadow hover:shadow-none rounded p-1 block">
+                <button class="
+                    dark:bg-green-700
+                    w-36
+                    dark:text-white
+                    dark:hover:bg-green-600
+                    transition
+                    shadow
+                    hover:shadow-none
+                    rounded
+                    p-1
+                    block
+                ">
                         Log In
                     </button>
                     <a href="{password_reset}">
-                        <button class="dark:bg-yellow-700 w-36 dark:text-white dark:hover:bg-yellow-600 transition shadow hover:shadow-none rounded p-1 block">
+                        <button class="
+                            dark:bg-yellow-700
+                            w-36
+                            dark:text-white
+                            dark:hover:bg-yellow-600
+                            transition
+                            shadow
+                            hover:shadow-none
+                            rounded
+                            p-1
+                            block
+                        ">
                             Reset Password
                         </button>
                     </a>
@@ -157,7 +326,7 @@ impl Component for RegisterForm {
         let register_route = Route::Register;
         format!(
             r#"
-            <form class="flex flex-col gap-2 max-w-md" hx-post="{register_route}">
+            <form class="m-2 sm:m-4 md:m-8 flex flex-col gap-2 max-w-md" hx-post="{register_route}">
                 <h1 class="text-xl">Register for an Account</h1>
                 <label for="username">Username</label>
                 <input autocomplete="username" type="text" id="username" name="username" />
@@ -166,16 +335,24 @@ impl Component for RegisterForm {
                 <label for="password">Password</label>
                 <input autocomplete="current-password" type="password" id="password" name="password" />
                 <label for="registration_key">Registration Key</label>
-                <input type="hidden" value="" name="timezone" id="timezone" />
-                <script>
-                    const el = document.getElementById("timezone");
-                    el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                </script>
                 <p class="text-sm dark:text-slate-100">
                     A registration key from the developer is required to create
                     an account at this time.
                 </p>
-                <input type="text" id="registration_key" name="registration_key" />
+                <input
+                    class="font-mono"
+                    id="registration_key"
+                    name="registration_key"
+                    type="text"
+                    value="a-reddit-new-year"
+                />
+                <input type="hidden" value="" name="timezone" id="timezone" />
+                <script>
+                    (() => {{
+                        const el = document.getElementById("timezone");
+                        el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    }})();
+                </script>
                 <button class="dark:bg-slate-700 w-36 dark:text-white dark:hover:bg-slate-600 transition shadow hover:shadow-none rounded p-1 block">Sign Up</button>
             </form>
             "#
@@ -225,12 +402,13 @@ impl Component for UserHome<'_> {
             meals: self.meals,
             user_timezone: self.preferences.timezone,
             prompt: None,
-            next_page: 1,
+            next_page: Some(1),
+            post_handler: Route::HandleChat,
         }
         .render();
         format!(
             r#"
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 m-2 sm:m-4 md:m-8">
                 <div class="self-start text-black p-2 bg-blue-100 rounded-2xl">
                     <div class="flex mb-1 gap-2">
                         <p class="font-bold">Hi, {username}!</p>

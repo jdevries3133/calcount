@@ -26,6 +26,7 @@ pub enum Route {
     ChatForm,
     DeleteMeal(Option<i32>),
     DisplayMacros,
+    Favicon,
     HandleChat,
     Htmx,
     ListMeals,
@@ -33,6 +34,7 @@ pub enum Route {
     Logout,
     PasswordReset,
     PasswordResetSecret(Option<String>),
+    PublicChatDemo,
     Ping,
     Register,
     Root,
@@ -40,6 +42,7 @@ pub enum Route {
     StripeWehhook,
     UserHome,
     UserPreference,
+    WaitlistSignup,
     /// Route which will return an empty string. This is mainly an HTMX utility
     /// to allow a component to easily be swapped with nothing.
     Void,
@@ -68,14 +71,17 @@ impl Route {
                 Some(slug) => format!("/authentication/reset-password/{slug}"),
                 None => "/authentication/reset-password/:slug".into(),
             },
+            Self::PublicChatDemo => "/chat-demo".into(),
             Self::Ping => "/ping".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
             Self::SaveMeal => "/save-meal".into(),
             Self::UserHome => "/home".into(),
             Self::UserPreference => "/preferences".into(),
+            Self::WaitlistSignup => "/wait-list".into(),
             Self::Void => "/void".into(),
             Self::StripeWehhook => "/stripe-webhook".into(),
+            Self::Favicon => "/favicon.ico".into(),
         }
     }
 }
@@ -97,8 +103,6 @@ pub fn get_protected_routes() -> Router<models::AppState> {
             &Route::HandleChat.as_string(),
             post(count_chat::handle_chat),
         )
-        .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
-        .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
             &Route::SaveMeal.as_string(),
             post(count_chat::handle_save_meal),
@@ -161,4 +165,21 @@ pub fn get_public_routes() -> Router<models::AppState> {
             &Route::StripeWehhook.as_string(),
             post(stripe::handle_stripe_webhook),
         )
+        .route(
+            &Route::ChatForm.as_string(),
+            get(count_chat::get_public_chat_form),
+        )
+        .route(
+            &Route::ChatForm.as_string(),
+            post(count_chat::get_public_chat_form),
+        )
+        .route(
+            &Route::PublicChatDemo.as_string(),
+            post(count_chat::handle_public_chat_demo),
+        )
+        .route(
+            &Route::WaitlistSignup.as_string(),
+            post(controllers::wait_list),
+        )
+        .route(&Route::Favicon.as_string(), get(controllers::get_favicon))
 }

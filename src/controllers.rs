@@ -28,7 +28,9 @@ use sqlx::{query, query_as};
 pub async fn root() -> impl IntoResponse {
     components::Page {
         title: "Bean Count",
-        children: Box::new(components::Home {}),
+        children: Box::new(components::Home {
+            trial_accounts_remaining: 100,
+        }),
     }
     .render()
 }
@@ -81,6 +83,16 @@ pub async fn get_htmx_js() -> impl IntoResponse {
             .expect("we can set cache control header"),
     );
     (headers, include_str!("./htmx-1.9.10.vendor.js"))
+}
+
+pub async fn get_favicon() -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("image/x-icon")
+            .expect("We can insert image/x-icon header"),
+    );
+    (headers, include_bytes!("./favicon.ico"))
 }
 
 pub async fn user_home(
@@ -337,4 +349,26 @@ pub async fn add_meal_to_today(
 
 pub async fn void() -> &'static str {
     ""
+}
+
+#[derive(Deserialize)]
+pub struct WaitListPayload {
+    email: String,
+}
+
+pub async fn wait_list(
+    State(AppState { db }): State<AppState>,
+    Form(WaitListPayload { email }): Form<WaitListPayload>,
+) -> Result<impl IntoResponse, ServerError> {
+    query!(
+        "insert into wait_list values ($1) on conflict do nothing",
+        email
+    )
+    .execute(&db)
+    .await?;
+    Ok(r#"
+        <p class="text-center text-slate-200">
+            Email received; we will let you know when there is news to share!
+        </p>
+       "#)
 }

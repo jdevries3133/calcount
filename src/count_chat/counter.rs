@@ -28,11 +28,20 @@ pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
     pub user_timezone: Tz,
     pub prompt: Option<&'a str>,
-    pub next_page: i64,
+    /// If omitted, the `<div hx-trigger="revealed">` trigger for fetching the
+    /// next page will be omitted. This is used in the demo use-case, where
+    /// we are not intending to show a set of meals at all, and are only
+    /// showing off the chat. We could also consider refactoring to decouple
+    /// the chat from the list view if the demo sticks around or continues to
+    /// change, or this component needs more features which incorporate user
+    /// data.
+    pub next_page: Option<i64>,
+    /// We have different chat post request handler routes for public versus
+    /// authenticated callers.
+    pub post_handler: Route,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
-        let handler = Route::HandleChat;
         let meals = MealSet {
             meals: &self.meals[..],
             user_timezone: self.user_timezone,
@@ -43,7 +52,6 @@ impl Component for Chat<'_> {
             .meals
             .iter()
             .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
-        let prompt = self.prompt.unwrap_or_default();
         let meal_header = if self.meals.is_empty() {
             ""
         } else if is_any_meal_during_today {
@@ -59,33 +67,18 @@ impl Component for Chat<'_> {
                 Previously Saved Items</h2>"#
         };
         let refresh_meals_href = format!("{}?page=0", Route::ListMeals);
+        let prompt_input = PromptInput {
+            initial_prompt: self.prompt.unwrap_or_default(),
+            post_handler: &self.post_handler,
+        }
+        .render();
         format!(
             r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
                 <div class="rounded bg-slate-200 shadow m-2 p-2 md:p-4">
                     <h1 class="border-b-2 border-slate-600 mb-2 border-black prose serif font-extrabold text-3xl">Calorie Chat</h1>
-                    <div class="md:flex md:gap-3 ">
-                    <div>
-                        <form
-                            class="flex flex-col gap-2"
-                            hx-post="{handler}"
-                        >
-                            <label for="chat">
-                                <h2
-                                    class="dark:text-black text-xl serif bold"
-                                >Describe what you're eating</h2>
-                            </label>
-                            <input
-                                class="rounded"
-                                autocomplete="one-time-code"
-                                type="text"
-                                id="chat"
-                                name="chat"
-                                placeholder="I am eating..."
-                                value="{prompt}"
-                            />
-                        </form>
-                    </div>
+                    <div class="md:flex md:gap-3">
+                        {prompt_input}
                         <div
                             class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
                         >
@@ -96,11 +89,47 @@ impl Component for Chat<'_> {
                                 hx-trigger="reload-meals from:body"
                                 class="flex flex-col gap-2"
                             >
-                            {meals}
+                                {meals}
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            "#
+        )
+    }
+}
+
+pub struct PromptInput<'a> {
+    post_handler: &'a Route,
+    initial_prompt: &'a str,
+}
+impl Component for PromptInput<'_> {
+    fn render(&self) -> String {
+        let handler = &self.post_handler;
+        let prompt = clean(self.initial_prompt);
+        format!(
+            r#"
+            <div>
+                <form
+                    class="flex flex-col gap-2"
+                    hx-post="{handler}"
+                >
+                    <label for="chat">
+                        <h2
+                            class="dark:text-black text-xl serif bold"
+                        >Describe what you're eating</h2>
+                    </label>
+                    <input
+                        class="rounded"
+                        autocomplete="one-time-code"
+                        type="text"
+                        id="chat"
+                        name="chat"
+                        placeholder="I am eating..."
+                        value="{prompt}"
+                    />
+                </form>
             </div>
             "#
         )
@@ -228,10 +257,27 @@ impl Component for MealCard<'_> {
     }
 }
 
+struct PublicMealActions;
+impl Component for PublicMealActions {
+    fn render(&self) -> String {
+        let public_chat = Route::ChatForm;
+        format!(
+            r##"
+            <button
+                hx-get="{public_chat}"
+                hx-target="#cal-chat-container"
+                class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+            >Reset</button>
+            "##
+        )
+    }
+}
+
 struct MealSet<'a> {
     meals: &'a [Meal],
     user_timezone: Tz,
-    next_page: i64,
+    /// See [Chat] (`.next_page`) for why this property is optional.
+    next_page: Option<i64>,
 }
 impl Component for MealSet<'_> {
     fn render(&self) -> String {
@@ -283,15 +329,20 @@ impl Component for MealSet<'_> {
         );
 
         let page_usize: usize = MEAL_PAGE_SIZE.into();
-        let next_page_div = if self.meals.len() == page_usize {
-            let href = format!("{}?page={}", Route::ListMeals, self.next_page);
-            format!(
-                r#"
+        let next_page_div = match self.next_page {
+            Some(page) => {
+                if self.meals.len() == page_usize {
+                    let href = format!("{}?page={}", Route::ListMeals, page);
+                    format!(
+                        r#"
                 <div hx-swap="outerHTML" hx-get="{href}" hx-trigger="revealed"></div>
                 "#
-            )
-        } else {
-            "".into()
+                    )
+                } else {
+                    "".into()
+                }
+            }
+            None => "".into(),
         };
         format!(
             r#"
@@ -388,6 +439,53 @@ pub async fn handle_chat(
     }
 }
 
+/// We can monitor the usage of our public demo users, because these
+/// invocations will not be associated with a user, unlike the ones in
+/// [handle_chat] above.
+///
+/// For the demo, we never want "now" to become "yesterday," so we'll just
+/// choose a very far-in-the-past timezone, ensuring that the current moment
+/// will always evaluate to either today, or possibly even tomorrow (but
+/// definitely not yesterday).
+pub async fn handle_public_chat_demo(
+    State(AppState { db }): State<AppState>,
+    Form(ChatPayload { chat }): Form<ChatPayload>,
+) -> Result<impl IntoResponse, ServerError> {
+    let mut msg = String::from("The meal I'd like a calorie estimate for is ");
+    msg.push_str(&chat);
+    let response = OpenAI::from_env()?
+        .send_message(SYSTEM_MSG.into(), msg)
+        .await?;
+
+    query!(
+        "insert into openai_usage (prompt_tokens, completion_tokens, total_tokens)
+        values ($1, $2, $3)",
+        response.usage.prompt_tokens,
+        response.usage.completion_tokens,
+        response.usage.total_tokens
+    ).execute(&db).await?;
+
+    let parse_result = MealInfo::parse(&response.message, &chat);
+    match parse_result {
+        ParserResult::Ok(meal) => Ok(MealCard {
+            info: &meal,
+            meal_id: None,
+            actions: Some(&PublicMealActions {}),
+            user_timezone: Tz::US__Samoa,
+        }
+        .render()),
+        ParserResult::FollowUp(msg) => {
+            let msg = clean(&msg.parsing_error);
+            Ok(CannotParse {
+                parser_msg: &msg,
+                llm_response: &response.message,
+                original_user_prompt: &chat,
+            }
+            .render())
+        }
+    }
+}
+
 #[derive(Deserialize)]
 pub struct PrevPrompt {
     meal_name: String,
@@ -398,23 +496,37 @@ pub struct Pagination {
     page: i64,
 }
 
-pub async fn chat_form(
+/// Warning: this can be visited by unauthenticated users as part of the chat
+/// demo on the home page.
+///
+/// Note: this handler receives `post` requests to facilitate pre-populating
+/// the form with the user's previous prompt. Inputs from unauthenticated
+/// submitters are just sanitized inside the component, interpolated back into
+/// HTML to pre-fill the form field, and sent back to the user.
+pub async fn get_public_chat_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
     page: Option<Query<Pagination>>,
     prev_prompt: Option<Form<PrevPrompt>>,
 ) -> Result<impl IntoResponse, ServerError> {
-    let session = Session::from_headers_err(&headers, "chat form")?;
+    let session = Session::from_headers(&headers);
     let page = page.map_or(0, |p| p.page);
-    let meals = list_meals_op(&db, session.user.id, page).await?;
+    let meals = match session {
+        Some(ref s) => list_meals_op(&db, s.user.id, page).await?,
+        None => vec![],
+    };
     let chat = Chat {
         meals: &meals,
-        user_timezone: session.preferences.timezone,
+        user_timezone: match session {
+            Some(ref s) => s.preferences.timezone,
+            None => Tz::US__Samoa,
+        },
         prompt: match prev_prompt {
             Some(ref form) => Some(&form.meal_name),
             None => None,
         },
-        next_page: page + 1,
+        next_page: None,
+        post_handler: Route::PublicChatDemo,
     };
     let content = chat.render();
     Ok(content)
@@ -503,7 +615,8 @@ pub async fn handle_save_meal(
             meals: &meals,
             user_timezone: session.preferences.timezone,
             prompt: None,
-            next_page: 1,
+            next_page: Some(1),
+            post_handler: Route::HandleChat,
         }
         .render(),
     ))
@@ -519,7 +632,7 @@ pub async fn list_meals(
 
     Ok(MealSet {
         meals: &meals[..],
-        next_page: page + 1,
+        next_page: Some(page + 1),
         user_timezone: session.preferences.timezone,
     }
     .render())

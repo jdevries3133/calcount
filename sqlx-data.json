@@ -247,6 +247,18 @@
     },
     "query": "select key from registration_key"
   },
+  "74dc83227192193a2b06eee2816081297a6f6164781c498571992dde4bac706f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into wait_list values ($1) on conflict do nothing"
+  },
   "7ac64c0826a89e9d73c97d59caa22ff90d2c0ecd23546188365ab71811dee1bc": {
     "describe": {
       "columns": [],
@@ -504,6 +516,20 @@
       }
     },
     "query": "SELECT salt, digest FROM users WHERE id = $1"
+  },
+  "e5a42384f602aa599794a9ef36829efb43e29168b3e9589f4d1f1a562bc6a28b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into openai_usage (prompt_tokens, completion_tokens, total_tokens)\n        values ($1, $2, $3)"
   },
   "ea7979eabc4809357b84ff50151b047d1869093d4f134968c9295ba416c25492": {
     "describe": {

@@ -14,7 +14,7 @@ impl Component for ResetRequestForm {
         let reset_route = Route::PasswordReset;
         format!(
             r#"
-            <form hx-post="{reset_route}" class="flex flex-col gap-2 max-w-prose">
+            <form hx-post="{reset_route}" class="flex flex-col gap-2 max-w-prose m-2 sm:m-4 md:m-8">
                 <h1 class="text-xl font-extrabold">Password Reset</h1>
                 <label for="email">Email Address</label>
                 <p class="text-xs">
@@ -107,11 +107,19 @@ impl Component for ResetForm<'_> {
         let reset = Route::PasswordResetSecret(Some(slug.clone())).as_string();
         format!(
             r#"
-            <form hx-post="{reset}" class="flex flex-col gap-2 max-w-prose">
+            <form hx-post="{reset}" class="flex flex-col gap-2 max-w-prose m-2 sm:m-4 md:m-8">
                 <h1 class="text-xl font-extrabold">Reset your Password</h1>
                 <label for="password">New Password</label>
                 <input type="password" id="password" name="password" required />
-                <button class="self-start dark:bg-green-700 dark:hover:bg-green-600 bg-green-100 hover:bg-green-200 rounded p-1">
+                <button class="
+                    self-start
+                    dark:bg-green-700
+                    dark:hover:bg-green-600
+                    bg-green-100
+                    hover:bg-green-200
+                    rounded
+                    p-1
+                ">
                     Save
                 </button>
             </form>
