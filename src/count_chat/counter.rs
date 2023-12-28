@@ -39,6 +39,9 @@ pub struct Chat<'a> {
     /// We have different chat post request handler routes for public versus
     /// authenticated callers.
     pub post_handler: Route,
+    /// OK I am reeeally stretching the abstraction now; this really should
+    /// be refactored...
+    pub query_params: Option<&'a str>,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
@@ -70,6 +73,7 @@ impl Component for Chat<'_> {
         let prompt_input = PromptInput {
             initial_prompt: self.prompt.unwrap_or_default(),
             post_handler: &self.post_handler,
+            query_params: self.query_params,
         }
         .render();
         format!(
@@ -103,10 +107,13 @@ impl Component for Chat<'_> {
 pub struct PromptInput<'a> {
     post_handler: &'a Route,
     initial_prompt: &'a str,
+    query_params: Option<&'a str>,
 }
 impl Component for PromptInput<'_> {
     fn render(&self) -> String {
-        let handler = &self.post_handler;
+        let handler_str = &self.post_handler.as_string();
+        let params = self.query_params.unwrap_or_default();
+        let handler = format!("{handler_str}?{params}");
         let prompt = clean(self.initial_prompt);
         format!(
             r#"
@@ -264,7 +271,7 @@ impl Component for PublicMealActions {
         format!(
             r##"
             <button
-                hx-get="{public_chat}"
+                hx-get="{public_chat}?demo_mode=true"
                 hx-target="#cal-chat-container"
                 class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
             >Reset</button>
@@ -491,9 +498,10 @@ pub struct PrevPrompt {
     meal_name: String,
 }
 
-#[derive(Deserialize)]
-pub struct Pagination {
-    page: i64,
+#[derive(Debug, Deserialize)]
+pub struct ChatFormParams {
+    page: Option<i64>,
+    demo_mode: Option<bool>,
 }
 
 /// Warning: this can be visited by unauthenticated users as part of the chat
@@ -506,13 +514,38 @@ pub struct Pagination {
 pub async fn get_public_chat_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
-    page: Option<Query<Pagination>>,
+    query_params: Option<Query<ChatFormParams>>,
     prev_prompt: Option<Form<PrevPrompt>>,
 ) -> Result<impl IntoResponse, ServerError> {
+    dbg!(&query_params);
     let session = Session::from_headers(&headers);
-    let page = page.map_or(0, |p| p.page);
+    let page = query_params
+        .as_ref()
+        .map_or(0, |p| p.page.unwrap_or_default());
+
+    // We only want to list out the meals if:
+    //
+    // 1. we have an authenticated session (obviously -- or else, what would we
+    //    pass as the `user_id` to `list_meals_op`)
+    // 2. we _do not_ have the "demo mode" flag passed in, which is passed by
+    //    the home page demo
+    //
+    // On the home page, we do not want to awkwardly list out the users' meals
+    // in the demo widget, even if the user already is authenticated, because
+    // it looks weird (as if their own meals are part of everyone's marketing
+    // page).
     let meals = match session {
-        Some(ref s) => list_meals_op(&db, s.user.id, page).await?,
+        Some(ref s) => {
+            if let Some(ref p) = query_params {
+                if p.demo_mode.map_or(false, |v| v) {
+                    vec![]
+                } else {
+                    list_meals_op(&db, s.user.id, page).await?
+                }
+            } else {
+                list_meals_op(&db, s.user.id, page).await?
+            }
+        }
         None => vec![],
     };
     let chat = Chat {
@@ -527,6 +560,16 @@ pub async fn get_public_chat_form(
         },
         next_page: None,
         post_handler: Route::PublicChatDemo,
+        query_params: match query_params {
+            Some(ref p) => {
+                if p.demo_mode.map_or(false, |v| v) {
+                    Some("demo_mode=true")
+                } else {
+                    None
+                }
+            }
+            None => None,
+        },
     };
     let content = chat.render();
     Ok(content)
@@ -617,9 +660,15 @@ pub async fn handle_save_meal(
             prompt: None,
             next_page: Some(1),
             post_handler: Route::HandleChat,
+            query_params: None,
         }
         .render(),
     ))
+}
+
+#[derive(Deserialize)]
+pub struct Pagination {
+    page: i64,
 }
 
 pub async fn list_meals(
