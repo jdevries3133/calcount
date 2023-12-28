@@ -5,8 +5,9 @@ edition = "2021"
 
 [features]
 live_reload = []
-use_stripe_test_instance = []
+use_stripe_test_instance = ["stripe"]
 enable_smtp_email = []
+stripe = []
 
 [dependencies]
 ammonia = "3.3.0"

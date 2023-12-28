@@ -8,14 +8,16 @@ use serde_json::Value;
 use sha2::Sha256;
 use std::{collections::HashMap, env};
 
-#[cfg(use_stripe_test_instance)]
+#[cfg(feature = "use_stripe_test_instance")]
 const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
-#[cfg(use_stripe_test_instance)]
+#[cfg(feature = "use_stripe_test_instance")]
+#[cfg(feature = "use_stripe_test_instance")]
 const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOqe5AaiRLwV5fgrDmCz5xE";
 
-#[cfg(not(use_stripe_test_instance))]
+#[cfg(not(feature = "use_stripe_test_instance"))]
 const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
-#[cfg(not(use_stripe_test_instance))]
+#[cfg(feature = "use_stripe_test_instance")]
+#[cfg(not(feature = "use_stripe_test_instance"))]
 const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOqe5AaiRLwV5fgrDmCz5xE";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -82,14 +84,16 @@ struct BillingPortalRequest {
     configuration: String,
 }
 
+#[cfg(feature = "stripe")]
 #[derive(Deserialize)]
 struct BillingPortalResponse {
     url: String,
 }
 
+#[cfg(feature = "stripe")]
 /// Returns the URL for the billing session, to which the customer can be
 /// redirected.
-pub async fn create_billing_portal_session(
+pub async fn get_billing_portal_url(
     stripe_customer_id: &str,
 ) -> Aresult<String> {
     let url = "https://api.stripe.com/v1/billing_portal/sessions";
@@ -112,6 +116,11 @@ pub async fn create_billing_portal_session(
     } else {
         Err(Error::msg("request to create registration session failed"))
     }
+}
+
+#[cfg(not(feature = "stripe"))]
+pub async fn get_billing_portal_url(_customer_id: &str) -> Aresult<String> {
+    Ok(Route::UserHome.as_string())
 }
 
 fn get_b64_encoded_token_from_env() -> Aresult<String> {

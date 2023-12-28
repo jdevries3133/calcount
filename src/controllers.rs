@@ -155,8 +155,7 @@ pub async fn handle_registration(
 
     let stripe_id =
         stripe::create_customer(&form.username, &form.email).await?;
-    let payment_portal_url =
-        stripe::create_billing_portal_session(&stripe_id).await?;
+    let payment_portal_url = stripe::get_billing_portal_url(&stripe_id).await?;
 
     let user = db_ops::create_user(
         &db,
