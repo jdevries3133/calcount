@@ -169,7 +169,6 @@ impl Component for Home {
             prompt: None,
             next_page: None,
             post_handler: Route::PublicChatDemo,
-            query_params: Some("demo_mode=true"),
         }
         .render();
 
@@ -178,32 +177,30 @@ impl Component for Home {
         format!(
             r#"
             <div class="text-slate-200 m-2 sm:m-4 md:m-8">
-            <div class="h-[100vh] sm:h-auto flex items-center flex-col">
-                <h1 class="mt-2 sm:mt-8 text-3xl font-extrabold">
-                    &#127793; Bean Count &#129752;
-                </h1>
-                <div class="grid sm:grid-cols-3 gap-12 sm:gap-24 justfiy-center m-12">
-                    <div
-                        class="bg-blue-800 rounded p-2 inline-block my-2 flex
-                        items-center sm:text-lg font-semibold text-center"
-                    >
-                        Bean Count is an AI-powered  calorie counter, making calorie
-                        counting easy, effortless, and fun!
-                    </div>
-                    <div
-                        class="bg-indigo-800 rounded p-2 inline-block my-2 flex
-                        items-center sm:text-lg font-semibold text-center"
-                    >
-                        Use natural language to ask about food, and get back quick
-                        calorie estimates.
-                    </div>
-                    <div
-                        class="bg-purple-800 rounded p-2 inline-block my-2 flex
-                        items-center sm:text-lg font-semibold text-center"
-                    >
-                        Keep track of total calories and grams of macros (carbs, fat,
-                        and protein) as they accumulate throughout the day.
-                    </div>
+            <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
+                &#127793; Bean Count &#129752;
+            </h1>
+            <div class="grid md:grid-cols-3 gap-24 justfiy-center m-12">
+                <div
+                    class="bg-blue-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Bean Count is an AI-powered  calorie counter, making calorie
+                    counting easy, effortless, and fun!
+                </div>
+                <div
+                    class="bg-indigo-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Use natural language to ask about food, and get back quick
+                    calorie estimates.
+                </div>
+                <div
+                    class="bg-purple-800 rounded p-2 inline-block my-2 flex
+                    items-center text-lg font-semibold text-center"
+                >
+                    Keep track of total calories and grams of macros (carbs, fat,
+                    and protein) as they accumulate throughout the day.
                 </div>
             </div>
             {trial_acct_container}
@@ -411,7 +408,6 @@ impl Component for UserHome<'_> {
             prompt: None,
             next_page: Some(1),
             post_handler: Route::HandleChat,
-            query_params: Some("dev_mode=1"),
         }
         .render();
         format!(
