@@ -26,13 +26,34 @@ pub struct MealInfo {
 
 pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
-    pub user_timezone: Tz,
     pub prompt: Option<&'a str>,
+    pub user_timezone: Tz,
     pub next_page: i64,
+    pub post_request_handler: Route,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
-        let handler = Route::HandleChat;
+        let prev_meals = PreviousMeals {
+            meals: self.meals,
+            user_timezone: self.user_timezone,
+            next_page: self.next_page,
+        };
+        ChatUI {
+            post_request_handler: &self.post_request_handler,
+            prefill_prompt: self.prompt,
+            children: Some(&prev_meals),
+        }
+        .render()
+    }
+}
+
+struct PreviousMeals<'a> {
+    meals: &'a Vec<Meal>,
+    user_timezone: Tz,
+    next_page: i64,
+}
+impl Component for PreviousMeals<'_> {
+    fn render(&self) -> String {
         let meals = MealSet {
             meals: &self.meals[..],
             user_timezone: self.user_timezone,
@@ -43,7 +64,6 @@ impl Component for Chat<'_> {
             .meals
             .iter()
             .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
-        let prompt = self.prompt.unwrap_or_default();
         let meal_header = if self.meals.is_empty() {
             ""
         } else if is_any_meal_during_today {
@@ -61,44 +81,66 @@ impl Component for Chat<'_> {
         let refresh_meals_href = format!("{}?page=0", Route::ListMeals);
         format!(
             r#"
+            <div
+                class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
+            >
+                {meal_header}
+                <div
+                    hx-get="{refresh_meals_href}"
+                    hx-swap="innerHTML"
+                    hx-trigger="reload-meals from:body"
+                    class="flex flex-col gap-2"
+                >
+                {meals}
+                </div>
+            </div>
+            "#
+        )
+    }
+}
+
+pub struct ChatUI<'a> {
+    pub post_request_handler: &'a Route,
+    pub prefill_prompt: Option<&'a str>,
+    /// If provided, these are inserted at the end of the chat container. This
+    /// is used on the user home page for injecting the list of previous meals.
+    pub children: Option<&'a dyn Component>,
+}
+impl Component for ChatUI<'_> {
+    fn render(&self) -> String {
+        let handler = &self.post_request_handler;
+        let prompt = self.prefill_prompt.unwrap_or_default();
+        let children = self.children.map_or("".to_string(), |c| c.render());
+        format!(
+            r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
                 <div class="rounded bg-slate-200 shadow m-2 p-2 md:p-4">
-                    <h1 class="border-b-2 border-slate-600 mb-2 border-black prose serif font-extrabold text-3xl">Calorie Chat</h1>
-                    <div class="md:flex md:gap-3 ">
-                    <div>
-                        <form
-                            class="flex flex-col gap-2"
-                            hx-post="{handler}"
-                        >
-                            <label for="chat">
-                                <h2
-                                    class="dark:text-black text-xl serif bold"
-                                >Describe what you're eating</h2>
-                            </label>
-                            <input
-                                class="rounded"
-                                autocomplete="one-time-code"
-                                type="text"
-                                id="chat"
-                                name="chat"
-                                placeholder="I am eating..."
-                                value="{prompt}"
-                            />
-                        </form>
-                    </div>
-                        <div
-                            class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
-                        >
-                            {meal_header}
-                            <div
-                                hx-get="{refresh_meals_href}"
-                                hx-swap="innerHTML"
-                                hx-trigger="reload-meals from:body"
+                    <h1
+                        class="border-b-2 border-slate-600 mb-2 border-black prose serif font-extrabold text-3xl"
+                    >Calorie Chat</h1>
+                    <div class="md:flex md:gap-3">
+                        <div>
+                            <form
                                 class="flex flex-col gap-2"
+                                hx-post="{handler}"
                             >
-                            {meals}
-                            </div>
+                                <label for="chat">
+                                    <h2
+                                        class="dark:text-black text-xl serif bold"
+                                    >Describe what you're eating</h2>
+                                </label>
+                                <input
+                                    class="rounded"
+                                    autocomplete="one-time-code"
+                                    type="text"
+                                    id="chat"
+                                    name="chat"
+                                    placeholder="I am eating..."
+                                    value="{prompt}"
+                                />
+                            </form>
                         </div>
+                        {children}
                     </div>
                 </div>
             </div>
@@ -415,6 +457,7 @@ pub async fn chat_form(
             None => None,
         },
         next_page: page + 1,
+        post_request_handler: Route::HandleChat,
     };
     let content = chat.render();
     Ok(content)
@@ -504,6 +547,7 @@ pub async fn handle_save_meal(
             user_timezone: session.preferences.timezone,
             prompt: None,
             next_page: 1,
+            post_request_handler: Route::HandleChat,
         }
         .render(),
     ))

@@ -395,6 +395,7 @@ impl Component for UserHome<'_> {
             user_timezone: self.preferences.timezone,
             prompt: None,
             next_page: 1,
+            post_request_handler: Route::HandleChat,
         }
         .render();
         format!(
