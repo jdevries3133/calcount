@@ -1,7 +1,7 @@
 use super::{
     auth, chrono_utils, client_events, components,
     components::Component,
-    count_chat, db_ops,
+    config, count_chat, db_ops,
     errors::ServerError,
     htmx, metrics,
     models::AppState,
@@ -142,17 +142,20 @@ pub async fn user_home(
     let Session {
         user, preferences, ..
     } = Session::from_headers_err(&headers, "user home")?;
-    let (macros, meals) = join![
+    let (macros, meals, sub_type) = join![
         metrics::get_macros(&db, &user, &preferences),
         count_chat::list_meals_op(&db, user.id, 0),
+        stripe::get_subscription_type(&db, user.id)
     ];
     let macros = macros?;
     let meals = meals?;
+    let sub_type = sub_type?;
     let content = Box::new(components::UserHome {
         user: &user,
         meals: &meals,
         macros: &macros,
         preferences,
+        subscription_type: sub_type,
     });
     let html = components::Page {
         title: "Home Page",
@@ -215,7 +218,7 @@ pub async fn handle_registration(
         form.email,
         &hashed_pw,
         stripe_id,
-        stripe::SubscriptionTypes::Initializing,
+        stripe::SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION),
     )
     .await?;
     let preferences = UserPreference {

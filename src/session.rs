@@ -116,6 +116,7 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::{DateTime, Utc};
     use std::env;
 
     fn get_session() -> Session {
@@ -127,6 +128,8 @@ mod tests {
                 stripe_customer_id: "".to_string(),
                 stripe_subscription_type:
                     crate::stripe::SubscriptionTypes::Free,
+                created_at: DateTime::<Utc>::from_timestamp(0, 0)
+                    .expect("that is a valid timestamp"),
             },
             preferences: preferences::UserPreference {
                 timezone: chrono_tz::Tz::US__Samoa,
@@ -135,8 +138,7 @@ mod tests {
         }
     }
 
-    const SERIALIZED_SESSION: &str =
-"eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EifSwiY3JlYXRlZF9hdCI6MH0:1uwV52ybOSpYXIN+xch/4ZXNO8p17Gzl6HMNt5KW3b8";
+    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EifSwiY3JlYXRlZF9hdCI6MH0:cSULy38BVDspnAq0kN94Rn0+E0tBvupXvi3Qh92XRjo";
 
     #[test]
     fn test_serialize_session() {

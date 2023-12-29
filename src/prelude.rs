@@ -7,6 +7,7 @@ pub use crate::{
     preferences::UserPreference,
     routes::Route,
     session::Session,
+    stripe::SubscriptionTypes,
 };
 pub use ammonia::clean;
 pub use anyhow::{Error, Result as Aresult};

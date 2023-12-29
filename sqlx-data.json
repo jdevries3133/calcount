@@ -166,6 +166,56 @@
     },
     "query": "select\n            name meal_name,\n            calories calories,\n            protein protein_grams,\n            fat fat_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where\n            user_id = $1\n            and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'\n        "
   },
+  "1ce1887e3a3c117342076091dca0a31fa54df8e774b60632c77b55e137e35684": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "stripe_customer_id",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "subscription_type_id",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select\n                id,\n                username,\n                email,\n                stripe_customer_id,\n                subscription_type_id,\n                created_at\n            from users\n            where username = $1 or email = $1"
+  },
   "21d97a21e8486f639820b3b00f89ba477a5443acfc3493413cef15ecf4d51f07": {
     "describe": {
       "columns": [],
@@ -290,11 +340,11 @@
     },
     "query": "update users set salt = $1, digest = $2\n                    where id = $3"
   },
-  "89c5a2355e11c6038f3bfeccd467e4ba118395b31963f3c7b82c190a3125d73f": {
+  "80648dd6dac88e353f8301674f32e02a409761d274d7e6d2cb0e5e5981ee5488": {
     "describe": {
       "columns": [
         {
-          "name": "id",
+          "name": "subscription_type_id",
           "ordinal": 0,
           "type_info": "Int4"
         }
@@ -304,16 +354,11 @@
       ],
       "parameters": {
         "Left": [
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
-          "Varchar",
           "Int4"
         ]
       }
     },
-    "query": "insert into users\n        (\n            username,\n            email,\n            salt,\n            digest,\n            stripe_customer_id,\n            subscription_type_id\n        )\n         values ($1, $2, $3, $4, $5, $6)\n        returning id"
+    "query": "select subscription_type_id from users where id = $1"
   },
   "9558be18e38b36cad41c1612dd89b1c88ae818d9bff81936e39ce7baa2940ca6": {
     "describe": {
@@ -327,50 +372,6 @@
       }
     },
     "query": "insert into openai_usage_user (usage_id, user_id) values ($1, $2)"
-  },
-  "b734bfa0b5eeeec1562038707a2adacda30a73ab9f92a4a9af47bcc633c77a79": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "email",
-          "ordinal": 2,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "stripe_customer_id",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "subscription_type_id",
-          "ordinal": 4,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "select\n                id,\n                username,\n                email,\n                stripe_customer_id,\n                subscription_type_id\n            from users\n            where username = $1 or email = $1"
   },
   "ba3452c8eb32bc14739ee17e1ed1c69a34bbd25a5c58bf6b90df09f232f5a0f8": {
     "describe": {
@@ -464,6 +465,37 @@
       }
     },
     "query": "select\n            calories,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fat fat_grams,\n            name meal_name,\n            created_at\n        from meal\n        where id = $1 and user_id = $2"
+  },
+  "cdbb235d9a742314eddf0faea2985c638d4267d559fc93e4e84ef3879d825458": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into users\n        (\n            username,\n            email,\n            salt,\n            digest,\n            stripe_customer_id,\n            subscription_type_id\n        )\n         values ($1, $2, $3, $4, $5, $6)\n        returning id, created_at"
   },
   "d1a81c47116df8bd12f8e8936c93e8b921f36d28c377aa066899d57a626fabf1": {
     "describe": {

@@ -1,19 +1,14 @@
 //! Database operations; squirrel code lives here.
 
-use super::{models, pw, stripe};
+use super::{models, models::IdCreatedAt, pw, stripe};
 use anyhow::Result;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{
     postgres::{PgPool, PgPoolOptions},
     query_as,
 };
 use std::collections::HashSet;
-
-/// Generic container for database IDs. For example, to be used with queries
-/// returning (id).
-struct Id {
-    id: i32,
-}
 
 pub async fn create_pg_pool() -> Result<sqlx::Pool<sqlx::Postgres>> {
     let db_url = &std::env::var("DATABASE_URL")
@@ -74,6 +69,7 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
             email: String,
             stripe_customer_id: String,
             subscription_type_id: i32,
+            created_at: DateTime<Utc>,
         }
         Ok(query_as!(
             Qres,
@@ -82,7 +78,8 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
                 username,
                 email,
                 stripe_customer_id,
-                subscription_type_id
+                subscription_type_id,
+                created_at
             from users
             where username = $1 or email = $1",
             query.identifier
@@ -96,6 +93,7 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
                 username: row.username,
                 email: row.email,
                 stripe_customer_id: row.stripe_customer_id,
+                created_at: row.created_at,
             })
         })
         .fetch_one(db)
@@ -120,8 +118,8 @@ pub async fn create_user(
     stripe_customer_id: String,
     subscription_type: stripe::SubscriptionTypes,
 ) -> Result<models::User> {
-    let id = query_as!(
-        Id,
+    let query_return = query_as!(
+        IdCreatedAt,
         "insert into users
         (
             username,
@@ -132,7 +130,7 @@ pub async fn create_user(
             subscription_type_id
         )
          values ($1, $2, $3, $4, $5, $6)
-        returning id",
+        returning id, created_at",
         username,
         email,
         pw.salt,
@@ -144,7 +142,8 @@ pub async fn create_user(
     .await?;
 
     Ok(models::User {
-        id: id.id,
+        id: query_return.id,
+        created_at: query_return.created_at,
         username,
         email,
         stripe_customer_id,

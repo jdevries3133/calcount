@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{config, prelude::*};
 use anyhow::Result as Aresult;
 use base64::{engine::general_purpose, Engine as _};
 use hmac::{Hmac, Mac};
@@ -6,7 +6,7 @@ use reqwest::Client;
 use serde::Serialize;
 use serde_json::Value;
 use sha2::Sha256;
-use std::{collections::HashMap, env};
+use std::{collections::HashMap, env, time::Duration};
 
 #[cfg(feature = "use_stripe_test_instance")]
 const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
@@ -20,13 +20,31 @@ const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
 #[cfg(not(feature = "use_stripe_test_instance"))]
 const BILLING_PORTAL_CONFIGURATION_ID: &str = "bpc_1OOqe5AaiRLwV5fgrDmCz5xE";
 
-#[derive(Debug, Serialize, Deserialize)]
+/// Dang I'm realizing it would be very cool to model this as a FSM now 🤔
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum SubscriptionTypes {
+    /// When the stripe integration is enabled, all new users enter this state
+    /// until we receive a webhook from stripe. They'll be gated from the
+    /// product, and see a message that they need to go to the stripe customer
+    /// portal to manage their subscription.
     Initializing,
+    /// This is the $5/mo plan I intend to rollout. No one will have this
+    /// until the Stripe integration goes live in production.
     Basic,
+    /// This is friends and family (and me) -- free in perpetuity.
     Free,
+    /// Users who have churned for any reason. Users enter this state when we
+    /// receive stripe webhooks
+    /// that users cancelled / disassociated / unregistered / removed /
+    /// deactivated / paused / discontinued / disavowes (why, WHY, Stripe,
+    /// do you have so many flavors of cancellation!?!?!).
     Unsubscribed,
-    FreeTrial,
+    /// Trial users have an attached duration, which will be compared to
+    /// [crate::models::User] `created_time`. At time of writing, this duration
+    /// does not live in the database, because I am only doing 1 month trials,
+    /// so we just hard-code 1 month anywhere that this variant is
+    /// instantiated.
+    FreeTrial(Duration),
 }
 
 impl SubscriptionTypes {
@@ -36,7 +54,7 @@ impl SubscriptionTypes {
             Self::Basic => 2,
             Self::Free => 3,
             Self::Unsubscribed => 4,
-            Self::FreeTrial => 5,
+            Self::FreeTrial(_) => 5,
         }
     }
     pub fn from_int(int: i32) -> Self {
@@ -45,11 +63,23 @@ impl SubscriptionTypes {
             2 => Self::Basic,
             3 => Self::Free,
             4 => Self::Unsubscribed,
-            5 => Self::FreeTrial,
+            5 => Self::FreeTrial(config::FREE_TRIAL_DURATION),
             n => panic!("{n} is an invalid subscription type"),
         }
     }
 }
+
+// Next, I have the duration, and I have the get_subscription_type method, which
+// allows me to get the user's duration. Subscription type does require an
+// additional DB query for rendering the home page, but I think I can join! it
+// with other queries since it is only dependent on user_id, so I will not
+// separate this new UI element out into a separate API call.
+
+// Steps to complete should be just:
+
+// 1. add this query to the user home page controller
+// 2. plumb the subscription type down to the ProfileChip
+// 3. render the days remaining in the ProfileChip
 
 /// This is my own simple and sane data-model for a stripe webhook event.
 struct StripeUpdate {
@@ -198,7 +228,9 @@ fn parse_update(stripe_garbage: &str) -> Option<StripeUpdate> {
                 | SubscriptionStatus::IncompleteExpired => {
                     SubscriptionTypes::Unsubscribed
                 }
-                SubscriptionStatus::Trialing => SubscriptionTypes::FreeTrial,
+                SubscriptionStatus::Trialing => {
+                    SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION)
+                }
             };
             Some(StripeUpdate {
                 stripe_customer_id: subscription.data.object.customer,
@@ -208,18 +240,6 @@ fn parse_update(stripe_garbage: &str) -> Option<StripeUpdate> {
             None
         }
     }
-}
-
-async fn persist_update(db: &PgPool, update: &StripeUpdate) -> Aresult<()> {
-    query!(
-        "update users set subscription_type_id = $1
-        where stripe_customer_id = $2",
-        update.subscription_type.as_int(),
-        update.stripe_customer_id
-    )
-    .execute(db)
-    .await?;
-    Ok(())
 }
 
 pub async fn handle_stripe_webhook(
@@ -243,7 +263,7 @@ pub async fn handle_stripe_webhook(
     .execute(&db)
     .await?;
     if let Some(update) = parsed_update {
-        persist_update(&db, &update).await?;
+        persist_update_op(&db, &update).await?;
     };
     Ok("")
 }
@@ -285,4 +305,36 @@ fn authenticate_stripe(
     } else {
         Err(Error::msg("signature does not match"))
     }
+}
+
+async fn persist_update_op(db: &PgPool, update: &StripeUpdate) -> Aresult<()> {
+    query!(
+        "update users set subscription_type_id = $1
+        where stripe_customer_id = $2",
+        update.subscription_type.as_int(),
+        update.stripe_customer_id
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+pub async fn get_subscription_type(
+    db: &PgPool,
+    user_id: i32,
+) -> Aresult<SubscriptionTypes> {
+    struct Qres {
+        subscription_type_id: i32,
+    }
+    let Qres {
+        subscription_type_id,
+    } = query_as!(
+        Qres,
+        "select subscription_type_id from users where id = $1",
+        user_id
+    )
+    .fetch_one(db)
+    .await?;
+
+    Ok(SubscriptionTypes::from_int(subscription_type_id))
 }

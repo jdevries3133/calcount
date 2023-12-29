@@ -6,10 +6,10 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{
-    count_chat, metrics, models, preferences::UserPreference, routes::Route,
-};
+use super::{count_chat, metrics, models, prelude::*, timeutils};
 use ammonia::clean;
+use chrono::{DateTime, Utc};
+use chrono_tz::Tz;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>
@@ -124,14 +124,15 @@ impl Component for Home {
                         rounded-full p-12 text-black"
                     >
                         <h2 class="text-xl font-bold">Create a Trial Account</h2>
-                        <p class="italic text-sm">Limited availability;
-                        {trial_accounts}
-                        trial accounts remain!</p>
+                        <p class="italic text-sm">
+                            {trial_accounts} free trial accounts remain!
+                        </p>
                         <p>
-                            To create a 3 month free trial account, use
+                            To create a 30-day free trial account, use
                             registration code
                             <span class="font-mono">"a-reddit-new-year"</span>.
                         </p>
+                        <p class="text-xs">Price will be $5/mo</p>
                         <a href="{register_route}">
                             <button
                                 class="
@@ -397,13 +398,10 @@ pub struct UserHome<'a> {
     pub preferences: UserPreference,
     pub meals: &'a Vec<count_chat::Meal>,
     pub macros: &'a metrics::Macros,
+    pub subscription_type: SubscriptionTypes,
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
-        let preferences = Route::UserPreference;
-        let logout = Route::Logout;
-        let username = clean(&self.user.username);
-        let timezone = clean(&self.preferences.timezone.to_string());
         let macros = if self.macros.is_empty() {
             self.macros.render()
         } else {
@@ -417,27 +415,88 @@ impl Component for UserHome<'_> {
             post_request_handler: Route::HandleChat,
         }
         .render();
+        let profile = ProfileChip {
+            username: &self.user.username,
+            timezone: &self.preferences.timezone,
+            subscription_type: self.subscription_type,
+            user_created_time: self.user.created_at,
+        }
+        .render();
         format!(
             r#"
             <div class="flex flex-col gap-2 m-2 sm:m-4 md:m-8">
-                <div class="self-start text-black p-2 bg-blue-100 rounded-2xl">
-                    <div class="flex mb-1 gap-2">
-                        <p class="font-bold">Hi, {username}!</p>
-                        <a class="inline" href="{logout}">
-                            <button style="margin-left: auto" class="text-xs p-1 bg-red-100 hover:bg-red-200 rounded-full">
-                                Log Out
-                            </button>
-                        </a>
-                        <a class="inline" href="{preferences}">
-                            <button style="margin-left: auto" class="text-xs p-1 bg-green-100 hover:bg-green-200 rounded-full">
-                                View Preferences
-                            </button>
-                        </a>
-                    </div>
-                    <p class="text-xs inline-block">Timezone: {timezone}</p>
-                </div>
+                {profile}
                 {macros}
                 {chat}
+            </div>
+            "#
+        )
+    }
+}
+
+struct ProfileChip<'a> {
+    username: &'a str,
+    timezone: &'a Tz,
+    user_created_time: DateTime<Utc>,
+    subscription_type: SubscriptionTypes,
+}
+impl Component for ProfileChip<'_> {
+    fn render(&self) -> String {
+        let username = clean(self.username);
+        let timezone = self.timezone;
+        let logout = Route::Logout;
+        let preferences = Route::UserPreference;
+        let trial_warning = if let SubscriptionTypes::FreeTrial(duration) =
+            self.subscription_type
+        {
+            dbg!(&self.user_created_time);
+            let cnt_remaining_days = timeutils::as_days(
+                duration
+                    .checked_sub(
+                        Utc::now()
+                            .signed_duration_since(self.user_created_time)
+                            .to_std()
+                            .unwrap_or_default(),
+                    )
+                    .unwrap_or_default(),
+            );
+            format!(
+                r#"
+                <p
+                    class="text-xs inline-block bg-yellow-100 p-1 rounded-lg my-2"
+                >
+                    <span class="font-semibold">{cnt_remaining_days}</span>
+                    free trial days remaining; price will be $5/mo
+                </p>
+                "#
+            )
+        } else {
+            "".into()
+        };
+        format!(
+            r#"
+            <div class="self-start text-black p-2 bg-blue-100 rounded-2xl">
+                <div class="flex mb-1 gap-2">
+                    <p class="font-bold">Hi, {username}!</p>
+                    <a class="inline" href="{logout}">
+                        <button
+                            style="margin-left: auto"
+                            class="text-xs p-1 bg-red-100 hover:bg-red-200 rounded-full"
+                        >
+                            Log Out
+                        </button>
+                    </a>
+                    <a class="inline" href="{preferences}">
+                        <button
+                            style="margin-left: auto"
+                            class="text-xs p-1 bg-green-100 hover:bg-green-200 rounded-full"
+                        >
+                            View Preferences
+                        </button>
+                    </a>
+                </div>
+                <p class="text-xs inline-block">Timezone: {timezone}</p>
+                {trial_warning}
             </div>
             "#
         )
