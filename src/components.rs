@@ -125,7 +125,7 @@ impl Component for PageContainer<'_> {
 }
 
 pub struct Home {
-    pub trial_accounts_remaining: i64,
+    pub trial_accounts_remaining: usize,
 }
 impl Component for Home {
     fn render(&self) -> String {
@@ -135,6 +135,16 @@ impl Component for Home {
             }
             .render();
             let register_route = Route::Register;
+            let s = if self.trial_accounts_remaining > 1 {
+                "s"
+            } else {
+                ""
+            };
+            let snt = if self.trial_accounts_remaining > 1 {
+                ""
+            } else {
+                "s"
+            };
             format!(
                 r#"
                 <div class="flex items-center justify-center my-12">
@@ -144,7 +154,7 @@ impl Component for Home {
                     >
                         <h2 class="text-xl font-bold">Create a Trial Account</h2>
                         <p class="italic text-sm">
-                            {trial_accounts} free trial accounts remain!
+                            {trial_accounts} free trial account{s} remain{snt}!
                         </p>
                         <p>
                             To create a 30-day free trial account, use
@@ -177,7 +187,23 @@ impl Component for Home {
                 "#
             )
         } else {
-            "".into()
+            r#"
+            <div class="flex items-center justify-center my-12">
+                <div
+                    class="bg-gradient-to-tr from-blue-300 to-indigo-300
+                    rounded-full p-12 text-black"
+                >
+                    <h2 class="text-xl font-bold">All Trial Accounts Taken!</h2>
+                    <p class="max-w-xs">
+                        Uh oh! Bad news for you but good news for us: 200 trial
+                        users already registered. Join the wait list to be
+                        notified when we're ready for you to make an account.
+                    </p>
+                    <p class="text-xs">Price will be $5/mo</p>
+                </div>
+            </div>
+            "#
+            .into()
         };
         let login_route = Route::Login;
         let waitlist_signup = Route::WaitlistSignup;
@@ -287,7 +313,7 @@ impl Component for Home {
 }
 
 pub struct TrialAccountCounter {
-    count_remaining: i64,
+    count_remaining: usize,
 }
 impl Component for TrialAccountCounter {
     fn render(&self) -> String {
@@ -367,9 +393,16 @@ impl Component for LoginForm {
     }
 }
 
-pub struct RegisterForm;
+pub struct RegisterForm {
+    pub should_prefill_registration_key: bool,
+}
 impl Component for RegisterForm {
     fn render(&self) -> String {
+        let key = if self.should_prefill_registration_key {
+            "a-reddit-new-year"
+        } else {
+            ""
+        };
         let register_route = Route::Register;
         format!(
             r#"
@@ -396,7 +429,7 @@ impl Component for RegisterForm {
                     id="registration_key"
                     name="registration_key"
                     type="text"
-                    value="a-reddit-new-year"
+                    value="{key}"
                 />
                 <input type="hidden" value="" name="timezone" id="timezone" />
                 <script>

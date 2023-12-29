@@ -600,5 +600,33 @@
       }
     },
     "query": "select\n            r.user_id user_id,\n            r.slug slug,\n            r.created_at created_at,\n            u.username username\n            from password_reset_link r\n        join users u on u.id = r.user_id\n        where slug = $1"
+  },
+  "f185b91094d82a66da1ea3ad61bbf914b14d77f2da3feca6d580bdbc441ef067": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "delete from registration_key where key = 'a-reddit-new-year'"
+  },
+  "f246ed09abd9442ad50ee7d86684f51bb844626a2ef9a2db102883617d33220f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "select 1 count from users"
   }
 }

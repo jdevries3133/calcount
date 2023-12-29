@@ -23,18 +23,25 @@ use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
 use futures::join;
 use serde::Deserialize;
-use sqlx::{query, query_as};
+use sqlx::{query, query_as, PgPool};
 
-pub async fn root() -> impl IntoResponse {
-    components::Page {
+pub async fn root(
+    State(AppState { db }): State<AppState>,
+) -> Result<impl IntoResponse, ServerError> {
+    let account_total =
+        query!("select 1 count from users").fetch_all(&db).await?;
+    let trial_accounts_remaining = config::MAX_ACCOUNT_LIMIT
+        .checked_sub(account_total.len())
+        .unwrap_or_default();
+    Ok(components::Page {
         title: "Bean Count",
         children: &components::PageContainer {
             children: &components::Home {
-                trial_accounts_remaining: 100,
+                trial_accounts_remaining,
             },
         },
     }
-    .render()
+    .render())
 }
 
 #[cfg(feature = "live_reload")]
@@ -169,14 +176,34 @@ pub async fn user_home(
     Ok(html)
 }
 
-pub async fn get_registration_form() -> impl IntoResponse {
-    components::Page {
+pub async fn get_registration_form(
+    State(AppState { db }): State<AppState>,
+) -> Result<impl IntoResponse, ServerError> {
+    let account_total =
+        query!("select 1 count from users").fetch_all(&db).await?;
+    let trial_accounts_remaining = config::MAX_ACCOUNT_LIMIT
+        .checked_sub(account_total.len())
+        .unwrap_or_default();
+    Ok(components::Page {
         title: "Register",
         children: &components::PageContainer {
-            children: &components::RegisterForm {},
+            children: &components::RegisterForm {
+                should_prefill_registration_key: trial_accounts_remaining > 0,
+            },
         },
     }
-    .render()
+    .render())
+}
+
+async fn maybe_revoke_reddit_registration(db: &PgPool) -> Result<()> {
+    let result = query!("select 1 count from users").fetch_all(db).await?;
+    if result.len() >= config::MAX_ACCOUNT_LIMIT {
+        query!("delete from registration_key where key = 'a-reddit-new-year'")
+            .execute(db)
+            .await?;
+    }
+
+    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
@@ -220,6 +247,7 @@ pub async fn handle_registration(
         stripe::SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION),
     )
     .await?;
+    maybe_revoke_reddit_registration(&db).await?;
     let preferences = UserPreference {
         timezone: form.timezone,
     };
