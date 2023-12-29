@@ -29,4 +29,4 @@ pub const FREE_TRIAL_DURATION: Duration =
 ///
 /// 1. `a-reddit-new-year` registration key will be revoked
 /// 2. landing page will update, making the mailing list become the priary focus
-pub const MAX_ACCOUNT_LIMIT: usize = 206;
+pub const MAX_ACCOUNT_LIMIT: usize = 205;
