@@ -311,6 +311,14 @@ impl Component for MealCard<'_> {
                 <p class="text-sm"><b>Protein:</b> {protein} grams</p>
                 <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>
                 <p class="text-sm"><b>Fat:</b> {fat} grams</p>
+                <p
+                    class="text-xs bg-yellow-100 dark:bg-yellow-800
+                    dark:text-slate-200 p-2 rounded-xl my-2"
+                >
+                    <span class="font-semibold">Warning:</span>
+                    this is an AI estimate. Use discretion and re-prompt if it
+                    doesn't look quite right!
+                </p>
                 <div class="flex justify-end gap-2">
                     {actions}
                 </div>
