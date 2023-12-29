@@ -10,7 +10,6 @@ use super::{
     count_chat, metrics, models, preferences::UserPreference, routes::Route,
 };
 use ammonia::clean;
-use rand::random;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>
@@ -162,20 +161,8 @@ impl Component for Home {
         };
         let login_route = Route::Login;
         let waitlist_signup = Route::WaitlistSignup;
-        let options = [
-            "5 second squeeze of honey",
-            "hummus on brioche bread",
-            "gigantic cheese burger",
-            "half a dunkin boston cream",
-            "3 handfuls of chex mix",
-            "a greasy cheese burger",
-            "a frozen chicken cutlet",
-            "really big diner breakfast (traditional American)",
-            "caesar salad & 10 stolen fries",
-        ];
-        let i = random::<usize>() % options.len();
         let chat_demo = count_chat::ChatDemo {
-            prefill_prompt: Some(options[i]),
+            prefill_prompt: None,
         }
         .render();
 
