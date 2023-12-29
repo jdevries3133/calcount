@@ -1,7 +1,7 @@
 //! Dedupe of common internal and external imports
 
 pub use crate::{
-    components::Component,
+    components::{Component, Page, PageContainer},
     errors::ServerError,
     models::{AppState, Id, User},
     preferences::UserPreference,

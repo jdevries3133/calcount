@@ -70,19 +70,37 @@ impl Component for PreviousMeals<'_> {
             // Pushing the top up by just 1px hides the text from revealing
             // itself behind the top of this sticky header as the user scrolls
             // through the container; weird browser behavior, weird fix.
-            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
-                dark:text-black text-xl font-bold">
-                Today's Food</h2>"#
+            r#"<h2 class="
+                    sticky
+                    top-[-1px]
+                    bg-zinc-50
+                    dark:bg-slate-900
+                    rounded
+                    p-2
+                    text-xl
+                    font-bold
+                ">
+                    Today's Food
+                </h2>"#
         } else {
-            r#"<h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
-                dark:text-black text-xl font-bold">
-                Previously Saved Items</h2>"#
+            r#"<h2 class="
+                    sticky
+                    top-[-1px]
+                    bg-sinc-50
+                    dark:bg-slate-900
+                    rounded
+                    p-2
+                    text-xl
+                    font-bold
+                ">
+                    Previously Saved Items
+                </h2>"#
         };
         let refresh_meals_href = format!("{}?page=0", Route::ListMeals);
         format!(
             r#"
             <div
-                class="flex flex-col gap-2 md:max-h-[80vh] md:overflow-y-scroll"
+                class="flex flex-col gap-2 md:max-h-[70vh] md:overflow-y-auto"
             >
                 {meal_header}
                 <div
@@ -114,10 +132,29 @@ impl Component for ChatUI<'_> {
         format!(
             r#"
             <div id="cal-chat-container" class="flex items-center justify-center">
-                <div class="rounded bg-slate-200 shadow m-2 p-2 md:p-4">
+                <div class="
+                    bg-zinc-50
+                    border-2
+                    border-black
+                    dark:bg-blue-950
+                    dark:border-white
+                    m-2
+                    md:p-4
+                    p-2
+                    rounded
+                ">
                     <h1
-                        class="border-b-2 border-slate-600 mb-2 border-black prose serif font-extrabold text-3xl"
-                    >Calorie Chat</h1>
+                        class="
+                            border-b-2
+                            border-slate-600
+                            mb-2
+                            border-black
+                            serif
+                            font-extrabold
+                            text-3xl
+                        ">
+                            Calorie Chat
+                        </h1>
                     <div class="md:flex md:gap-3">
                         <div>
                             <form
@@ -126,7 +163,7 @@ impl Component for ChatUI<'_> {
                             >
                                 <label for="chat">
                                     <h2
-                                        class="dark:text-black text-xl serif bold"
+                                        class="text-xl bold"
                                     >Describe what you're eating</h2>
                                 </label>
                                 <input
@@ -139,7 +176,14 @@ impl Component for ChatUI<'_> {
                                     value="{prompt}"
                                     required
                                 />
-                                <button class="text-black bg-green-100 hover:bg-green-200 rounded p-2">
+                                <button class="
+                                    bg-green-100
+                                    dark:bg-green-800
+                                    dark:hover:bg-green-700
+                                    hover:bg-green-200
+                                    p-2
+                                    rounded
+                                ">
                                     Count It
                                 </button>
                             </form>
@@ -223,6 +267,7 @@ impl Component for MealCard<'_> {
                                     hover:bg-green-200
                                     rounded
                                     p-1
+                                    dark:text-black
                                 ">
                                 Add to Today
                             </button>
@@ -237,7 +282,8 @@ impl Component for MealCard<'_> {
                         <button
                             hx-delete="{delete_href}"
                             hx-target="closest div[data-name='meal-card']"
-                            class="align-self-right bg-red-100 hover:bg-red-200 rounded p-1"
+                            class="align-self-right bg-red-100 hover:bg-red-200
+                            rounded p-1 dark:text-black"
                         >
                         Delete
                     </button>"#
@@ -249,12 +295,12 @@ impl Component for MealCard<'_> {
         let background_style = if is_meal_before_today {
             "border-4 border-black"
         } else {
-            "bg-gradient-to-tr from-violet-200 border-t-4 border-l-4 border-slate-300"
+            r#"bg-gradient-to-tr from-blue-300 to-indigo-300 dark:text-black"#
         };
         format!(
             r##"
             <div
-                class="dark:text-black to-sky-100 rounded p-2 shadow sm:w-[20rem] mr-4
+                class="rounded p-2 shadow sm:w-[20rem] mr-4
                 {background_style}
                 "
                 data-name="meal-card"
@@ -302,11 +348,19 @@ impl Component for MealSet<'_> {
                         // Note: the 20rem width matches the width of
                         // `MealCard`
                         r#"
-                        <h2 class="sticky top-[-1px] bg-slate-200 rounded p-2
-                            dark:text-black text-xl font-bold">
+                        <h2 class="
+                            sticky
+                            top-[-1px]
+                            bg-zinc-50
+                            dark:bg-slate-900
+                            rounded
+                            p-2
+                            text-xl
+                            font-bold
+                        ">
                             Previous Food</h2>
                         <div class="w-[20rem] border-b-4 border-black">
-                        <p class="text-xs my-4 dark:text-black">
+                        <p class="text-xs my-4">
                             Items after this line were input yesterday or
                             before, and are not included in your daily totals
                             at the top.
@@ -362,16 +416,25 @@ impl Component for CannotParse<'_> {
         let prompt = clean(self.original_user_prompt);
         format!(
             r##"
-            <div class="prose">
+            <div class="prose max-w-[400px] dark:text-slate-200">
                 <p><b>LLM response:</b> {llm_response}</p>
                 <p
-                    class="text-sm text-slate-600"
+                    class="text-sm"
                 ><b>Error parsing LLM Response:</b> {parser_msg}</p>
                 <form hx-post="{retry_route}" hx-target="#cal-chat-container">
                     <input type="hidden" value="{prompt}" name="meal_name" />
                     <button
-                        class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
-                    >Try Again</button>
+                        class="
+                            bg-red-100
+                            dark:bg-red-800
+                            dark:hover:bg-red-700
+                            p-1
+                            rounded
+                            shadow
+                            hover:bg-red-200
+                    ">
+                        Try Again
+                    </button>
                 </form>
             </div>
             "##
@@ -388,10 +451,19 @@ impl Component for InputTooLong {
             <div class="prose">
                 <p>Input is too long; please try again.</p>
                 <button
-                    class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
                     hx-get="{route}"
                     hx-target="#cal-chat-container"
-                >Try Again</button>
+                    class="
+                        bg-red-100
+                        dark:bg-red-800
+                        dark:hover:bg-red-700
+                        p-1
+                        rounded
+                        shadow
+                        hover:bg-red-200
+                ">
+                    Try Again
+                </button>
             </div>
             "##
         )

@@ -1,7 +1,6 @@
 use super::crypto as pw_crypto;
 use crate::{
     auth,
-    components::Page,
     config::{DOMAIN, RESET_TOKEN_TIMEOUT_MINUTES},
     htmx,
     prelude::*,
@@ -14,7 +13,7 @@ impl Component for ResetRequestForm {
         let reset_route = Route::PasswordReset;
         format!(
             r#"
-            <form hx-post="{reset_route}" class="flex flex-col gap-2 max-w-prose m-2 sm:m-4 md:m-8">
+            <form hx-post="{reset_route}" class="flex flex-col gap-2 max-w-prose p-2 sm:p-4 md:p-8">
                 <h1 class="text-xl font-extrabold">Password Reset</h1>
                 <label for="email">Email Address</label>
                 <p class="text-xs">
@@ -52,7 +51,9 @@ impl Component for ConfirmReset<'_> {
 pub async fn get_password_reset_request() -> String {
     Page {
         title: "Reset Password",
-        children: Box::new(ResetRequestForm {}),
+        children: &PageContainer {
+            children: &ResetRequestForm {},
+        },
     }
     .render()
 }
@@ -107,7 +108,7 @@ impl Component for ResetForm<'_> {
         let reset = Route::PasswordResetSecret(Some(slug.clone())).as_string();
         format!(
             r#"
-            <form hx-post="{reset}" class="flex flex-col gap-2 max-w-prose m-2 sm:m-4 md:m-8">
+            <form hx-post="{reset}" class="flex flex-col gap-2 max-w-prose p-2 sm:p-4 md:p-8">
                 <h1 class="text-xl font-extrabold">Reset your Password</h1>
                 <label for="password">New Password</label>
                 <input type="password" id="password" name="password" required />
@@ -134,7 +135,9 @@ pub async fn get_password_reset_form(
 ) -> impl IntoResponse {
     Page {
         title: "Reset your Password",
-        children: Box::new(ResetForm { slug: &slug }),
+        children: &PageContainer {
+            children: &ResetForm { slug: &slug },
+        },
     }
     .render()
 }

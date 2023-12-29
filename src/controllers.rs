@@ -16,7 +16,7 @@ use anyhow::Result;
 use axum::{
     extract::{Path, State},
     http::{HeaderMap, HeaderValue, StatusCode},
-    response::{IntoResponse, Redirect},
+    response::IntoResponse,
     Form,
 };
 use chrono::{DateTime, Utc};
@@ -28,9 +28,11 @@ use sqlx::{query, query_as};
 pub async fn root() -> impl IntoResponse {
     components::Page {
         title: "Bean Count",
-        children: Box::new(components::Home {
-            trial_accounts_remaining: 100,
-        }),
+        children: &components::PageContainer {
+            children: &components::Home {
+                trial_accounts_remaining: 100,
+            },
+        },
     }
     .render()
 }
@@ -150,34 +152,31 @@ pub async fn user_home(
     let macros = macros?;
     let meals = meals?;
     let sub_type = sub_type?;
-    let content = Box::new(components::UserHome {
-        user: &user,
-        meals: &meals,
-        macros: &macros,
-        preferences,
-        subscription_type: sub_type,
-    });
     let html = components::Page {
         title: "Home Page",
-        children: content,
+        children: &components::PageContainer {
+            children: &components::UserHome {
+                user: &user,
+                meals: &meals,
+                macros: &macros,
+                preferences,
+                subscription_type: sub_type,
+            },
+        },
     }
     .render();
 
     Ok(html)
 }
 
-pub async fn get_registration_form(headers: HeaderMap) -> impl IntoResponse {
-    let form = components::RegisterForm {};
-
-    if headers.contains_key("Hx-Request") {
-        form.render()
-    } else {
-        components::Page {
-            title: "Register",
-            children: Box::new(form),
-        }
-        .render()
+pub async fn get_registration_form() -> impl IntoResponse {
+    components::Page {
+        title: "Register",
+        children: &components::PageContainer {
+            children: &components::RegisterForm {},
+        },
     }
+    .render()
 }
 
 #[derive(Debug, Deserialize)]
@@ -240,36 +239,35 @@ pub async fn handle_registration(
     Ok((headers, "OK".to_string()))
 }
 
-pub async fn get_login_form(headers: HeaderMap) -> impl IntoResponse {
-    let form = components::LoginForm {};
+pub async fn get_login_form(
+    headers: HeaderMap,
+) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers);
+    Ok(match session {
+        Some(_) => {
+            // The user is already authenticated, let's redirect them to the
+            // user homepage.
+            let mut headers = HeaderMap::new();
+            headers.insert(
+                "Location",
+                HeaderValue::from_str(&Route::UserHome.as_string())?,
+            );
+            headers.insert(
+                "Hx-Redirect",
+                HeaderValue::from_str(&Route::UserHome.as_string())?,
+            );
 
-    let response_headers = HeaderMap::new();
-    if headers.contains_key("Hx-Request") {
-        if session.is_some() {
-            let response_headers =
-                htmx::redirect(response_headers, &Route::UserHome.as_string());
-            (response_headers, "OK").into_response()
-        } else {
-            (response_headers, form.render()).into_response()
+            (StatusCode::SEE_OTHER, headers).into_response()
         }
-    } else if session.is_some() {
-        (
-            response_headers,
-            Redirect::temporary(&Route::UserHome.as_string()),
-        )
-            .into_response()
-    } else {
-        (
-            response_headers,
-            components::Page {
-                title: "Login",
-                children: Box::new(form),
-            }
-            .render(),
-        )
-            .into_response()
-    }
+        None => components::Page {
+            title: "Login",
+            children: &components::PageContainer {
+                children: &components::LoginForm {},
+            },
+        }
+        .render()
+        .into_response(),
+    })
 }
 
 pub async fn logout() -> Result<impl IntoResponse, ServerError> {

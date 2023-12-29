@@ -1,7 +1,7 @@
 //! User preferences
 
 use crate::{
-    components::{Page, Saved},
+    components::{Page, PageContainer, Saved},
     prelude::*,
 };
 use axum::http::Method;
@@ -35,10 +35,11 @@ impl Component for UserPreference {
         let home = Route::UserHome;
         format!(
             r#"
-            <div class="flex flex-col items-center justify-center m-2 sm:m-4 md:m-8">
+            <div class="flex flex-col items-center justify-center">
                 <form
                     hx-post="{self_url}"
-                    class="p-4 bg-slate-200 text-black rounded w-prose flex flex-col gap-2"
+                    class="p-4 bg-slate-200 text-black rounded w-prose flex
+                    flex-col gap-2"
                 >
                     <h1 class="text-2xl font-extrabold">User Preferences</h1>
                         <label for="timezone">Timezone</label>
@@ -49,7 +50,8 @@ impl Component for UserPreference {
                         <button class="bg-blue-200 rounded">Save</button>
                         <a
                             class="text-center rounded border-slate-800 border-2"
-                            href="{home}">Go back</a>
+                            href="{home}"
+                        >Go back</a>
                 </form>
             </div>
             "#
@@ -140,7 +142,9 @@ pub async fn user_preference_controller(
                 response_headers,
                 Page {
                     title: "User Preferences",
-                    children: Box::new(preferences),
+                    children: &PageContainer {
+                        children: &preferences,
+                    },
                 }
                 .render(),
             ))

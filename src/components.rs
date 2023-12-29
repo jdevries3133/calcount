@@ -64,7 +64,7 @@ impl std::fmt::Display for dyn Component {
 
 pub struct Page<'a> {
     pub title: &'a str,
-    pub children: Box<dyn Component + 'a>,
+    pub children: &'a dyn Component,
 }
 
 impl Component for Page<'_> {
@@ -89,7 +89,7 @@ impl Component for Page<'_> {
                     <link rel="manifest" href="{manifest}" />
                     <link rel="apple-touch-icon" href="{apple_icon}">
                 </head>
-                <body hx-boost="true" class="dark:bg-indigo-1000 dark:text-white">
+                <body hx-boost="true">
                     {body_html}
                     <script src="{htmx}"></script>
                     <script>
@@ -101,6 +101,25 @@ impl Component for Page<'_> {
             tailwind = tailwind,
             title = clean(self.title),
             body_html = self.children.render()
+        )
+    }
+}
+
+pub struct PageContainer<'a> {
+    pub children: &'a dyn Component,
+}
+impl Component for PageContainer<'_> {
+    fn render(&self) -> String {
+        let children = self.children.render();
+        format!(
+            r#"
+            <div
+                class="p-2 sm:p-4 md:p-8 bg-teal-50 dark:bg-indigo-1000
+                dark:text-slate-200 min-h-[100vh]"
+            >
+                {children}
+            </div>
+            "#
         )
     }
 }
@@ -137,8 +156,8 @@ impl Component for Home {
                             <button
                                 class="
                                     bg-gradient-to-tr
-                                    dark:from-blue-700
-                                    dark:to-indigo-700
+                                    from-blue-700
+                                    to-indigo-700
                                     from-blue-100
                                     to-indigo-200
                                     p-2
@@ -169,11 +188,13 @@ impl Component for Home {
 
         format!(
             r#"
-            <div class="text-slate-200 m-2 sm:m-4 md:m-8">
             <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
                 &#127793; Bean Count &#129752;
             </h1>
-            <div class="grid md:grid-cols-3 gap-24 justfiy-center m-12">
+            <div
+                class="text-teal-50 dark:text-slate-200 grid md:grid-cols-3
+                gap-24 justfiy-center m-12"
+            >
                 <div
                     class="bg-blue-800 rounded p-2 inline-block my-2 flex
                     items-center text-lg font-semibold text-center"
@@ -210,8 +231,13 @@ impl Component for Home {
                         {chat_demo}
                     </div>
                     <div class="p-4 border-8 border-slate-800">
-                        <h2 class="text-xl text-center font-bold">Join the Wait List</h2>
-                        <form class="flex items-start justify-center" hx-post="{waitlist_signup}">
+                        <h2 class="text-xl text-center font-bold">
+                            Join the Wait List
+                        </h2>
+                        <form
+                            class="flex items-start justify-center"
+                            hx-post="{waitlist_signup}"
+                        >
                             <div class="flex flex-col gap-2">
                                 <label class="block" for="email">
                                     Email Address
@@ -224,8 +250,9 @@ impl Component for Home {
                                     placeholder="Your Email"
                                     required
                                 />
-                                <button class="block bg-green-800
-                                hover:bg-green-700 p-2 rounded font-semibold">
+                                <button class="block dark:bg-green-800
+                                dark:hover:bg-green-700 bg-green-200
+                                hover:bg-green-300 p-2 rounded font-semibold">
                                     Submit
                                 </button>
                             </div>
@@ -254,7 +281,6 @@ impl Component for Home {
                     </a>
                 </div>
             </div>
-            </div>
             "#
         )
     }
@@ -281,12 +307,17 @@ impl Component for LoginForm {
         let password_reset = Route::PasswordReset;
         format!(
             r#"
-            <form class="m-2 sm:m-4 md:m-8 flex flex-col gap-2 max-w-md" hx-post="{login_route}">
-                <h1 class="text-xl">Login</h1>
+            <form class="flex flex-col gap-2 max-w-md" hx-post="{login_route}">
+                <h1 class="text-xl">Login to Bean Count</h1>
                 <label autocomplete="username" for="identifier">
                     Username or Email
                 </label>
-                <input type="text" id="identifier" name="identifier" />
+                <input
+                    type="text"
+                    id="identifier"
+                    name="identifier"
+                    autocomplete="username"
+                />
                 <label for="passwored">Password</label>
                 <input
                     autocomplete="current-password"
@@ -296,31 +327,35 @@ impl Component for LoginForm {
                     />
                 <div class="flex gap-2">
                 <button class="
-                    dark:bg-green-700
-                    w-36
-                    dark:text-white
-                    dark:hover:bg-green-600
-                    transition
-                    shadow
-                    hover:shadow-none
-                    rounded
-                    p-1
                     block
+                    bg-green-200
+                    hover:bg-green-300
+                    dark:bg-green-700
+                    dark:hover:bg-green-600
+                    dark:text-white
+                    hover:shadow-none
+                    p-1
+                    rounded
+                    shadow
+                    transition
+                    w-36
                 ">
                         Log In
                     </button>
                     <a href="{password_reset}">
                         <button class="
-                            dark:bg-yellow-700
-                            w-36
-                            dark:text-white
-                            dark:hover:bg-yellow-600
-                            transition
-                            shadow
-                            hover:shadow-none
-                            rounded
-                            p-1
                             block
+                            bg-yellow-200
+                            hover:bg-yellow-300
+                            dark:bg-yellow-700
+                            dark:hover:bg-yellow-600
+                            dark:text-white
+                            hover:shadow-none
+                            p-1
+                            rounded
+                            shadow
+                            transition
+                            w-36
                         ">
                             Reset Password
                         </button>
@@ -338,14 +373,19 @@ impl Component for RegisterForm {
         let register_route = Route::Register;
         format!(
             r#"
-            <form class="m-2 sm:m-4 md:m-8 flex flex-col gap-2 max-w-md" hx-post="{register_route}">
-                <h1 class="text-xl">Register for an Account</h1>
+            <form class="flex flex-col gap-2 max-w-md" hx-post="{register_route}">
+                <h1 class="text-xl">Register for a Bean Count Account</h1>
                 <label for="username">Username</label>
                 <input autocomplete="username" type="text" id="username" name="username" />
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" />
                 <label for="password">Password</label>
-                <input autocomplete="current-password" type="password" id="password" name="password" />
+                <input
+                    autocomplete="current-password"
+                    type="password"
+                    id="password"
+                    name="password"
+                />
                 <label for="registration_key">Registration Key</label>
                 <p class="text-sm dark:text-slate-100">
                     A registration key from the developer is required to create
@@ -365,7 +405,23 @@ impl Component for RegisterForm {
                         el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     }})();
                 </script>
-                <button class="dark:bg-slate-700 w-36 dark:text-white dark:hover:bg-slate-600 transition shadow hover:shadow-none rounded p-1 block">Sign Up</button>
+                <button
+                    class="
+                        bg-green-100
+                        block
+                        dark:bg-slate-700
+                        dark:hover:bg-slate-600
+                        dark:text-white
+                        hover:bg-green-200
+                        hover:shadow-none
+                        p-1
+                        rounded
+                        shadow
+                        transition
+                        w-36
+                    ">
+                        Sign Up
+                    </button>
             </form>
             "#
         )
@@ -407,6 +463,13 @@ impl Component for UserHome<'_> {
         } else {
             metrics::MacroPlaceholder {}.render()
         };
+        let profile = ProfileChip {
+            username: &self.user.username,
+            timezone: &self.preferences.timezone,
+            subscription_type: self.subscription_type,
+            user_created_time: self.user.created_at,
+        }
+        .render();
         let chat = count_chat::ChatContainer {
             meals: self.meals,
             user_timezone: self.preferences.timezone,
@@ -415,16 +478,9 @@ impl Component for UserHome<'_> {
             post_request_handler: Route::HandleChat,
         }
         .render();
-        let profile = ProfileChip {
-            username: &self.user.username,
-            timezone: &self.preferences.timezone,
-            subscription_type: self.subscription_type,
-            user_created_time: self.user.created_at,
-        }
-        .render();
         format!(
             r#"
-            <div class="flex flex-col gap-2 m-2 sm:m-4 md:m-8">
+            <div class="flex flex-col gap-2">
                 {profile}
                 {macros}
                 {chat}
@@ -475,13 +531,14 @@ impl Component for ProfileChip<'_> {
         };
         format!(
             r#"
-            <div class="self-start text-black p-2 bg-blue-100 rounded-2xl">
+            <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">
                 <div class="flex mb-1 gap-2">
                     <p class="font-bold">Hi, {username}!</p>
                     <a class="inline" href="{logout}">
                         <button
                             style="margin-left: auto"
-                            class="text-xs p-1 bg-red-100 hover:bg-red-200 rounded-full"
+                            class="text-xs p-1 bg-red-100 hover:bg-red-200
+                            rounded-full text-black"
                         >
                             Log Out
                         </button>
@@ -489,7 +546,8 @@ impl Component for ProfileChip<'_> {
                     <a class="inline" href="{preferences}">
                         <button
                             style="margin-left: auto"
-                            class="text-xs p-1 bg-green-100 hover:bg-green-200 rounded-full"
+                            class="text-xs p-1 bg-green-100 hover:bg-green-200
+                            rounded-full text-black"
                         >
                             View Preferences
                         </button>
