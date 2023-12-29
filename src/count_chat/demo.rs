@@ -97,6 +97,7 @@ pub async fn handle_chat(
             // perspective, but again for this specific use-case
             // that is OK.
             user_timezone: Tz::US__Samoa,
+            show_ai_warning: true,
         }
         .render()),
         llm_parse_response::ParserResult::FollowUp(msg) => {

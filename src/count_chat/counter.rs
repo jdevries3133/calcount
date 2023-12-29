@@ -58,6 +58,7 @@ impl Component for PreviousMeals<'_> {
             meals: &self.meals[..],
             user_timezone: self.user_timezone,
             next_page: self.next_page,
+            show_ai_warning: false,
         }
         .render();
         let is_any_meal_during_today = self
@@ -239,6 +240,7 @@ pub struct MealCard<'a> {
     pub meal_id: Option<i32>,
     pub actions: Option<&'a dyn Component>,
     pub user_timezone: Tz,
+    pub show_ai_warning: bool,
 }
 impl Component for MealCard<'_> {
     fn render(&self) -> String {
@@ -297,6 +299,20 @@ impl Component for MealCard<'_> {
         } else {
             r#"bg-gradient-to-tr from-blue-300 to-indigo-300 dark:text-black"#
         };
+        let warning = if self.show_ai_warning {
+            r#"
+                <p
+                    class="text-xs bg-yellow-100 dark:bg-yellow-800
+                    dark:text-slate-200 p-2 rounded-xl my-2"
+                >
+                    <span class="font-semibold">Warning:</span>
+                    this is an AI estimate. Use discretion and re-prompt if it
+                    doesn't look quite right!
+                </p>
+            "#
+        } else {
+            ""
+        };
         format!(
             r##"
             <div
@@ -311,14 +327,7 @@ impl Component for MealCard<'_> {
                 <p class="text-sm"><b>Protein:</b> {protein} grams</p>
                 <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>
                 <p class="text-sm"><b>Fat:</b> {fat} grams</p>
-                <p
-                    class="text-xs bg-yellow-100 dark:bg-yellow-800
-                    dark:text-slate-200 p-2 rounded-xl my-2"
-                >
-                    <span class="font-semibold">Warning:</span>
-                    this is an AI estimate. Use discretion and re-prompt if it
-                    doesn't look quite right!
-                </p>
+                {warning}
                 <div class="flex justify-end gap-2">
                     {actions}
                 </div>
@@ -332,6 +341,7 @@ struct MealSet<'a> {
     meals: &'a [Meal],
     user_timezone: Tz,
     next_page: i64,
+    show_ai_warning: bool,
 }
 impl Component for MealSet<'_> {
     fn render(&self) -> String {
@@ -383,6 +393,7 @@ impl Component for MealSet<'_> {
                         meal_id: Some(meal.id),
                         actions: None,
                         user_timezone: self.user_timezone,
+                        show_ai_warning: self.show_ai_warning,
                     }
                     .render(),
                 );
@@ -521,6 +532,7 @@ pub async fn handle_chat(
             meal_id: None,
             actions: Some(&NewMealOptions { info: &meal }),
             user_timezone: session.preferences.timezone,
+            show_ai_warning: true,
         }
         .render()),
         ParserResult::FollowUp(msg) => {
@@ -671,6 +683,7 @@ pub async fn list_meals(
         meals: &meals[..],
         next_page: page + 1,
         user_timezone: session.preferences.timezone,
+        show_ai_warning: false,
     }
     .render())
 }
