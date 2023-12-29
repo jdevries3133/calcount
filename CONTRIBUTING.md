@@ -7,3 +7,6 @@ source for the purpose of education and transparency, but I issue no license for
 any other use. For example, it's OK to run this code on your machine to learn;
 it's not OK to deploy a persistent clone of this service on a domain you own
 where users on the internet could sign up.
+
+Details about setting up the development environment for this project are in
+./HACKING.md, should you wish to learn more!
