@@ -1,31 +1,33 @@
 use anyhow::Result;
 #[cfg(feature = "enable_smtp_email")]
-use mail_send::{mail_builder::MessageBuilder, SmtpClientBuilder};
+use lettre::{
+    message::header::ContentType, transport::smtp::authentication::Credentials,
+    AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+};
 #[cfg(feature = "enable_smtp_email")]
 use std::env;
 
 #[cfg(feature = "enable_smtp_email")]
-/// Send a simple plain text email to a single recipient.
 pub async fn send_email(to: &str, subject: &str, msg: &str) -> Result<()> {
-    // Build a simple multipart message
-    let message = MessageBuilder::new()
-        .from(("Jack DeVries (beancount.bot)", "jdevries3133@gmail.com"))
-        .to(to)
+    let email = Message::builder()
+        .from("beancount.bot <jdevries3133@gmail.com>".parse()?)
+        .reply_to("beancount.bot <jdevries3133@gmail.com>".parse()?)
+        .to(to.parse()?)
         .subject(subject)
-        .html_body(format!("<html><head></head><body>{}</body></html>", msg))
-        .text_body(msg);
+        .header(ContentType::TEXT_PLAIN)
+        .body(String::from(msg))?;
 
     let username = env::var("SMTP_EMAIL_USERNAME")?;
     let password = env::var("SMTP_EMAIL_PASSWORD")?;
 
-    SmtpClientBuilder::new("smtp.gmail.com", 587)
-        .implicit_tls(false)
-        .credentials((&username[..], &password[..]))
-        .connect()
-        .await?
-        .send(message)
-        .await?;
+    let creds = Credentials::new(username, password);
 
+    let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
+        .unwrap()
+        .credentials(creds)
+        .build();
+
+    mailer.send(email).await?;
     Ok(())
 }
 

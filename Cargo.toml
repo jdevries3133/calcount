@@ -24,7 +24,7 @@ futures-util = "0.3.29"
 hex = "0.4.3"
 hmac = "0.12.1"
 hyper = "0.14.27"
-mail-send = "0.4.3"
+lettre = { version = "0.11.2", default-features = false, features = [ "builder", "hostname", "pool", "smtp-transport", "tokio1-rustls-tls" ] }
 markdown = "1.0.0-alpha.12"
 rand = "0.8.5"
 regex = "1.9.1"
