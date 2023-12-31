@@ -42,7 +42,7 @@ impl Component for UserPreference {
         let home = Route::UserHome;
         format!(
             r#"
-            <div class="flex flex-col items-center justify-center max-w-prose">
+            <div class="flex flex-col items-center justify-center">
                 <form
                     hx-post="{self_url}"
                     class="p-4 bg-slate-200 text-black rounded w-prose flex
@@ -55,17 +55,8 @@ impl Component for UserPreference {
                         name="timezone"
                     >{options}</select>
                     <label for="caloric_intake_goal">Caloric Intake Goal</label>
-                    <p class="text-sm">
-                        This should be based on your Total Daily Energy
-                        Expenditure (TDEE), and your goals for weight loss,
-                        maintainance, or gain. Use an online resource like
-                        <a class="link" href="https://tdeecalculator.net/">the
-                        TDEE calculator</a> to calculate the perfect calorie
-                        goal for you.
-                    </p>
                     <input
                         type="number"
-                        step="100"
                         value="{goal}"
                         name="caloric_intake_goal"
                         id="caloric_intake_goal"
