@@ -1,28 +1,19 @@
 use super::{
-    auth,
-    auth::{hash_new_password, Session},
-    chrono_utils, client_events, components,
-    components::Component,
-    config, count_chat, db_ops,
-    errors::ServerError,
-    htmx, metrics,
-    models::AppState,
-    preferences::{save_user_preference, UserPreference},
-    routes::Route,
-    stripe,
+    auth::Session, chrono_utils, client_events, components,
+    components::Component, config, count_chat, errors::ServerError, metrics,
+    models::AppState, stripe,
 };
 use anyhow::Result;
 use axum::{
     extract::{Path, State},
-    http::{HeaderMap, HeaderValue, StatusCode},
+    http::{HeaderMap, HeaderValue},
     response::IntoResponse,
     Form,
 };
 use chrono::{DateTime, Utc};
-use chrono_tz::Tz;
 use futures::join;
 use serde::Deserialize;
-use sqlx::{query, query_as, PgPool};
+use sqlx::{query, query_as};
 
 pub async fn root(
     State(AppState { db }): State<AppState>,
@@ -174,173 +165,6 @@ pub async fn user_home(
     .render();
 
     Ok(html)
-}
-
-pub async fn get_registration_form(
-    State(AppState { db }): State<AppState>,
-) -> Result<impl IntoResponse, ServerError> {
-    let account_total =
-        query!("select 1 count from users").fetch_all(&db).await?;
-    let trial_accounts_remaining = config::MAX_ACCOUNT_LIMIT
-        .checked_sub(account_total.len())
-        .unwrap_or_default();
-    Ok(components::Page {
-        title: "Register",
-        children: &components::PageContainer {
-            children: &components::RegisterForm {
-                should_prefill_registration_key: trial_accounts_remaining > 0,
-            },
-        },
-    }
-    .render())
-}
-
-async fn maybe_revoke_reddit_registration(db: &PgPool) -> Result<()> {
-    let result = query!("select 1 count from users").fetch_all(db).await?;
-    if result.len() >= config::MAX_ACCOUNT_LIMIT {
-        query!("delete from registration_key where key = 'a-reddit-new-year'")
-            .execute(db)
-            .await?;
-    }
-
-    Ok(())
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RegisterForm {
-    username: String,
-    email: String,
-    password: String,
-    registration_key: String,
-    timezone: Tz,
-}
-
-pub async fn handle_registration(
-    State(AppState { db }): State<AppState>,
-    Form(form): Form<RegisterForm>,
-) -> Result<impl IntoResponse, ServerError> {
-    let headers = HeaderMap::new();
-    let registration_keys = db_ops::get_registraton_keys(&db).await?;
-    let user_key = form.registration_key;
-    if !registration_keys.contains(&user_key) {
-        println!("{user_key} is not a known registration key");
-        let register_route = Route::Register;
-        return Ok((
-            headers,
-            format!(
-                r#"<p hx-trigger="load delay:1s" hx-get="{register_route}">Wrong registration key.</p>"#
-            ),
-        ));
-    };
-    let hashed_pw = hash_new_password(&form.password);
-
-    let stripe_id =
-        stripe::create_customer(&form.username, &form.email).await?;
-    let payment_portal_url = stripe::get_billing_portal_url(&stripe_id).await?;
-
-    let user = db_ops::create_user(
-        &db,
-        form.username,
-        form.email,
-        &hashed_pw,
-        stripe_id,
-        stripe::SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION),
-    )
-    .await?;
-    maybe_revoke_reddit_registration(&db).await?;
-    let preferences = UserPreference {
-        timezone: form.timezone,
-        caloric_intake_goal: None,
-    };
-    save_user_preference(&db, &user, &preferences).await?;
-    let session = Session {
-        user,
-        preferences,
-        created_at: Utc::now(),
-    };
-    let headers = session.update_headers(headers);
-    let headers = htmx::redirect(headers, &payment_portal_url);
-    Ok((headers, "OK".to_string()))
-}
-
-pub async fn get_login_form(
-    headers: HeaderMap,
-) -> Result<impl IntoResponse, ServerError> {
-    let session = Session::from_headers(&headers);
-    let form = components::Page {
-        title: "Login",
-        children: &components::PageContainer {
-            children: &components::LoginForm {},
-        },
-    };
-    Ok(match session {
-        Some(session) => {
-            if Utc::now()
-                .signed_duration_since(session.created_at)
-                .num_days()
-                < config::SESSION_EXPIRY_TIME_DAYS
-            {
-                // The user is already authenticated, let's redirect them to the
-                // user homepage.
-                let mut headers = HeaderMap::new();
-                headers.insert(
-                    "Location",
-                    HeaderValue::from_str(&Route::UserHome.as_string())?,
-                );
-                headers.insert(
-                    "Hx-Redirect",
-                    HeaderValue::from_str(&Route::UserHome.as_string())?,
-                );
-
-                (StatusCode::SEE_OTHER, headers).into_response()
-            } else {
-                form.render().into_response()
-            }
-        }
-        None => form.render().into_response(),
-    })
-}
-
-pub async fn logout() -> Result<impl IntoResponse, ServerError> {
-    let login = Route::Login;
-    let mut headers = HeaderMap::new();
-    headers.insert(
-        "Set-Cookie",
-        HeaderValue::from_str("session=null; Path=/; HttpOnly")?,
-    );
-    headers.insert("Location", HeaderValue::from_str(&login.as_string())?);
-
-    Ok((StatusCode::FOUND, headers))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct LoginForm {
-    /// Username or email
-    identifier: String,
-    password: String,
-}
-
-pub async fn handle_login(
-    State(AppState { db }): State<AppState>,
-    Form(form): Form<LoginForm>,
-) -> Result<impl IntoResponse, ServerError> {
-    let session =
-        auth::authenticate(&db, &form.identifier, &form.password).await;
-    let headers = HeaderMap::new();
-    if let Ok(session) = session {
-        let homepage = Route::UserHome.as_string();
-        let headers = session.update_headers(headers);
-        let headers = htmx::redirect(headers, &homepage);
-        Ok((headers, "OK".to_string()))
-    } else {
-        let login_route = Route::Login;
-        Ok((
-            headers,
-            format!(
-                r#"<p hx-trigger="load delay:1s" hx-get="{login_route}">Invalid login credentials.</p>"#
-            ),
-        ))
-    }
 }
 
 pub async fn delete_meal(

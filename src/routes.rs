@@ -166,15 +166,15 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(&Route::Ping.as_string(), get(controllers::pong))
         .route(
             &Route::Register.as_string(),
-            get(controllers::get_registration_form),
+            get(auth::get_registration_form),
         )
         .route(
             &Route::Register.as_string(),
-            post(controllers::handle_registration),
+            post(auth::handle_registration),
         )
-        .route(&Route::Login.as_string(), get(controllers::get_login_form))
-        .route(&Route::Logout.as_string(), get(controllers::logout))
-        .route(&Route::Login.as_string(), post(controllers::handle_login))
+        .route(&Route::Login.as_string(), get(auth::get_login_form))
+        .route(&Route::Logout.as_string(), get(auth::logout))
+        .route(&Route::Login.as_string(), post(auth::handle_login))
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
         .route(&Route::Void.as_string(), get(controllers::void))
         .route(

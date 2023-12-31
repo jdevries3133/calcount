@@ -1,6 +1,6 @@
 //! Database operations; squirrel code lives here.
 
-use super::{auth::HashedPw, models, models::IdCreatedAt, stripe};
+use super::{models, stripe};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -8,7 +8,6 @@ use sqlx::{
     postgres::{PgPool, PgPoolOptions},
     query_as,
 };
-use std::collections::HashSet;
 
 pub async fn create_pg_pool() -> Result<sqlx::Pool<sqlx::Postgres>> {
     let db_url = &std::env::var("DATABASE_URL")
@@ -108,58 +107,4 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
     async fn delete(self, _db: &PgPool) -> Result<()> {
         todo!();
     }
-}
-
-pub async fn create_user(
-    db: &PgPool,
-    username: String,
-    email: String,
-    pw: &HashedPw,
-    stripe_customer_id: String,
-    subscription_type: stripe::SubscriptionTypes,
-) -> Result<models::User> {
-    let query_return = query_as!(
-        IdCreatedAt,
-        "insert into users
-        (
-            username,
-            email,
-            salt,
-            digest,
-            stripe_customer_id,
-            subscription_type_id
-        )
-         values ($1, $2, $3, $4, $5, $6)
-        returning id, created_at",
-        username,
-        email,
-        pw.salt,
-        pw.digest,
-        stripe_customer_id,
-        subscription_type.as_int()
-    )
-    .fetch_one(db)
-    .await?;
-
-    Ok(models::User {
-        id: query_return.id,
-        created_at: query_return.created_at,
-        username,
-        email,
-        stripe_customer_id,
-        stripe_subscription_type: subscription_type,
-    })
-}
-
-pub async fn get_registraton_keys(db: &PgPool) -> Result<HashSet<String>> {
-    struct Qres {
-        key: String,
-    }
-    let mut keys = query_as!(Qres, "select key from registration_key")
-        .fetch_all(db)
-        .await?;
-    Ok(keys.drain(..).fold(HashSet::new(), |mut acc, k| {
-        acc.insert(k.key);
-        acc
-    }))
 }
