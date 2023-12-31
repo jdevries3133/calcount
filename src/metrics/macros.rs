@@ -135,7 +135,7 @@ pub async fn display_macros(
     if macros.is_empty() {
         Ok(MacroStatus {
             macros: &macros,
-            caloric_intake_goal: None,
+            caloric_intake_goal: session.preferences.caloric_intake_goal,
         }
         .render())
     } else {
