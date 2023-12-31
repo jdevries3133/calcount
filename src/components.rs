@@ -552,7 +552,7 @@ impl Component for ProfileChip<'_> {
             format!(
                 r#"
                 <p
-                    class="text-xs inline-block bg-yellow-100 p-1 rounded-lg my-2"
+                    class="text-black text-xs inline-block bg-yellow-100 p-1 rounded-lg my-2"
                 >
                     <span class="font-semibold">{cnt_remaining_days}</span>
                     free trial days remaining; price will be $5/mo
