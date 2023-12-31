@@ -167,6 +167,7 @@ pub async fn user_home(
                 macros: &macros,
                 preferences,
                 subscription_type: sub_type,
+                caloric_intake_goal: preferences.caloric_intake_goal,
             },
         },
     }
@@ -249,6 +250,7 @@ pub async fn handle_registration(
     maybe_revoke_reddit_registration(&db).await?;
     let preferences = UserPreference {
         timezone: form.timezone,
+        caloric_intake_goal: None,
     };
     save_user_preference(&db, &user, &preferences).await?;
     let session = Session {
