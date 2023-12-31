@@ -146,14 +146,13 @@ mod tests {
             },
             preferences: preferences::UserPreference {
                 timezone: chrono_tz::Tz::US__Samoa,
-                caloric_intake_goal: None,
             },
             created_at: DateTime::<Utc>::from_timestamp(0, 0)
                 .expect("that is a valid timestamp"),
         }
     }
 
-    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EiLCJjYWxvcmljX2ludGFrZV9nb2FsIjpudWxsfSwiY3JlYXRlZF9hdCI6IjE5NzAtMDEtMDFUMDA6MDA6MDBaIn0:k85WWa60oKXRGXUlsreRMwLVz7qU0xOtor7025LMI9o";
+    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EifSwiY3JlYXRlZF9hdCI6IjE5NzAtMDEtMDFUMDA6MDA6MDBaIn0:DK9ffJyNdDx6bLduh7uGNjKIljh076SvgGQxF5QuwqA";
 
     #[test]
     fn test_serialize_session() {

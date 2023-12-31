@@ -75,23 +75,17 @@
     },
     "query": "select\n            id,\n            name meal_name,\n            calories,\n            fat fat_grams,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where user_id = $1\n        order by created_at desc\n        limit $2\n        offset $3\n        "
   },
-  "10879fbef28071f8f460559fdd9067e82990dc06f7936e7204504b02c2c2edb3": {
+  "10b29475de0b4326534cede9d05c55067eb25d059a386766c720c3c54de08521": {
     "describe": {
       "columns": [
         {
           "name": "timezone",
           "ordinal": 0,
           "type_info": "Text"
-        },
-        {
-          "name": "caloric_intake_goal",
-          "ordinal": 1,
-          "type_info": "Int4"
         }
       ],
       "nullable": [
-        false,
-        true
+        false
       ],
       "parameters": {
         "Left": [
@@ -99,7 +93,7 @@
         ]
       }
     },
-    "query": "select timezone, caloric_intake_goal from user_preference\n        where user_id = $1"
+    "query": "select timezone from user_preference\n        where user_id = $1"
   },
   "14eae1fe6a09754b945207ee31e8fd73449ff163d206739c0f52693c587f4262": {
     "describe": {
@@ -284,20 +278,6 @@
       }
     },
     "query": "delete from password_reset_link where slug = $1"
-  },
-  "661fb6e34f044a583bb59df6d66beb9c94639a7dffa73cbae0667b8dd510aace": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Int4"
-        ]
-      }
-    },
-    "query": "insert into user_preference\n        (user_id, timezone, caloric_intake_goal) values ($1, $2, $3)\n        on conflict (user_id)\n        do update set timezone = $2, caloric_intake_goal = $3"
   },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {
@@ -516,6 +496,19 @@
       }
     },
     "query": "insert into users\n        (\n            username,\n            email,\n            salt,\n            digest,\n            stripe_customer_id,\n            subscription_type_id\n        )\n         values ($1, $2, $3, $4, $5, $6)\n        returning id, created_at"
+  },
+  "d1a81c47116df8bd12f8e8936c93e8b921f36d28c377aa066899d57a626fabf1": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into user_preference\n        (user_id, timezone) values ($1, $2)\n        on conflict (user_id)\n        do update set timezone = $2"
   },
   "d316655f3cd158482e5f83c4e62246892091dbf55e74ca48bd7d892c1f3f1104": {
     "describe": {
