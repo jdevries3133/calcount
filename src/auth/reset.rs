@@ -1,4 +1,4 @@
-use super::crypto as pw_crypto;
+use super::pw;
 use crate::{
     auth,
     config::{DOMAIN, RESET_TOKEN_TIMEOUT_MINUTES},
@@ -206,7 +206,7 @@ pub async fn handle_password_reset(
             {
                 Ok((headers, ResetFailed {}.render()))
             } else {
-                let pw = pw_crypto::hash_new(&password);
+                let pw = pw::hash_new(&password);
                 query!(
                     "update users set salt = $1, digest = $2
                     where id = $3",

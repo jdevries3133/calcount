@@ -1,7 +1,7 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{
-    controllers, count_chat, metrics, models, preferences, pw, stripe,
+    auth, controllers, count_chat, metrics, models, preferences, stripe,
 };
 use axum::routing::{any, delete, get, post, Router};
 
@@ -149,19 +149,19 @@ pub fn get_public_routes() -> Router<models::AppState> {
         .route(&Route::Root.as_string(), get(controllers::root))
         .route(
             &Route::PasswordReset.as_string(),
-            get(pw::get_password_reset_request),
+            get(auth::get_password_reset_request),
         )
         .route(
             &Route::PasswordReset.as_string(),
-            post(pw::handle_pw_reset_request),
+            post(auth::handle_pw_reset_request),
         )
         .route(
             &Route::PasswordResetSecret(None).as_string(),
-            get(pw::get_password_reset_form),
+            get(auth::get_password_reset_form),
         )
         .route(
             &Route::PasswordResetSecret(None).as_string(),
-            post(pw::handle_password_reset),
+            post(auth::handle_password_reset),
         )
         .route(&Route::Ping.as_string(), get(controllers::pong))
         .route(

@@ -1,6 +1,6 @@
 //! Axum middlewares, modeled as async functions.
 
-use super::{config, htmx, routes::Route, session};
+use super::{auth::Session, config, htmx, routes::Route};
 use axum::{
     http::{HeaderMap, HeaderValue, Request},
     middleware::Next,
@@ -61,7 +61,7 @@ pub async fn html_headers<B>(request: Request<B>, next: Next<B>) -> Response {
 /// requests.
 pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
     let headers = request.headers();
-    let session = session::Session::from_headers(headers);
+    let session = Session::from_headers(headers);
 
     // We want to perform a htmx redirect with the Hx-Redirect header in
     // addition to a regular browser redirect if the user is not authenticated.

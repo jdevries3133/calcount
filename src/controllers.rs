@@ -1,15 +1,14 @@
 use super::{
-    auth, chrono_utils, client_events, components,
+    auth,
+    auth::{hash_new_password, Session},
+    chrono_utils, client_events, components,
     components::Component,
     config, count_chat, db_ops,
     errors::ServerError,
     htmx, metrics,
     models::AppState,
     preferences::{save_user_preference, UserPreference},
-    pw,
     routes::Route,
-    session,
-    session::Session,
     stripe,
 };
 use anyhow::Result;
@@ -232,7 +231,7 @@ pub async fn handle_registration(
             ),
         ));
     };
-    let hashed_pw = pw::hash_new(&form.password);
+    let hashed_pw = hash_new_password(&form.password);
 
     let stripe_id =
         stripe::create_customer(&form.username, &form.email).await?;
@@ -252,7 +251,7 @@ pub async fn handle_registration(
         timezone: form.timezone,
     };
     save_user_preference(&db, &user, &preferences).await?;
-    let session = session::Session {
+    let session = Session {
         user,
         preferences,
         created_at: Utc::now(),

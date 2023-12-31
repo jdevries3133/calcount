@@ -1,6 +1,6 @@
 //! Database operations; squirrel code lives here.
 
-use super::{models, models::IdCreatedAt, pw, stripe};
+use super::{auth::HashedPw, models, models::IdCreatedAt, stripe};
 use anyhow::Result;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -114,7 +114,7 @@ pub async fn create_user(
     db: &PgPool,
     username: String,
     email: String,
-    pw: &pw::HashedPw,
+    pw: &HashedPw,
     stripe_customer_id: String,
     subscription_type: stripe::SubscriptionTypes,
 ) -> Result<models::User> {

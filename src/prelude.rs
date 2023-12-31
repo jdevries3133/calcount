@@ -1,12 +1,12 @@
 //! Dedupe of common internal and external imports
 
 pub use crate::{
+    auth::Session,
     components::{Component, Page, PageContainer},
     errors::ServerError,
     models::{AppState, Id, User},
     preferences::UserPreference,
     routes::Route,
-    session::Session,
     stripe::SubscriptionTypes,
 };
 pub use ammonia::clean;

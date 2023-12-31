@@ -2,9 +2,9 @@
 //! Auth will authenticate users by fetching user info from the database and
 //! authenticating a user with the provided credentials.
 
-use super::{
-    db_ops, db_ops::DbModel, models, preferences::get_user_preference, pw,
-    session,
+use super::{pw, Session};
+use crate::{
+    db_ops, db_ops::DbModel, models, preferences::get_user_preference,
 };
 use anyhow::{bail, Result};
 use chrono::Utc;
@@ -23,7 +23,7 @@ pub async fn authenticate(
     db: &PgPool,
     username_or_email: &str,
     password: &str,
-) -> Result<session::Session> {
+) -> Result<Session> {
     let user = models::User::get(
         db,
         &db_ops::GetUserQuery {
@@ -45,7 +45,7 @@ pub async fn authenticate(
     .await?;
 
     if pw::check(password, &truth).is_ok() {
-        Ok(session::Session {
+        Ok(Session {
             user,
             preferences,
             created_at: Utc::now(),

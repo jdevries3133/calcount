@@ -1,5 +1,6 @@
 //! Cookie-based session, secured by a HMAC signature.
-use super::{config, crypto, errors::ServerError, models::User, preferences};
+use super::crypto;
+use crate::{config, errors::ServerError, models::User, preferences};
 use axum::headers::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{DateTime, Days, Utc};
