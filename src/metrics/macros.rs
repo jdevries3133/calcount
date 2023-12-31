@@ -14,20 +14,41 @@ impl Macros {
     pub fn is_empty(&self) -> bool {
         self.calories > 0
     }
+    pub fn render_status(&self, caloric_intake_goal: Option<i32>) -> String {
+        MacroStatus {
+            macros: self,
+            caloric_intake_goal,
+        }
+        .render()
+    }
 }
 
-impl Component for Macros {
+pub struct MacroStatus<'a> {
+    macros: &'a Macros,
+    caloric_intake_goal: Option<i32>,
+}
+impl Component for MacroStatus<'_> {
     fn render(&self) -> String {
-        let calories = self.calories;
-        let protein = self.protein_grams;
-        let fat = self.fat_grams;
-        let carbs = self.carbohydrates_grams;
+        let calories = self.macros.calories;
+        let protein = self.macros.protein_grams;
+        let fat = self.macros.fat_grams;
+        let carbs = self.macros.carbohydrates_grams;
         let macros = Route::DisplayMacros;
+        let calories_remaining = match self.caloric_intake_goal {
+            Some(goal) => {
+                let diff = goal - calories;
+                format!("<p>You have {diff} calories left to eat today.</p>")
+            }
+            None => "".into(),
+        };
         format!(
-            r#"<p hx-get="{macros}" hx-trigger="reload-macros from:body">
-                In total, you've eaten {calories} calories, {protein} grams of
-                protein, {fat} grams of fat, and {carbs} carbs today.
-            </p>"#
+            r#"<div hx-get="{macros}" hx-trigger="reload-macros from:body">
+                {calories_remaining}
+                <p>
+                    In total, you've eaten {calories} calories, {protein} grams
+                    of protein, {fat} grams of fat, and {carbs} carbs today.
+                </p>
+            </div>"#
         )
     }
 }
@@ -112,7 +133,11 @@ pub async fn display_macros(
     let session = Session::from_headers_err(&headers, "display macros")?;
     let macros = get_macros(&db, &session.user, &session.preferences).await?;
     if macros.is_empty() {
-        Ok(macros.render())
+        Ok(MacroStatus {
+            macros: &macros,
+            caloric_intake_goal: None,
+        }
+        .render())
     } else {
         Ok(MacroPlaceholder {}.render())
     }

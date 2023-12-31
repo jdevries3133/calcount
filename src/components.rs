@@ -488,11 +488,12 @@ pub struct UserHome<'a> {
     pub meals: &'a Vec<count_chat::Meal>,
     pub macros: &'a metrics::Macros,
     pub subscription_type: SubscriptionTypes,
+    pub caloric_intake_goal: Option<i32>,
 }
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let macros = if self.macros.is_empty() {
-            self.macros.render()
+            self.macros.render_status(self.caloric_intake_goal)
         } else {
             metrics::MacroPlaceholder {}.render()
         };
