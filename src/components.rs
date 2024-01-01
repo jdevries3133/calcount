@@ -448,7 +448,7 @@ impl Component for ProfileChip<'_> {
                             class="text-xs p-1 bg-green-100 hover:bg-green-200
                             rounded-full text-black"
                         >
-                            View Preferences
+                            Goals & Preferences
                         </button>
                     </a>
                 </div>
