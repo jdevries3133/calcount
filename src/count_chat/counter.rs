@@ -300,7 +300,9 @@ impl Component for MealCard<'_> {
         let background_style = if is_meal_before_today {
             "border-4 border-black dark:border-slate-200 md:dark:border-black"
         } else {
-            r#"bg-gradient-to-tr from-blue-300 to-indigo-300 dark:text-black"#
+            r#"bg-gradient-to-br from-blue-100 via-sky-100 to-indigo-200
+                dark:bg-gradient-to-br dark:from-blue-300 dark:via-cyan-300 =
+                dark:to-indigo-300 dark:text-black"#
         };
         let warning = if self.show_ai_warning {
             r#"
