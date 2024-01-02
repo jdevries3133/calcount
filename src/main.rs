@@ -15,6 +15,7 @@ mod count_chat;
 mod db_ops;
 mod errors;
 mod htmx;
+mod legal;
 mod metrics;
 mod middleware;
 mod models;

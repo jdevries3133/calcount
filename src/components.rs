@@ -111,6 +111,9 @@ pub struct PageContainer<'a> {
 impl Component for PageContainer<'_> {
     fn render(&self) -> String {
         let children = self.children.render();
+        let privacy = Route::PrivacyPolicy;
+        let tos = Route::TermsOfService;
+        let home = Route::UserHome;
         format!(
             r#"
             <div
@@ -118,6 +121,11 @@ impl Component for PageContainer<'_> {
                 dark:text-slate-200 min-h-[100vh]"
             >
                 {children}
+                <div class="flex items-center justify-center gap-2 mt-4">
+                    <a class="link" href="{privacy}">Privacy Policy</a>
+                    <a class="link" href="{tos}">Terms of Service</a>
+                    <a class="link" href="{home}">Home</a>
+                </div>
             </div>
             "#
         )

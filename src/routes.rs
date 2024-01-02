@@ -1,7 +1,7 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{
-    auth, controllers, count_chat, metrics, models, preferences, stripe,
+    auth, controllers, count_chat, legal, metrics, models, preferences, stripe,
 };
 use axum::routing::{any, delete, get, post, Router};
 
@@ -53,6 +53,8 @@ pub enum Route {
     /// Route which will return an empty string. This is mainly an HTMX utility
     /// to allow a component to easily be swapped with nothing.
     Void,
+    PrivacyPolicy,
+    TermsOfService,
 }
 
 impl Route {
@@ -96,6 +98,8 @@ impl Route {
             Self::StaticLargeIcon => "/static/large-icon".into(),
             Self::StaticManifest => "/static/manifest".into(),
             Self::StaticAppleIcon => "/static/apple_icon".into(),
+            Self::PrivacyPolicy => "/privacy".into(),
+            Self::TermsOfService => "/terms".into(),
         }
     }
 }
@@ -219,4 +223,9 @@ pub fn get_public_routes() -> Router<models::AppState> {
             &Route::ChatDemoRetry.as_string(),
             post(count_chat::handle_retry),
         )
+        .route(
+            &Route::PrivacyPolicy.as_string(),
+            get(legal::get_privacy_policy),
+        )
+        .route(&Route::TermsOfService.as_string(), get(legal::get_tos))
 }
