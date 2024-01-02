@@ -135,7 +135,6 @@ pub async fn save_user_preference(
     user: &User,
     preference: &UserPreference,
 ) -> Aresult<()> {
-    dbg!(&preference);
     query!(
         "insert into user_preference
         (user_id, timezone, caloric_intake_goal) values ($1, $2, $3)
@@ -202,7 +201,6 @@ pub async fn user_preference_controller(
                                         Some(msg.to_string())
                                     )
                                 })?;
-                            dbg!(&goal_int);
                             Some(goal_int)
                         },
                     };

@@ -412,7 +412,6 @@ impl Component for ProfileChip<'_> {
         let trial_warning = if let SubscriptionTypes::FreeTrial(duration) =
             self.subscription_type
         {
-            dbg!(&self.user_created_time);
             let cnt_remaining_days = timeutils::as_days(
                 duration
                     .checked_sub(
