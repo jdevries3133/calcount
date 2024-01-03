@@ -39,8 +39,9 @@ async fn main() -> Result<()> {
         .layer(from_fn(middleware::html_headers))
         .layer(from_fn(middleware::auth));
 
-    let public_routes =
-        routes::get_public_routes().layer(from_fn(middleware::html_headers));
+    let public_routes = routes::get_public_routes()
+        .layer(from_fn(middleware::html_headers))
+        .layer(from_fn(middleware::log));
 
     let app = Router::new()
         .nest("/", routes)
