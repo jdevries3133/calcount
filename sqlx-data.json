@@ -285,6 +285,16 @@
     },
     "query": "delete from password_reset_link where slug = $1"
   },
+  "5cce2f4a9f8febd19e37475f0c57aed7ec4b8ed9e1b0147de310732042726742": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "lock audit_stripe_webhooks"
+  },
   "661fb6e34f044a583bb59df6d66beb9c94639a7dffa73cbae0667b8dd510aace": {
     "describe": {
       "columns": [],

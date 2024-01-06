@@ -19,8 +19,7 @@ impl Component for SubscriptionExpired {
             >
                 <h1>Subscription is Expired</h1>
                 <p>
-                    We received a notification from Stripe that your
-                    subscription has been canceled. Don't worry, all your
+                    Your subscription is not active. Don't worry, all your
                     Bean Count data is still here; you just need to visit
                     Stripe to see what is wrong and resume your subscription!
                     Contact Jack DeVries at (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>)
