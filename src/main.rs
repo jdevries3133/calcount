@@ -1,7 +1,6 @@
 //! A GPT-powered calorie counter.
 
 use anyhow::Result;
-use axum::{middleware::from_fn, Router};
 use dotenvy::dotenv;
 use std::net::SocketAddr;
 
@@ -33,18 +32,8 @@ async fn main() -> Result<()> {
     let db = db_ops::create_pg_pool().await?;
     sqlx::migrate!().run(&db).await?;
     let state = models::AppState { db };
-    let routes = routes::get_protected_routes()
-        .layer(from_fn(middleware::html_headers))
-        .layer(from_fn(middleware::auth));
 
-    let public_routes = routes::get_public_routes()
-        .layer(from_fn(middleware::html_headers))
-        .layer(from_fn(middleware::log));
-
-    let app = Router::new()
-        .nest("/", routes)
-        .nest("/", public_routes)
-        .with_state(state);
+    let app = routes::get_routes(state.clone()).with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
     println!("listening on {}", addr);

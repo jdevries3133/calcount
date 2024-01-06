@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{count_chat, metrics, models, prelude::*, timeutils};
+use super::{count_chat, metrics, models, prelude::*, stripe, timeutils};
 use ammonia::clean;
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
@@ -422,19 +422,33 @@ impl Component for ProfileChip<'_> {
                     )
                     .unwrap_or_default(),
             );
-            format!(
+            if cnt_remaining_days == 0 {
                 r#"
                 <p
                     class="text-black text-xs inline-block bg-yellow-100 p-1 rounded-lg my-2"
                 >
-                    <span class="font-semibold">{cnt_remaining_days}</span>
-                    free trial days remaining; price will be $5/mo
+                    <span class="font-semibold">Free Trial Ends Tomorrow!</span>
                 </p>
-                "#
-            )
+                "#.to_string()
+            } else {
+                format!(
+                    r#"
+                    <p
+                        class="text-black text-xs inline-block bg-yellow-100 p-1 rounded-lg my-2"
+                    >
+                        <span class="font-semibold">{cnt_remaining_days}</span>
+                        free trial days remaining; price will be $5/mo
+                    </p>
+                    "#
+                )
+            }
         } else {
             "".into()
         };
+        let billing_portal_button = stripe::PortalLink {
+            subscription_type: self.subscription_type,
+        }
+        .render();
         format!(
             r#"
             <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">
@@ -452,12 +466,13 @@ impl Component for ProfileChip<'_> {
                     <a class="inline" href="{preferences}">
                         <button
                             style="margin-left: auto"
-                            class="text-xs p-1 bg-green-100 hover:bg-green-200
+                            class="text-xs p-1 bg-blue-100 hover:bg-blue-200
                             rounded-full text-black"
                         >
                             Goals & Preferences
                         </button>
                     </a>
+                    {billing_portal_button}
                 </div>
                 <p class="text-xs inline-block">Timezone: {timezone}</p>
                 {trial_warning}

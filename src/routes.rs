@@ -1,9 +1,13 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{
-    auth, controllers, count_chat, legal, metrics, models, preferences, stripe,
+    auth, controllers, count_chat, legal, metrics, middleware, models,
+    preferences, stripe,
 };
-use axum::routing::{any, delete, get, post, Router};
+use axum::{
+    middleware::{from_fn, from_fn_with_state},
+    routing::{any, delete, get, post, Router},
+};
 
 /// This enum contains all of the route strings in the application. This
 /// solves several problems.
@@ -47,6 +51,13 @@ pub enum Route {
     StaticManifest,
     StaticAppleIcon,
     StripeWehhook,
+    /// This is just a route which, when visited, will trigger the backend
+    /// to hit the stripe API and create a customer portal session, then
+    /// redirect the user to the customer portal URL. This allows us to
+    /// avoid invoking the Stripe API every time we render the home page
+    /// just to render a stripe portal link that the user typically won't
+    /// click, anyway
+    GotoStripePortal,
     UserHome,
     UserPreference,
     WaitlistSignup,
@@ -55,6 +66,17 @@ pub enum Route {
     Void,
     PrivacyPolicy,
     TermsOfService,
+    /// This is when the stripe subscription status changes to anything
+    /// non-active, including cancelled,
+    SubscriptionInactive,
+    /// This, on the other hand, is when our own free trial implementation
+    /// has expired. In this case, the customer does not have a stripe
+    /// subscription, so we're going to need to send them into a checkout
+    /// session instead of sending them to the customer portal. If a customer
+    /// who never had a subscription is sent to the customer portal, they
+    /// won't have any subscription to manage -- they'll only be able to update
+    /// billing info and payment method details.
+    SubscriptionTrialEnded,
 }
 
 impl Route {
@@ -71,6 +93,7 @@ impl Route {
                 None => "/add-meal-to-today/:id".into(),
             },
             Self::DisplayMacros => "/metrics/macros".into(),
+            Self::GotoStripePortal => "/stripe-portal".into(),
             Self::HandleChat => "/chat".into(),
             Self::ChatDemo => "/chat-demo".into(),
             Self::ChatDemoRetry => "/chat-demo-retry".into(),
@@ -100,6 +123,8 @@ impl Route {
             Self::StaticAppleIcon => "/static/apple_icon".into(),
             Self::PrivacyPolicy => "/privacy".into(),
             Self::TermsOfService => "/terms".into(),
+            Self::SubscriptionInactive => "/subscription-inactive".into(),
+            Self::SubscriptionTrialEnded => "/trial-ended".into(),
         }
     }
 }
@@ -114,7 +139,7 @@ impl std::fmt::Display for Route {
 /// [crate::middlware::auth] middleware. This causes any requesters who are not
 /// authenticated to be redirected to the login page before the request handlers
 /// are called.
-pub fn get_protected_routes() -> Router<models::AppState> {
+fn get_authenticated_routes() -> Router<models::AppState> {
     Router::new()
         .route(&Route::UserHome.as_string(), get(controllers::user_home))
         .route(
@@ -146,9 +171,28 @@ pub fn get_protected_routes() -> Router<models::AppState> {
         .route(&Route::ListMeals.as_string(), get(count_chat::list_meals))
 }
 
+/// Routes where authentication is required, but we do not check subscription
+/// status, so they can be visited by users who are not paying or do not
+/// have an active free trial.
+fn get_authenticated_free_routes() -> Router<models::AppState> {
+    Router::new()
+        .route(
+            &Route::GotoStripePortal.as_string(),
+            get(stripe::redirect_to_billing_portal),
+        )
+        .route(
+            &Route::SubscriptionInactive.as_string(),
+            get(stripe::subscription_ended),
+        )
+        .route(
+            &Route::SubscriptionTrialEnded.as_string(),
+            get(stripe::trial_expired),
+        )
+}
+
 /// In [crate::main], these routes are not protected by any authentication, so
 /// any requester can access these routes.
-pub fn get_public_routes() -> Router<models::AppState> {
+fn get_public_routes() -> Router<models::AppState> {
     Router::new()
         .route(&Route::Root.as_string(), get(controllers::root))
         .route(
@@ -228,4 +272,24 @@ pub fn get_public_routes() -> Router<models::AppState> {
             get(legal::get_privacy_policy),
         )
         .route(&Route::TermsOfService.as_string(), get(legal::get_tos))
+}
+
+pub fn get_routes(state: models::AppState) -> Router<models::AppState> {
+    let protected_routes = get_authenticated_routes()
+        .layer(from_fn(middleware::html_headers))
+        .layer(from_fn(middleware::auth))
+        .layer(from_fn_with_state(state, middleware::narc_on_subscriptions));
+
+    let protected_free_routes = get_authenticated_free_routes()
+        .layer(from_fn(middleware::html_headers))
+        .layer(from_fn(middleware::auth));
+
+    let public_routes = get_public_routes()
+        .layer(from_fn(middleware::html_headers))
+        .layer(from_fn(middleware::log));
+
+    Router::new()
+        .nest("/", protected_routes)
+        .nest("/", public_routes)
+        .nest("/", protected_free_routes)
 }

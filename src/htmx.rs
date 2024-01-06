@@ -1,6 +1,8 @@
 //! HTMX utils
 
 use axum::http::{HeaderMap, HeaderValue};
+#[cfg(feature = "stripe")]
+use axum::response::{IntoResponse, Redirect};
 
 /// Inserts a `Hx-Redirect` header into the provided headers. Will panic if
 /// `to` cannot be encoded as an [axum::http::HeaderValue].
@@ -11,6 +13,14 @@ pub fn redirect(mut headers: HeaderMap, to: &str) -> HeaderMap {
             .unwrap_or(HeaderValue::from_str("/").unwrap()),
     );
     headers
+}
+
+/// Like the above, but better
+#[cfg(feature = "stripe")]
+pub fn redirect_2(headers: HeaderMap, to: &str) -> impl IntoResponse {
+    let headers = redirect(headers, to);
+    let response = Redirect::to(to);
+    (headers, response)
 }
 
 pub fn trigger_event(

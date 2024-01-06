@@ -1,12 +1,21 @@
 //! Axum middlewares, modeled as async functions.
 
-use super::{auth::Session, config, htmx, routes::Route};
+use super::{auth::Session, config, htmx, models::AppState, routes::Route};
+#[cfg(feature = "stripe")]
+use super::{
+    errors::ServerError, models::IdCreatedAt, stripe::SubscriptionTypes,
+};
 use axum::{
+    extract::State,
     http::{HeaderMap, HeaderValue, Request},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
 use chrono::prelude::*;
+#[cfg(feature = "stripe")]
+use futures::join;
+#[cfg(feature = "stripe")]
+use sqlx::query_as;
 
 /// This will ensure that outgoing requests receive a content-type if the
 /// request handler did not specify one. 99% of request handlers in this
@@ -98,5 +107,79 @@ pub async fn log<B>(request: Request<B>, next: Next<B>) -> Response {
     let uri = request.uri().path();
     let method = request.method().as_str();
     println!("{method} {uri} (anonymous)");
+    next.run(request).await
+}
+
+#[cfg(feature = "stripe")]
+pub async fn narc_on_subscriptions<B>(
+    State(AppState { db }): State<AppState>,
+    request: Request<B>,
+    next: Next<B>,
+) -> Response {
+    let headers = request.headers();
+    let session = Session::from_headers(headers);
+    if let Some(session) = session {
+        // It's quite a bummer that every single request now incurs a database
+        // round-trip just to check for subscription status. I think it's worth
+        // considering only protecting key routes with the subscription check,
+        // like maybe just the routes that interact with OpenAI, since we can
+        // effectively subscription-check by taking away core functionality,
+        // anyway.
+        //
+        // However, for now, we can fetch the subscription type and run the
+        // request handler concurrently. Since we have a specialized
+        // query for subscription type which is just fetching a single
+        // integer from the database, it should outpace any request
+        // handler, and have a neglibible effect on net performance, in
+        // practice.
+        let user_details = query_as!(
+            IdCreatedAt,
+            "select subscription_type_id id, created_at from users where id = $1",
+            session.user_id
+        )
+        .fetch_one(&db);
+        let (response, user_details) = join![next.run(request), user_details];
+        let (sub_type, created_at) = match user_details {
+            Ok(details) => {
+                (SubscriptionTypes::from_int(details.id), details.created_at)
+            }
+            Err(_) => (SubscriptionTypes::Free, Utc::now()),
+        };
+        match sub_type {
+            SubscriptionTypes::Initializing => {
+                ServerError::bad_request("user type cannot be init", None)
+                    .into_response()
+            }
+            SubscriptionTypes::Unsubscribed => htmx::redirect_2(
+                HeaderMap::new(),
+                &Route::SubscriptionInactive.as_string(),
+            )
+            .into_response(),
+            SubscriptionTypes::Basic | SubscriptionTypes::Free => response,
+            SubscriptionTypes::FreeTrial(trial_duration) => {
+                let user_age = Utc::now()
+                    .signed_duration_since(created_at)
+                    .to_std()
+                    .unwrap_or_default();
+                if user_age > trial_duration {
+                    let expired = Route::SubscriptionTrialEnded;
+                    htmx::redirect_2(HeaderMap::new(), &expired.as_string())
+                        .into_response()
+                } else {
+                    response
+                }
+            }
+        }
+    } else {
+        ServerError::forbidden("user is not authenticated").into_response()
+    }
+}
+
+#[cfg(not(feature = "stripe"))]
+pub async fn narc_on_subscriptions<B>(
+    _: State<AppState>,
+    request: Request<B>,
+    next: Next<B>,
+) -> Response {
     next.run(request).await
 }

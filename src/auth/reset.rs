@@ -1,7 +1,7 @@
 use super::pw;
 use crate::{
     auth,
-    config::{DOMAIN, RESET_TOKEN_TIMEOUT_MINUTES},
+    config::{BASE_URL, RESET_TOKEN_TIMEOUT_MINUTES},
     htmx,
     prelude::*,
     smtp::send_email,
@@ -85,7 +85,7 @@ pub async fn handle_pw_reset_request(
         send_email(
             &email,
             "Password Reset for beancount.bot",
-            &format!("Visit https://{DOMAIN}{link} to reset your password. This link will expire in 15 minutes."),
+            &format!("Visit {BASE_URL}{link} to reset your password. This link will expire in 15 minutes."),
         )
         .await?;
         query!(

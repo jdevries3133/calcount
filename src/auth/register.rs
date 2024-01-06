@@ -133,7 +133,6 @@ pub async fn handle_registration(
 
     let stripe_id =
         stripe::create_customer(&form.username, &form.email).await?;
-    let payment_portal_url = stripe::get_billing_portal_url(&stripe_id).await?;
 
     let user = create_user(
         &db,
@@ -156,7 +155,7 @@ pub async fn handle_registration(
         created_at: Utc::now(),
     };
     let headers = session.update_headers(headers);
-    let headers = htmx::redirect(headers, &payment_portal_url);
+    let headers = htmx::redirect(headers, &Route::UserHome.as_string());
     Ok((headers, "OK".to_string()))
 }
 
