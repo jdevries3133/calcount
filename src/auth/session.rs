@@ -1,12 +1,19 @@
 //! Cookie-based session, secured by a HMAC signature.
 use super::crypto;
-use crate::{config, errors::ServerError, models::User, preferences};
+use crate::{
+    config,
+    db_ops::{DbModel, GetUserQuery, UserIdentifer},
+    errors::ServerError,
+    models, preferences,
+};
+use anyhow::Result;
 use axum::headers::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{DateTime, Days, Utc};
 use chrono_tz::Tz;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 /// `Session` is signed and serialized into the `Cookie` header when a
 /// [HeaderMap] is passed into the [Session::update_headers()] method. Thus,
@@ -24,8 +31,8 @@ use serde::{Deserialize, Serialize};
 /// also to convert to/from base64 encoding.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Session {
-    pub user: User,
-    pub preferences: preferences::UserPreference,
+    pub user_id: i32,
+    pub username: String,
     pub created_at: DateTime<Utc>,
 }
 impl Session {
@@ -124,6 +131,23 @@ impl Session {
             }
         }
     }
+    pub async fn get_preferences(
+        &self,
+        db: &PgPool,
+    ) -> Result<preferences::UserPreference> {
+        Ok(preferences::get_user_preference(db, self.user_id)
+            .await?
+            .unwrap_or_default())
+    }
+    pub async fn get_user(&self, db: &PgPool) -> Result<models::User> {
+        models::User::get(
+            db,
+            &GetUserQuery {
+                identifier: UserIdentifer::Id(self.user_id),
+            },
+        )
+        .await
+    }
 }
 
 #[cfg(test)]
@@ -134,26 +158,14 @@ mod tests {
 
     fn get_session() -> Session {
         Session {
-            user: User {
-                id: 1,
-                username: "Jack".to_string(),
-                email: "jack@jack.com".to_string(),
-                stripe_customer_id: "".to_string(),
-                stripe_subscription_type:
-                    crate::stripe::SubscriptionTypes::Free,
-                created_at: DateTime::<Utc>::from_timestamp(0, 0)
-                    .expect("that is a valid timestamp"),
-            },
-            preferences: preferences::UserPreference {
-                timezone: chrono_tz::Tz::US__Samoa,
-                caloric_intake_goal: None,
-            },
+            user_id: 1,
+            username: "tim".to_string(),
             created_at: DateTime::<Utc>::from_timestamp(0, 0)
                 .expect("that is a valid timestamp"),
         }
     }
 
-    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EiLCJjYWxvcmljX2ludGFrZV9nb2FsIjpudWxsfSwiY3JlYXRlZF9hdCI6IjE5NzAtMDEtMDFUMDA6MDA6MDBaIn0:k85WWa60oKXRGXUlsreRMwLVz7qU0xOtor7025LMI9o";
+    const SERIALIZED_SESSION: &str = "eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRpbSIsImNyZWF0ZWRfYXQiOiIxOTcwLTAxLTAxVDAwOjAwOjAwWiJ9:KzxVEO3TZPXQbtqbomX42mrk1KxPctywwaNaoDVG4Tg";
 
     #[test]
     fn test_serialize_session() {
@@ -171,6 +183,6 @@ mod tests {
         let result = Session::deserialize(&String::from(SERIALIZED_SESSION))
             .expect("result");
         // little snapshot test
-        assert_eq!(result.user.id, get_session().user.id);
+        assert_eq!(result.user_id, get_session().user_id);
     }
 }

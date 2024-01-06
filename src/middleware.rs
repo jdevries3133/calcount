@@ -81,7 +81,7 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
             let path = request.uri().path();
             let method = request.method().as_str();
-            let username = session.user.username;
+            let username = session.username;
             println!("{method} {path} from {username}");
             next.run(request).await
         } else {

@@ -3,9 +3,7 @@
 //! authenticating a user with the provided credentials.
 
 use super::{pw, Session};
-use crate::{
-    db_ops, db_ops::DbModel, models, preferences::get_user_preference,
-};
+use crate::{db_ops, db_ops::DbModel, models};
 use anyhow::{bail, Result};
 use chrono::Utc;
 use sqlx::{postgres::PgPool, query_as};
@@ -27,11 +25,10 @@ pub async fn authenticate(
     let user = models::User::get(
         db,
         &db_ops::GetUserQuery {
-            identifier: username_or_email,
+            identifier: db_ops::UserIdentifer::Identifier(username_or_email),
         },
     )
     .await?;
-    let preferences = get_user_preference(db, &user).await?.unwrap_or_default();
     // This is kept out of the `User` model because I don't want to leak
     // password digests in autnentication tokens. The entire User object is
     // serialized into the user's session token, which is signed but not
@@ -46,8 +43,8 @@ pub async fn authenticate(
 
     if pw::check(password, &truth).is_ok() {
         Ok(Session {
-            user,
-            preferences,
+            user_id: user.id,
+            username: "tim".to_string(),
             created_at: Utc::now(),
         })
     } else {

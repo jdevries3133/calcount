@@ -4,6 +4,7 @@
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
 use crate::{chrono_utils::is_before_today, client_events, config, prelude::*};
 use axum::extract::Query;
+use futures::join;
 use std::default::Default;
 
 const MEAL_PAGE_SIZE: u8 = 50;
@@ -510,6 +511,7 @@ pub async fn handle_chat(
         return Ok(InputTooLong {}.render());
     }
     let session = Session::from_headers_err(&headers, "handle chat")?;
+    let preferences = session.get_preferences(&db).await?;
     let response = OpenAI::from_env()?
         .send_message(SYSTEM_MSG.into(), &chat)
         .await?;
@@ -525,7 +527,7 @@ pub async fn handle_chat(
     query!(
         "insert into openai_usage_user (usage_id, user_id) values ($1, $2)",
         id,
-        session.user.id
+        session.user_id
     )
     .execute(&db)
     .await?;
@@ -536,7 +538,7 @@ pub async fn handle_chat(
             info: &meal,
             meal_id: None,
             actions: Some(&NewMealOptions { info: &meal }),
-            user_timezone: session.preferences.timezone,
+            user_timezone: preferences.timezone,
             show_ai_warning: true,
         }
         .render()),
@@ -570,11 +572,12 @@ pub async fn chat_form(
     prev_prompt: Option<Form<PrevPrompt>>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "chat form")?;
+    let preferences = session.get_preferences(&db).await?;
     let page = page.map_or(0, |p| p.page);
-    let meals = list_meals_op(&db, session.user.id, page).await?;
+    let meals = list_meals_op(&db, session.user_id, page).await?;
     let chat = Chat {
         meals: &meals,
-        user_timezone: session.preferences.timezone,
+        user_timezone: preferences.timezone,
         prompt: match prev_prompt {
             Some(ref form) => Some(&form.meal_name),
             None => None,
@@ -649,10 +652,11 @@ pub async fn handle_save_meal(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("handle save meal"))?;
+    let preferences = session.get_preferences(&db).await?;
     query!(
         "insert into meal (user_id, name, calories, fat, protein, carbohydrates)
         values ($1, $2, $3, $4, $5, $6)",
-        session.user.id,
+        session.user_id,
         meal.meal_name,
         meal.calories,
         meal.fat_grams,
@@ -662,12 +666,12 @@ pub async fn handle_save_meal(
     .execute(&db)
     .await?;
     let response_headers = client_events::reload_macros(HeaderMap::new());
-    let meals = list_meals_op(&db, session.user.id, 0).await?;
+    let meals = list_meals_op(&db, session.user_id, 0).await?;
     Ok((
         response_headers,
         Chat {
             meals: &meals,
-            user_timezone: session.preferences.timezone,
+            user_timezone: preferences.timezone,
             prompt: None,
             next_page: 1,
             post_request_handler: Route::HandleChat,
@@ -682,12 +686,17 @@ pub async fn list_meals(
     Query(Pagination { page }): Query<Pagination>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "list meals")?;
-    let meals = list_meals_op(&db, session.user.id, page).await?;
+    let (meals, preferences) = join![
+        list_meals_op(&db, session.user_id, page),
+        session.get_preferences(&db)
+    ];
+    let meals = meals?;
+    let preferences = preferences?;
 
     Ok(MealSet {
         meals: &meals[..],
         next_page: page + 1,
-        user_timezone: session.preferences.timezone,
+        user_timezone: preferences.timezone,
         show_ai_warning: false,
     }
     .render())

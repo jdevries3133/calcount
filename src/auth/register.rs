@@ -149,10 +149,10 @@ pub async fn handle_registration(
         timezone: form.timezone,
         caloric_intake_goal: None,
     };
-    save_user_preference(&db, &user, &preferences).await?;
+    save_user_preference(&db, user.id, &preferences).await?;
     let session = Session {
-        user,
-        preferences,
+        user_id: user.id,
+        username: user.username,
         created_at: Utc::now(),
     };
     let headers = session.update_headers(headers);

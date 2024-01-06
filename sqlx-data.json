@@ -172,7 +172,45 @@
     },
     "query": "select\n            name meal_name,\n            calories calories,\n            protein protein_grams,\n            fat fat_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where\n            user_id = $1\n            and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'\n        "
   },
-  "1ce1887e3a3c117342076091dca0a31fa54df8e774b60632c77b55e137e35684": {
+  "21d97a21e8486f639820b3b00f89ba477a5443acfc3493413cef15ecf4d51f07": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4"
+        ]
+      }
+    },
+    "query": "delete from meal where user_id = $1 and id = $2"
+  },
+  "375d5edd228b1196f0a4f39228eee4c127f1df6526f626dd143f5370ba8930ae": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into password_reset_link (user_id, slug) values ($1, $2)"
+  },
+  "48cbf05416b7c8cb95589c62b2983aea6ed5f5b1071d094ed6788f36bd7d0150": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "delete from password_reset_link where user_id = $1"
+  },
+  "54c3be49b0588a6da617da26e99181544dc2b35b16e43454cbed8ea39bf5a4d0": {
     "describe": {
       "columns": [
         {
@@ -216,49 +254,11 @@
       ],
       "parameters": {
         "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "select\n                id,\n                username,\n                email,\n                stripe_customer_id,\n                subscription_type_id,\n                created_at\n            from users\n            where username = $1 or email = $1"
-  },
-  "21d97a21e8486f639820b3b00f89ba477a5443acfc3493413cef15ecf4d51f07": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
           "Int4"
         ]
       }
     },
-    "query": "delete from meal where user_id = $1 and id = $2"
-  },
-  "375d5edd228b1196f0a4f39228eee4c127f1df6526f626dd143f5370ba8930ae": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text"
-        ]
-      }
-    },
-    "query": "insert into password_reset_link (user_id, slug) values ($1, $2)"
-  },
-  "48cbf05416b7c8cb95589c62b2983aea6ed5f5b1071d094ed6788f36bd7d0150": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      }
-    },
-    "query": "delete from password_reset_link where user_id = $1"
+    "query": "select\n                        id,\n                        username,\n                        email,\n                        stripe_customer_id,\n                        subscription_type_id,\n                        created_at\n                    from users\n                    where id = $1"
   },
   "54d10572f4886df16a0d30c5ec06d7f5ddbd1ff52a4f7d8ef85a134242564937": {
     "describe": {
@@ -379,6 +379,56 @@
       }
     },
     "query": "select subscription_type_id from users where id = $1"
+  },
+  "8a5419494e48457ba6b6c738476579aba071da50a856ed7cf4d32ed0374c3051": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "stripe_customer_id",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "subscription_type_id",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select\n                        id,\n                        username,\n                        email,\n                        stripe_customer_id,\n                        subscription_type_id,\n                        created_at\n                    from users\n                    where username = $1 or email = $1"
   },
   "9558be18e38b36cad41c1612dd89b1c88ae818d9bff81936e39ce7baa2940ca6": {
     "describe": {

@@ -54,49 +54,78 @@ pub trait DbModel<GetQuery, ListQuery>: Sync + Send {
     async fn delete(self, _db: &PgPool) -> Result<()>;
 }
 
+pub enum UserIdentifer<'a> {
+    Id(i32),
+    Identifier(&'a str),
+}
+
 pub struct GetUserQuery<'a> {
     /// `identifier` can be a users username _or_ email
-    pub identifier: &'a str,
+    pub identifier: UserIdentifer<'a>,
+}
+
+struct Qres {
+    id: i32,
+    username: String,
+    email: String,
+    stripe_customer_id: String,
+    subscription_type_id: i32,
+    created_at: DateTime<Utc>,
+}
+fn map_into_user(row: Qres) -> models::User {
+    models::User {
+        stripe_subscription_type: stripe::SubscriptionTypes::from_int(
+            row.subscription_type_id,
+        ),
+        id: row.id,
+        username: row.username,
+        email: row.email,
+        stripe_customer_id: row.stripe_customer_id,
+        created_at: row.created_at,
+    }
 }
 
 #[async_trait]
 impl DbModel<GetUserQuery<'_>, ()> for models::User {
     async fn get(db: &PgPool, query: &GetUserQuery) -> Result<Self> {
-        struct Qres {
-            id: i32,
-            username: String,
-            email: String,
-            stripe_customer_id: String,
-            subscription_type_id: i32,
-            created_at: DateTime<Utc>,
-        }
-        Ok(query_as!(
-            Qres,
-            "select
-                id,
-                username,
-                email,
-                stripe_customer_id,
-                subscription_type_id,
-                created_at
-            from users
-            where username = $1 or email = $1",
-            query.identifier
-        )
-        .try_map(|row| {
-            Ok(Self {
-                stripe_subscription_type: stripe::SubscriptionTypes::from_int(
-                    row.subscription_type_id,
-                ),
-                id: row.id,
-                username: row.username,
-                email: row.email,
-                stripe_customer_id: row.stripe_customer_id,
-                created_at: row.created_at,
-            })
+        Ok(match query.identifier {
+            UserIdentifer::Id(id) => {
+                query_as!(
+                    Qres,
+                    "select
+                        id,
+                        username,
+                        email,
+                        stripe_customer_id,
+                        subscription_type_id,
+                        created_at
+                    from users
+                    where id = $1",
+                    id
+                )
+                .map(map_into_user)
+                .fetch_one(db)
+                .await?
+            }
+            UserIdentifer::Identifier(ident) => {
+                query_as!(
+                    Qres,
+                    "select
+                        id,
+                        username,
+                        email,
+                        stripe_customer_id,
+                        subscription_type_id,
+                        created_at
+                    from users
+                    where username = $1 or email = $1",
+                    ident
+                )
+                .map(map_into_user)
+                .fetch_one(db)
+                .await?
+            }
         })
-        .fetch_one(db)
-        .await?)
     }
     async fn list(_db: &PgPool, _query: &()) -> Result<Vec<Self>> {
         todo!()

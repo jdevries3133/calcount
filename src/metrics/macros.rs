@@ -73,7 +73,7 @@ impl Component for MacroPlaceholder {
 /// get a clean slate for macros.
 pub async fn get_macros(
     db: &PgPool,
-    user: &User,
+    user_id: i32,
     user_preferences: &UserPreference,
 ) -> Aresult<Macros> {
     struct Qres {
@@ -98,7 +98,7 @@ pub async fn get_macros(
             user_id = $1
             and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'
         ",
-        user.id
+        user_id
     )
     .map(|row| MealInfo {
         calories: row.calories,
@@ -131,11 +131,12 @@ pub async fn display_macros(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "display macros")?;
-    let macros = get_macros(&db, &session.user, &session.preferences).await?;
+    let preferences = session.get_preferences(&db).await?;
+    let macros = get_macros(&db, session.user_id, &preferences).await?;
     if macros.is_empty() {
         Ok(MacroStatus {
             macros: &macros,
-            caloric_intake_goal: session.preferences.caloric_intake_goal,
+            caloric_intake_goal: preferences.caloric_intake_goal,
         }
         .render())
     } else {

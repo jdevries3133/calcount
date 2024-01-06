@@ -138,13 +138,15 @@ pub async fn user_home(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
-    let Session {
-        user, preferences, ..
-    } = Session::from_headers_err(&headers, "user home")?;
+    let session = Session::from_headers_err(&headers, "user home")?;
+    let (user, preferences) =
+        join![session.get_user(&db), session.get_preferences(&db)];
+    let user = user?;
+    let preferences = preferences?;
     let (macros, meals, sub_type) = join![
-        metrics::get_macros(&db, &user, &preferences),
+        metrics::get_macros(&db, session.user_id, &preferences),
         count_chat::list_meals_op(&db, user.id, 0),
-        stripe::get_subscription_type(&db, user.id)
+        stripe::get_subscription_type(&db, user.id),
     ];
     let macros = macros?;
     let meals = meals?;
@@ -174,26 +176,26 @@ pub async fn delete_meal(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("delete meal"))?;
+    let preferences = session.get_preferences(&db).await?;
     struct Qres {
         created_at: DateTime<Utc>,
     }
     let Qres { created_at } = query_as!(
         Qres,
         "select created_at from meal where user_id = $1 and id = $2",
-        session.user.id,
+        session.user_id,
         id
     )
     .fetch_one(&db)
     .await?;
     query!(
         "delete from meal where user_id = $1 and id = $2",
-        session.user.id,
+        session.user_id,
         id
     )
     .execute(&db)
     .await?;
-    if !chrono_utils::is_before_today(&created_at, session.preferences.timezone)
-    {
+    if !chrono_utils::is_before_today(&created_at, preferences.timezone) {
         Ok(
             (client_events::reload_macros(HeaderMap::new()), "")
                 .into_response(),
@@ -221,7 +223,7 @@ pub async fn add_meal_to_today(
         from meal
         where id = $1 and user_id = $2",
         id,
-        session.user.id
+        session.user_id
     )
     .fetch_one(&db)
     .await?;
@@ -233,7 +235,7 @@ pub async fn add_meal_to_today(
         existing_meal.carbohydrates_grams,
         existing_meal.fat_grams,
         existing_meal.meal_name,
-        session.user.id
+        session.user_id
     )
     .execute(&db)
     .await?;

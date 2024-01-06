@@ -103,7 +103,7 @@ impl Component for SavedPreference {
 
 pub async fn get_user_preference(
     db: &PgPool,
-    user: &User,
+    user_id: i32,
 ) -> Aresult<Option<UserPreference>> {
     struct Qres {
         timezone: String,
@@ -113,7 +113,7 @@ pub async fn get_user_preference(
         Qres,
         "select timezone, caloric_intake_goal from user_preference
         where user_id = $1",
-        user.id
+        user_id
     )
     .fetch_optional(db)
     .await?;
@@ -132,7 +132,7 @@ pub async fn get_user_preference(
 
 pub async fn save_user_preference(
     db: &PgPool,
-    user: &User,
+    user_id: i32,
     preference: &UserPreference,
 ) -> Aresult<()> {
     query!(
@@ -140,7 +140,7 @@ pub async fn save_user_preference(
         (user_id, timezone, caloric_intake_goal) values ($1, $2, $3)
         on conflict (user_id)
         do update set timezone = $2, caloric_intake_goal = $3",
-        user.id,
+        user_id,
         preference.timezone.to_string(),
         preference.caloric_intake_goal
     )
@@ -163,36 +163,27 @@ pub async fn user_preference_controller(
     preferences: Option<Form<UserPreferencePayload>>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "user preferences")?;
-    let response_headers = HeaderMap::new();
     match method {
         Method::GET => {
-            let preferences = get_user_preference(&db, &session.user)
-                .await?
-                .unwrap_or_default();
+            let preferences = session.get_preferences(&db).await?;
 
-            Ok((
-                response_headers,
-                Page {
-                    title: "User Preferences",
-                    children: &PageContainer {
-                        children: &preferences,
-                    },
-                }
-                .render(),
-            ))
+            Ok(Page {
+                title: "User Preferences",
+                children: &PageContainer {
+                    children: &preferences,
+                },
+            }
+            .render())
         }
-        Method::POST => {
-            match preferences {
-                Some(pref) => {
-                    let pref = UserPreference {
-                        timezone: pref.timezone,
-                        caloric_intake_goal: if pref
-                            .caloric_intake_goal
-                            .is_empty()
-                        {
-                            None
-                        } else {
-                            let goal_int = pref.caloric_intake_goal
+        Method::POST => match preferences {
+            Some(pref) => {
+                let pref = UserPreference {
+                    timezone: pref.timezone,
+                    caloric_intake_goal: if pref.caloric_intake_goal.is_empty()
+                    {
+                        None
+                    } else {
+                        let goal_int = pref.caloric_intake_goal
                                 .parse()
                                 .map_err(|_| {
                                     let msg = "caloric intake cannot be parsed into a number";
@@ -201,32 +192,17 @@ pub async fn user_preference_controller(
                                         Some(msg.to_string())
                                     )
                                 })?;
-                            Some(goal_int)
-                        },
-                    };
-                    save_user_preference(&db, &session.user, &pref).await?;
-                    let new_session = Session {
-                        // We will inherit the `created_at` timestamp from the
-                        // current session, as to avoid implicitly re-logging-in
-                        // the user, and allowing users to extend sessions by
-                        // updating user preferences!
-                        created_at: session.created_at,
-                        user: session.user,
-                        preferences: pref,
-                    };
-                    let response_headers =
-                        new_session.update_headers(response_headers);
-                    Ok((
-                        response_headers,
-                        SavedPreference { preferences: pref }.render(),
-                    ))
-                }
-                None => Err(ServerError::bad_request(
-                    "form data is missing",
-                    Some("form data is missing".into()),
-                )),
+                        Some(goal_int)
+                    },
+                };
+                save_user_preference(&db, session.user_id, &pref).await?;
+                Ok(SavedPreference { preferences: pref }.render())
             }
-        }
+            None => Err(ServerError::bad_request(
+                "form data is missing",
+                Some("form data is missing".into()),
+            )),
+        },
         _ => Err(ServerError::method_not_allowed()),
     }
 }

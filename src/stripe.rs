@@ -107,15 +107,15 @@ pub async fn create_customer(name: &str, email: &str) -> Aresult<String> {
     Ok(response.id)
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 struct BillingPortalRequest {
     customer: String,
     return_url: String,
     configuration: String,
 }
 
+#[derive(Debug, Deserialize)]
 #[cfg(feature = "stripe")]
-#[derive(Deserialize)]
 struct BillingPortalResponse {
     url: String,
 }
