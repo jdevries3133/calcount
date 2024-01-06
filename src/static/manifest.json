@@ -21,6 +21,24 @@
       "src": "/static/large-icon",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/static/maskable-small-icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/maskable-medium-icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/maskable-large-icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "theme_color": "#ffffff",

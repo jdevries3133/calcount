@@ -120,6 +120,18 @@ pub async fn get_large_icon() -> impl IntoResponse {
     png_controller(include_bytes!("./static/icon-512x512.png"))
 }
 
+pub async fn get_maskable_small_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/maskable_icon_x72.png"))
+}
+
+pub async fn get_maskable_medium_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/maskable_icon_x128.png"))
+}
+
+pub async fn get_maskable_large_icon() -> impl IntoResponse {
+    png_controller(include_bytes!("./static/maskable_icon_x192.png"))
+}
+
 pub async fn get_apple_icon() -> impl IntoResponse {
     png_controller(include_bytes!("./static/apple-touch-icon.png"))
 }

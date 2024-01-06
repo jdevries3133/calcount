@@ -50,6 +50,10 @@ pub enum Route {
     StaticLargeIcon,
     StaticManifest,
     StaticAppleIcon,
+    StaticMaskableSmallIcon,
+    StaticMaskableMediumIcon,
+    StaticMaskableLargeIcon,
+
     StripeWehhook,
     /// This is just a route which, when visited, will trigger the backend
     /// to hit the stripe API and create a customer portal session, then
@@ -119,6 +123,15 @@ impl Route {
             Self::StaticSmallIcon => "/static/xs-icon".into(),
             Self::StaticMediumIcon => "/static/icon".into(),
             Self::StaticLargeIcon => "/static/large-icon".into(),
+            Self::StaticMaskableSmallIcon => {
+                "/static/maskable-small-icon".into()
+            }
+            Self::StaticMaskableMediumIcon => {
+                "/static/maskable-medium-icon".into()
+            }
+            Self::StaticMaskableLargeIcon => {
+                "/static/maskable-large-icon".into()
+            }
             Self::StaticManifest => "/static/manifest".into(),
             Self::StaticAppleIcon => "/static/apple_icon".into(),
             Self::PrivacyPolicy => "/privacy".into(),
@@ -249,6 +262,18 @@ fn get_public_routes() -> Router<models::AppState> {
         .route(
             &Route::StaticLargeIcon.as_string(),
             get(controllers::get_large_icon),
+        )
+        .route(
+            &Route::StaticMaskableSmallIcon.as_string(),
+            get(controllers::get_maskable_small_icon),
+        )
+        .route(
+            &Route::StaticMaskableMediumIcon.as_string(),
+            get(controllers::get_maskable_medium_icon),
+        )
+        .route(
+            &Route::StaticMaskableLargeIcon.as_string(),
+            get(controllers::get_maskable_large_icon),
         )
         .route(
             &Route::StaticAppleIcon.as_string(),

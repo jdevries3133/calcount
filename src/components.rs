@@ -77,10 +77,13 @@ impl Component for Page<'_> {
         let apple_icon = Route::StaticAppleIcon;
         let manifest = Route::StaticManifest;
         format!(
-            r#"
+            r##"<!DOCTYPE html>
             <html lang="en">
                 <head>
+                    <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+                    <meta name="theme-color" content="#BBF7D0"/>
+                    <meta name="description" content="ChatGPT-powered calorie counter" />
                     <title>{title}</title>
                     <style>
                         {tailwind}
@@ -97,7 +100,7 @@ impl Component for Page<'_> {
                     </script>
                 </body>
             </html>
-            "#,
+            "##,
             tailwind = tailwind,
             title = clean(self.title),
             body_html = self.children.render()
