@@ -257,7 +257,10 @@ impl Component for Home {
             {trial_acct_container}
             <div class="flex justify-center">
                 <div class="grid md:grid-cols-2 gap-3 max-w-[1200px]">
-                    <div class="p-4 border-8 border-slate-800">
+                    <div
+                        class="flex items-center justify-center p-4 border-8
+                        border-slate-800 flex-col"
+                    >
                         <h2 class="text-xl font-bold text-center">Try it Out</h2>
                         <p class="text-center text-sm max-w-md">
                             With Bean Count, you can describe your food using
