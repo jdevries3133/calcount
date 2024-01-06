@@ -171,7 +171,7 @@ pub async fn narc_on_subscriptions<B>(
             }
         }
     } else {
-        ServerError::forbidden("user is not authenticated").into_response()
+        Redirect::to(&Route::Login.to_string()).into_response()
     }
 }
 
