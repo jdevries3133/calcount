@@ -284,3 +284,13 @@ pub async fn wait_list(
         </p>
        "#)
 }
+
+pub async fn about() -> impl IntoResponse {
+    components::Page {
+        title: "About Bean Count",
+        children: &components::PageContainer {
+            children: &components::AboutPage {},
+        },
+    }
+    .render()
+}

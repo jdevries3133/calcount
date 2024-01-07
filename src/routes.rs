@@ -26,6 +26,7 @@ use axum::{
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
 pub enum Route {
+    About,
     AddMealToToday(Option<i32>),
     ChatDemo,
     ChatDemoRetry,
@@ -85,6 +86,7 @@ pub enum Route {
 impl Route {
     pub fn as_string(&self) -> String {
         match self {
+            Self::About => "/about".into(),
             Self::AddMealToToday(slug) => match slug {
                 Some(value) => format!("/add-meal-to-today/{value}"),
                 None => "/add-meal-to-today/:id".into(),
@@ -206,6 +208,7 @@ fn get_authenticated_free_routes() -> Router<models::AppState> {
 /// any requester can access these routes.
 fn get_public_routes() -> Router<models::AppState> {
     Router::new()
+        .route(&Route::About.as_string(), get(controllers::about))
         .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
         .route(
             &Route::ChatDemo.as_string(),
