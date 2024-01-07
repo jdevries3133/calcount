@@ -37,4 +37,4 @@ pub const MAX_ACCOUNT_LIMIT: usize = 205;
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 
 #[cfg(not(feature = "use_stripe_test_instance"))]
-pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OOr4nAaiRLwV5fgUhgO8ZRT";
+pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OVybrBhmccJFhTPiLUXZm1P";
