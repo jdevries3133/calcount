@@ -75,12 +75,10 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
     };
 
     if let Some(session) = session {
-        dbg!(&session.created_at);
         let token_age_days = Utc::now()
             .signed_duration_since(session.created_at)
             .num_days();
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
-            dbg!(token_age_days);
             let path = request.uri().path();
             let method = request.method().as_str();
             let username = session.user.username;
