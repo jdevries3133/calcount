@@ -137,8 +137,9 @@ impl Component for ChatUI<'_> {
                     bg-zinc-50
                     border-2
                     border-black
-                    dark:bg-blue-950
-                    dark:border-white
+                    dark:bg-indigo-1000
+                    md:dark:bg-blue-950
+                    md:dark:border-white
                     m-2
                     md:p-4
                     p-2
@@ -150,6 +151,8 @@ impl Component for ChatUI<'_> {
                             border-slate-600
                             mb-2
                             border-black
+                            dark:border-slate-200
+                            md:dark:border-black
                             serif
                             font-extrabold
                             text-3xl
@@ -295,7 +298,7 @@ impl Component for MealCard<'_> {
             },
         };
         let background_style = if is_meal_before_today {
-            "border-4 border-black"
+            "border-4 border-black dark:border-slate-200 md:dark:border-black"
         } else {
             r#"bg-gradient-to-tr from-blue-300 to-indigo-300 dark:text-black"#
         };
