@@ -27,34 +27,12 @@ use axum::{
 /// for the Axum router.
 pub enum Route {
     AddMealToToday(Option<i32>),
+    ChatDemo,
+    ChatDemoRetry,
     ChatForm,
     DeleteMeal(Option<i32>),
     DisplayMacros,
     Favicon,
-    HandleChat,
-    ChatDemo,
-    ChatDemoRetry,
-    Htmx,
-    ListMeals,
-    Login,
-    Logout,
-    PasswordReset,
-    PasswordResetSecret(Option<String>),
-    Ping,
-    Register,
-    Root,
-    SaveMeal,
-    StaticTinyIcon,
-    StaticSmallIcon,
-    StaticMediumIcon,
-    StaticLargeIcon,
-    StaticManifest,
-    StaticAppleIcon,
-    StaticMaskableSmallIcon,
-    StaticMaskableMediumIcon,
-    StaticMaskableLargeIcon,
-
-    StripeWehhook,
     /// This is just a route which, when visited, will trigger the backend
     /// to hit the stripe API and create a customer portal session, then
     /// redirect the user to the customer portal URL. This allows us to
@@ -62,14 +40,28 @@ pub enum Route {
     /// just to render a stripe portal link that the user typically won't
     /// click, anyway
     GotoStripePortal,
-    UserHome,
-    UserPreference,
-    WaitlistSignup,
-    /// Route which will return an empty string. This is mainly an HTMX utility
-    /// to allow a component to easily be swapped with nothing.
-    Void,
+    HandleChat,
+    Htmx,
+    ListMeals,
+    Login,
+    Logout,
+    PasswordReset,
+    PasswordResetSecret(Option<String>),
+    Ping,
     PrivacyPolicy,
-    TermsOfService,
+    Register,
+    Root,
+    SaveMeal,
+    StaticAppleIcon,
+    StaticLargeIcon,
+    StaticManifest,
+    StaticMaskableLargeIcon,
+    StaticMaskableMediumIcon,
+    StaticMaskableSmallIcon,
+    StaticMediumIcon,
+    StaticSmallIcon,
+    StaticTinyIcon,
+    StripeWehhook,
     /// This is when the stripe subscription status changes to anything
     /// non-active, including cancelled,
     SubscriptionInactive,
@@ -81,27 +73,35 @@ pub enum Route {
     /// won't have any subscription to manage -- they'll only be able to update
     /// billing info and payment method details.
     SubscriptionTrialEnded,
+    TermsOfService,
+    UserHome,
+    UserPreference,
+    /// Route which will return an empty string. This is mainly an HTMX utility
+    /// to allow a component to easily be swapped with nothing.
+    Void,
+    WaitlistSignup,
 }
 
 impl Route {
     pub fn as_string(&self) -> String {
         match self {
-            Self::ListMeals => "/list-meals".into(),
+            Self::AddMealToToday(slug) => match slug {
+                Some(value) => format!("/add-meal-to-today/{value}"),
+                None => "/add-meal-to-today/:id".into(),
+            },
+            Self::ChatDemo => "/chat-demo".into(),
+            Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::ChatForm => "/chat-form".into(),
             Self::DeleteMeal(slug) => match slug {
                 Some(value) => format!("/delete-meal/{value}"),
                 None => "/delete-meal/:id".into(),
             },
-            Self::AddMealToToday(slug) => match slug {
-                Some(value) => format!("/add-meal-to-today/{value}"),
-                None => "/add-meal-to-today/:id".into(),
-            },
             Self::DisplayMacros => "/metrics/macros".into(),
+            Self::Favicon => "/favicon.ico".into(),
             Self::GotoStripePortal => "/stripe-portal".into(),
             Self::HandleChat => "/chat".into(),
-            Self::ChatDemo => "/chat-demo".into(),
-            Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::Htmx => "/static/htmx-1.9.10".into(),
+            Self::ListMeals => "/list-meals".into(),
             Self::Login => "/authentication/login".into(),
             Self::Logout => "/authentication/logout".into(),
             Self::PasswordReset => "/authentication/reset-password".into(),
@@ -110,34 +110,33 @@ impl Route {
                 None => "/authentication/reset-password/:slug".into(),
             },
             Self::Ping => "/ping".into(),
+            Self::PrivacyPolicy => "/privacy".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
             Self::SaveMeal => "/save-meal".into(),
-            Self::UserHome => "/home".into(),
-            Self::UserPreference => "/preferences".into(),
-            Self::WaitlistSignup => "/wait-list".into(),
-            Self::Void => "/void".into(),
-            Self::StripeWehhook => "/stripe-webhook".into(),
-            Self::Favicon => "/favicon.ico".into(),
-            Self::StaticTinyIcon => "/static/xxs-icon".into(),
-            Self::StaticSmallIcon => "/static/xs-icon".into(),
-            Self::StaticMediumIcon => "/static/icon".into(),
+            Self::StaticAppleIcon => "/static/apple_icon".into(),
             Self::StaticLargeIcon => "/static/large-icon".into(),
-            Self::StaticMaskableSmallIcon => {
-                "/static/maskable-small-icon".into()
+            Self::StaticManifest => "/static/manifest".into(),
+            Self::StaticMaskableLargeIcon => {
+                "/static/maskable-large-icon".into()
             }
             Self::StaticMaskableMediumIcon => {
                 "/static/maskable-medium-icon".into()
             }
-            Self::StaticMaskableLargeIcon => {
-                "/static/maskable-large-icon".into()
+            Self::StaticMaskableSmallIcon => {
+                "/static/maskable-small-icon".into()
             }
-            Self::StaticManifest => "/static/manifest".into(),
-            Self::StaticAppleIcon => "/static/apple_icon".into(),
-            Self::PrivacyPolicy => "/privacy".into(),
-            Self::TermsOfService => "/terms".into(),
+            Self::StaticMediumIcon => "/static/icon".into(),
+            Self::StaticSmallIcon => "/static/xs-icon".into(),
+            Self::StaticTinyIcon => "/static/xxs-icon".into(),
+            Self::StripeWehhook => "/stripe-webhook".into(),
             Self::SubscriptionInactive => "/subscription-inactive".into(),
             Self::SubscriptionTrialEnded => "/trial-ended".into(),
+            Self::TermsOfService => "/terms".into(),
+            Self::UserHome => "/home".into(),
+            Self::UserPreference => "/preferences".into(),
+            Self::Void => "/void".into(),
+            Self::WaitlistSignup => "/wait-list".into(),
         }
     }
 }
@@ -154,34 +153,34 @@ impl std::fmt::Display for Route {
 /// are called.
 fn get_authenticated_routes() -> Router<models::AppState> {
     Router::new()
-        .route(&Route::UserHome.as_string(), get(controllers::user_home))
         .route(
-            &Route::HandleChat.as_string(),
-            post(count_chat::handle_chat),
+            &Route::AddMealToToday(None).as_string(),
+            post(controllers::add_meal_to_today),
         )
         .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
         .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
-            &Route::SaveMeal.as_string(),
-            post(count_chat::handle_save_meal),
-        )
-        .route(
             &Route::DeleteMeal(None).as_string(),
             delete(controllers::delete_meal),
-        )
-        .route(
-            &Route::AddMealToToday(None).as_string(),
-            post(controllers::add_meal_to_today),
         )
         .route(
             &Route::DisplayMacros.as_string(),
             get(metrics::display_macros),
         )
         .route(
+            &Route::HandleChat.as_string(),
+            post(count_chat::handle_chat),
+        )
+        .route(&Route::ListMeals.as_string(), get(count_chat::list_meals))
+        .route(
+            &Route::SaveMeal.as_string(),
+            post(count_chat::handle_save_meal),
+        )
+        .route(&Route::UserHome.as_string(), get(controllers::user_home))
+        .route(
             &Route::UserPreference.as_string(),
             any(preferences::user_preference_controller),
         )
-        .route(&Route::ListMeals.as_string(), get(count_chat::list_meals))
 }
 
 /// Routes where authentication is required, but we do not check subscription
@@ -207,7 +206,24 @@ fn get_authenticated_free_routes() -> Router<models::AppState> {
 /// any requester can access these routes.
 fn get_public_routes() -> Router<models::AppState> {
     Router::new()
-        .route(&Route::Root.as_string(), get(controllers::root))
+        .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
+        .route(
+            &Route::ChatDemo.as_string(),
+            post(count_chat::handle_demo_chat),
+        )
+        .route(
+            &Route::ChatDemoRetry.as_string(),
+            post(count_chat::handle_retry),
+        )
+        .route(&Route::Favicon.as_string(), get(controllers::get_favicon))
+        .route(
+            &Route::StaticTinyIcon.as_string(),
+            get(controllers::get_tiny_icon),
+        )
+        .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
+        .route(&Route::Login.as_string(), get(auth::get_login_form))
+        .route(&Route::Login.as_string(), post(auth::handle_login))
+        .route(&Route::Logout.as_string(), get(auth::logout))
         .route(
             &Route::PasswordReset.as_string(),
             get(auth::get_password_reset_request),
@@ -226,6 +242,10 @@ fn get_public_routes() -> Router<models::AppState> {
         )
         .route(&Route::Ping.as_string(), get(controllers::pong))
         .route(
+            &Route::PrivacyPolicy.as_string(),
+            get(legal::get_privacy_policy),
+        )
+        .route(
             &Route::Register.as_string(),
             get(auth::get_registration_form),
         )
@@ -233,70 +253,49 @@ fn get_public_routes() -> Router<models::AppState> {
             &Route::Register.as_string(),
             post(auth::handle_registration),
         )
-        .route(&Route::Login.as_string(), get(auth::get_login_form))
-        .route(&Route::Logout.as_string(), get(auth::logout))
-        .route(&Route::Login.as_string(), post(auth::handle_login))
-        .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
-        .route(&Route::Void.as_string(), get(controllers::void))
+        .route(&Route::Root.as_string(), get(controllers::root))
         .route(
-            &Route::StripeWehhook.as_string(),
-            post(stripe::handle_stripe_webhook),
-        )
-        .route(
-            &Route::WaitlistSignup.as_string(),
-            post(controllers::wait_list),
-        )
-        .route(&Route::Favicon.as_string(), get(controllers::get_favicon))
-        .route(
-            &Route::StaticTinyIcon.as_string(),
-            get(controllers::get_tiny_icon),
-        )
-        .route(
-            &Route::StaticSmallIcon.as_string(),
-            get(controllers::get_small_icon),
-        )
-        .route(
-            &Route::StaticMediumIcon.as_string(),
-            get(controllers::get_medium_icon),
+            &Route::StaticAppleIcon.as_string(),
+            get(controllers::get_apple_icon),
         )
         .route(
             &Route::StaticLargeIcon.as_string(),
             get(controllers::get_large_icon),
         )
         .route(
-            &Route::StaticMaskableSmallIcon.as_string(),
-            get(controllers::get_maskable_small_icon),
-        )
-        .route(
-            &Route::StaticMaskableMediumIcon.as_string(),
-            get(controllers::get_maskable_medium_icon),
+            &Route::StaticManifest.as_string(),
+            get(controllers::get_manifest),
         )
         .route(
             &Route::StaticMaskableLargeIcon.as_string(),
             get(controllers::get_maskable_large_icon),
         )
         .route(
-            &Route::StaticAppleIcon.as_string(),
-            get(controllers::get_apple_icon),
+            &Route::StaticMaskableMediumIcon.as_string(),
+            get(controllers::get_maskable_medium_icon),
         )
         .route(
-            &Route::StaticManifest.as_string(),
-            get(controllers::get_manifest),
+            &Route::StaticMaskableSmallIcon.as_string(),
+            get(controllers::get_maskable_small_icon),
         )
         .route(
-            &Route::ChatDemo.as_string(),
-            post(count_chat::handle_demo_chat),
-        )
-        .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
-        .route(
-            &Route::ChatDemoRetry.as_string(),
-            post(count_chat::handle_retry),
+            &Route::StaticMediumIcon.as_string(),
+            get(controllers::get_medium_icon),
         )
         .route(
-            &Route::PrivacyPolicy.as_string(),
-            get(legal::get_privacy_policy),
+            &Route::StaticSmallIcon.as_string(),
+            get(controllers::get_small_icon),
+        )
+        .route(
+            &Route::StripeWehhook.as_string(),
+            post(stripe::handle_stripe_webhook),
         )
         .route(&Route::TermsOfService.as_string(), get(legal::get_tos))
+        .route(&Route::Void.as_string(), get(controllers::void))
+        .route(
+            &Route::WaitlistSignup.as_string(),
+            post(controllers::wait_list),
+        )
 }
 
 pub fn get_routes(state: models::AppState) -> Router<models::AppState> {
