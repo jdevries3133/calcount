@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{count_chat, metrics, models, prelude::*, stripe, timeutils};
+use super::{count_chat, metrics, models, prelude::*, timeutils};
 use ammonia::clean;
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
@@ -451,10 +451,29 @@ impl Component for ProfileChip<'_> {
         } else {
             "".into()
         };
-        let billing_portal_button = stripe::PortalLink {
-            subscription_type: self.subscription_type,
-        }
-        .render();
+        let billing_portal_button = match self.subscription_type {
+            SubscriptionTypes::Basic | SubscriptionTypes::Unsubscribed => {
+                let url = Route::GotoStripePortal;
+                // Note: we need to disable hx-boost because the browser needs
+                // to follow the redirect to a new origin.
+                format!(
+                    r#"
+                    <!-- Note: hx-boost is disabled so that the browser can follow
+                         a redirect to a different domain -->
+                    <a class="inline" href="{url}" hx-boost="false">
+                        <button
+                            style="margin-left: auto"
+                            class="text-xs p-1 bg-green-100 hover:bg-green-200
+                            rounded-full text-black"
+                        >
+                            Manage Subscription via Stripe
+                        </button>
+                    </a>
+                    "#
+                )
+            }
+            _ => "".into(),
+        };
         format!(
             r#"
             <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">

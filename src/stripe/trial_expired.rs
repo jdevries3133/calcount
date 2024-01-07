@@ -21,6 +21,8 @@ impl Component for SubscriptionExpired<'_> {
                     Contact Jack DeVries at (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>)
                     for support.
                 </p>
+                <!-- Note: hx-boost is disabled so that the browser can follow
+                     a redirect to a different domain -->
                 <a class="inline" href="{url}" hx-boost="false">
                     <button
                         style="margin-left: auto"

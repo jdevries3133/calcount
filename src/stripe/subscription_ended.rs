@@ -1,15 +1,13 @@
-use super::ui::PortalLink;
+use super::create_new_subscription::get_basic_plan_checkout_session;
 use crate::{components, prelude::*};
 
-pub struct SubscriptionExpired {
-    subscription_type: SubscriptionTypes,
+pub struct SubscriptionExpired<'a> {
+    checkout_url: &'a str,
 }
-impl Component for SubscriptionExpired {
+impl Component for SubscriptionExpired<'_> {
     fn render(&self) -> String {
-        let stripe_link = PortalLink {
-            subscription_type: self.subscription_type,
-        }
-        .render();
+        let portal_url = Route::GotoStripePortal;
+        let checkout_url = clean(self.checkout_url);
         let logout = Route::Logout;
         format!(
             r#"
@@ -25,7 +23,38 @@ impl Component for SubscriptionExpired {
                     Contact Jack DeVries at (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>)
                     for support.
                 </p>
-            {stripe_link}
+                <!-- Note: hx-boost is disabled so that the browser can follow
+                     a redirect to a different domain -->
+                <a class="inline" href="{portal_url}" hx-boost="false">
+                    <button
+                        style="margin-left: auto"
+                        class="text-xs p-1 bg-green-100 hover:bg-green-200
+                        rounded-full text-black"
+                    >
+                        Manage Existing Subscription via Stripe Customer Portal
+                    </button>
+                </a>
+                <div class="border-blue-300 border-2 rounded-xl p-4 m-4">
+                    <!-- Note: hx-boost is disabled so that the browser can follow
+                         a redirect to a different domain -->
+                    <a class="inline" href="{checkout_url}" hx-boost="false">
+                        <button
+                            style="margin-left: auto"
+                            class="text-xs p-1 bg-blue-100 hover:bg-blue-200
+                            rounded-full text-black"
+                        >
+                            Purchase New Stripe Subscription
+                        </button>
+                    </a>
+                    <p class="text-xs">
+                        If no &quot;resume subscription,&quot; option appears
+                        when you visit the customer portal, it meas that you
+                        need to use this option instead to purchase a new
+                        subscription; presumably because your previous
+                        subscription was cancelled, and therefore cannot be
+                        resumed.
+                    </p>
+                </div>
             <a class="inline" href="{logout}">
                 <button
                     style="margin-left: auto"
@@ -47,11 +76,13 @@ pub async fn subscription_ended(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "subscription ended")?;
     let user = session.get_user(&db).await?;
+    let checkout_url =
+        get_basic_plan_checkout_session(&user.stripe_customer_id).await?;
     Ok(components::Page {
         title: "Bean Count Subscription Expired",
         children: &components::PageContainer {
             children: &SubscriptionExpired {
-                subscription_type: user.stripe_subscription_type,
+                checkout_url: &checkout_url,
             },
         },
     }
