@@ -1,8 +1,9 @@
 //! Cookie-based session, secured by a HMAC signature.
-use super::{crypto, errors::ServerError, models::User, preferences};
+use super::{config, crypto, errors::ServerError, models::User, preferences};
 use axum::headers::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Days, Utc};
+use chrono_tz::Tz;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -57,8 +58,20 @@ impl Session {
     /// Serialize the session into the provided [HeaderMap].
     pub fn update_headers(&self, mut headers: HeaderMap) -> HeaderMap {
         let session_string = self.serialize();
-        let header_value =
-            format!("session={session_string}; Path=/; HttpOnly");
+        let expiry_date = self
+            .created_at
+            .checked_add_days(Days::new(
+                config::SESSION_EXPIRY_TIME_DAYS
+                    .try_into()
+                    .expect("7 can be a u64 too"),
+            ))
+            .expect("heat death of the universe has not happened yet")
+            .with_timezone(&Tz::GMT)
+            .format("%a, %d %b %Y %H:%M:%S %Z");
+
+        let header_value = format!(
+            "session={session_string}; Path=/; HttpOnly; Expires={expiry_date}"
+        );
         headers.insert(
             "Set-Cookie",
             HeaderValue::from_str(&header_value).expect(
