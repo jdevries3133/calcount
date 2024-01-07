@@ -35,12 +35,15 @@ ifndef CI
 	@# Locally, we want to ensure that `cargo sqlx prepare` was run, otherwise
 	@# the build will fail in CI. So, we'll run an offline build as part of
 	@# our checks
-	SQLX_OFFLINE=true cargo build
+	SQLX_OFFLINE=true cargo build --features production
 endif
 	cargo clippy -- -D warnings
 	cargo fmt --check
 	terraform fmt --check
 	cargo test
+
+sqlx:
+	cargo sqlx prepare -- --features production
 
 build: setup
 	pnpm run build
@@ -133,7 +136,7 @@ build-container: setup
 	cargo build \
 		--release \
 		--target x86_64-unknown-linux-musl \
-		--features 'enable_smtp_email stripe'
+		--features production
 	docker buildx build --load --platform linux/amd64 -t $(CONTAINER_EXACT_REF) .
 
 # Run the above container locally, such that it can talk to the local

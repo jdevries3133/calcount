@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+production = ["stripe", "enable_smtp_email"]
 live_reload = []
 use_stripe_test_instance = ["stripe"]
 enable_smtp_email = []

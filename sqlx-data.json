@@ -590,6 +590,32 @@
     },
     "query": "update users set subscription_type_id = $1\n        where stripe_customer_id = $2"
   },
+  "dbe09fd03f87ffcd343b148d625cd90adba6707a5a3375880a594b9ae8ea4625": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select subscription_type_id id, created_at from users where id = $1"
+  },
   "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e": {
     "describe": {
       "columns": [
