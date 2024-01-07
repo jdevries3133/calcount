@@ -69,9 +69,11 @@ ifndef CI
 endif
 
 dev: setup
-	npx concurrently --names 'tailwind,cargo' \
+	npx concurrently --names 'tailwind,cargo,stripe,proxy-prod-db' \
 		'pnpm run dev' \
-		"cargo watch -x 'run --features \"live_reload stripe use_stripe_test_instance localhost_base_url\"'"
+		"cargo watch -x 'run --features \"live_reload stripe use_stripe_test_instance localhost_base_url\"'" \
+		'make proxy-stripe-webhook' \
+		'make proxy-prod-db'
 
 bootstrap: setup _stop-db
 	SQLX_OFFLINE=true cargo build
@@ -121,6 +123,9 @@ prod-shell-db:
 # collide with your local PostgreSQL server).
 proxy-prod-db:
 	kubectl port-forward service/db-postgresql 5433:5432
+
+proxy-stripe-webhook:
+	stripe listen --forward-to localhost:8000/stripe-webhook
 
 backup-prod:
 	kubectl exec \
