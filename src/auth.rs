@@ -7,6 +7,7 @@ use super::{
     session,
 };
 use anyhow::{bail, Result};
+use chrono::Utc;
 use sqlx::{postgres::PgPool, query_as};
 
 /// We are a bit losey goosey on the identifier for a better user experience.
@@ -44,15 +45,10 @@ pub async fn authenticate(
     .await?;
 
     if pw::check(password, &truth).is_ok() {
-        let now: i64 = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)?
-            .as_secs()
-            .try_into()
-            .expect("today can fit into i64");
         Ok(session::Session {
             user,
             preferences,
-            created_at: now,
+            created_at: Utc::now(),
         })
     } else {
         bail!("wrong password")

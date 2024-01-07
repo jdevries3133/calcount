@@ -252,15 +252,10 @@ pub async fn handle_registration(
         timezone: form.timezone,
     };
     save_user_preference(&db, &user, &preferences).await?;
-    let now: i64 = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)?
-        .as_secs()
-        .try_into()
-        .expect("today can fit in i64");
     let session = session::Session {
         user,
         preferences,
-        created_at: now,
+        created_at: Utc::now(),
     };
     let headers = session.update_headers(headers);
     let headers = htmx::redirect(headers, &payment_portal_url);
@@ -271,30 +266,37 @@ pub async fn get_login_form(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers);
+    let form = components::Page {
+        title: "Login",
+        children: &components::PageContainer {
+            children: &components::LoginForm {},
+        },
+    };
     Ok(match session {
-        Some(_) => {
-            // The user is already authenticated, let's redirect them to the
-            // user homepage.
-            let mut headers = HeaderMap::new();
-            headers.insert(
-                "Location",
-                HeaderValue::from_str(&Route::UserHome.as_string())?,
-            );
-            headers.insert(
-                "Hx-Redirect",
-                HeaderValue::from_str(&Route::UserHome.as_string())?,
-            );
+        Some(session) => {
+            if Utc::now()
+                .signed_duration_since(session.created_at)
+                .num_days()
+                < config::SESSION_EXPIRY_TIME_DAYS
+            {
+                // The user is already authenticated, let's redirect them to the
+                // user homepage.
+                let mut headers = HeaderMap::new();
+                headers.insert(
+                    "Location",
+                    HeaderValue::from_str(&Route::UserHome.as_string())?,
+                );
+                headers.insert(
+                    "Hx-Redirect",
+                    HeaderValue::from_str(&Route::UserHome.as_string())?,
+                );
 
-            (StatusCode::SEE_OTHER, headers).into_response()
+                (StatusCode::SEE_OTHER, headers).into_response()
+            } else {
+                form.render().into_response()
+            }
         }
-        None => components::Page {
-            title: "Login",
-            children: &components::PageContainer {
-                children: &components::LoginForm {},
-            },
-        }
-        .render()
-        .into_response(),
+        None => form.render().into_response(),
     })
 }
 

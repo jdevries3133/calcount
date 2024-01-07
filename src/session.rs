@@ -2,6 +2,7 @@
 use super::{crypto, errors::ServerError, models::User, preferences};
 use axum::headers::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
+use chrono::{DateTime, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -23,9 +24,7 @@ use serde::{Deserialize, Serialize};
 pub struct Session {
     pub user: User,
     pub preferences: preferences::UserPreference,
-    /// Unix seconds timestamp when the token was issued. I'll do token
-    /// revocation later.
-    pub created_at: i64,
+    pub created_at: DateTime<Utc>,
 }
 impl Session {
     /// Parse the session from request headers, validating the cookie
@@ -134,11 +133,12 @@ mod tests {
             preferences: preferences::UserPreference {
                 timezone: chrono_tz::Tz::US__Samoa,
             },
-            created_at: 0,
+            created_at: DateTime::<Utc>::from_timestamp(0, 0)
+                .expect("that is a valid timestamp"),
         }
     }
 
-    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EifSwiY3JlYXRlZF9hdCI6MH0:cSULy38BVDspnAq0kN94Rn0+E0tBvupXvi3Qh92XRjo";
+    const SERIALIZED_SESSION: &str = "eyJ1c2VyIjp7ImlkIjoxLCJ1c2VybmFtZSI6IkphY2siLCJlbWFpbCI6ImphY2tAamFjay5jb20iLCJjcmVhdGVkX2F0IjoiMTk3MC0wMS0wMVQwMDowMDowMFoiLCJzdHJpcGVfY3VzdG9tZXJfaWQiOiIiLCJzdHJpcGVfc3Vic2NyaXB0aW9uX3R5cGUiOiJGcmVlIn0sInByZWZlcmVuY2VzIjp7InRpbWV6b25lIjoiVVMvU2Ftb2EifSwiY3JlYXRlZF9hdCI6IjE5NzAtMDEtMDFUMDA6MDA6MDBaIn0:DK9ffJyNdDx6bLduh7uGNjKIljh076SvgGQxF5QuwqA";
 
     #[test]
     fn test_serialize_session() {

@@ -75,25 +75,17 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
     };
 
     if let Some(session) = session {
-        if let Some(created_time) =
-            NaiveDateTime::from_timestamp_opt(session.created_at, 0)
-        {
-            let token_age_days = Local::now()
-                .naive_local()
-                .signed_duration_since(created_time)
-                .num_days();
-            if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
-                let path = request.uri().path();
-                let method = request.method().as_str();
-                let username = session.user.username;
-                println!("{method} {path} from {username}");
-                next.run(request).await
-            } else {
-                let username = session.user.username;
-                println!("{username} has an expired token (created at {created_time}, is {token_age_days} days old)");
-                (response_headers(), Redirect::to(&Route::Login.to_string()))
-                    .into_response()
-            }
+        dbg!(&session.created_at);
+        let token_age_days = Utc::now()
+            .signed_duration_since(session.created_at)
+            .num_days();
+        if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
+            dbg!(token_age_days);
+            let path = request.uri().path();
+            let method = request.method().as_str();
+            let username = session.user.username;
+            println!("{method} {path} from {username}");
+            next.run(request).await
         } else {
             (response_headers(), Redirect::to(&Route::Login.to_string()))
                 .into_response()
