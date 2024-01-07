@@ -477,7 +477,7 @@ impl Component for ProfileChip<'_> {
         format!(
             r#"
             <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">
-                <div class="flex mb-1 gap-2">
+                <div class="flex flex-wrap mb-1 gap-2">
                     <p class="font-bold">Hi, {username}!</p>
                     <a class="inline" href="{logout}">
                         <button
@@ -491,7 +491,7 @@ impl Component for ProfileChip<'_> {
                     <a class="inline" href="{preferences}">
                         <button
                             style="margin-left: auto"
-                            class="text-xs p-1 bg-blue-100 hover:bg-blue-200
+                            class="text-xs p-1 bg-cyan-100 hover:bg-cyan-200
                             rounded-full text-black"
                         >
                             Goals & Preferences

@@ -133,7 +133,7 @@ impl Component for ChatUI<'_> {
         let children = self.children.map_or("".to_string(), |c| c.render());
         format!(
             r#"
-            <div id="cal-chat-container" class="flex items-center justify-center">
+            <div id="cal-chat-container" class="sm:flex sm:items-center sm:justify-center">
                 <div class="
                     bg-zinc-50
                     border-2
@@ -141,10 +141,8 @@ impl Component for ChatUI<'_> {
                     dark:bg-indigo-1000
                     md:dark:bg-blue-950
                     md:dark:border-white
-                    m-2
-                    md:p-4
-                    p-2
                     rounded
+                    p-2
                 ">
                     <h1
                         class="
