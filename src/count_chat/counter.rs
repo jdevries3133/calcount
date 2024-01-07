@@ -258,8 +258,8 @@ impl Component for MealCard<'_> {
             None => match self.meal_id {
                 Some(id) => {
                     let delete_href = Route::DeleteMeal(Some(id));
+                    let add_to_today_href = Route::AddMealToToday(Some(id));
                     let add_to_today_button = if is_meal_before_today {
-                        let add_to_today_href = Route::AddMealToToday(Some(id));
                         format!(
                             r#"
                             <button
@@ -278,7 +278,23 @@ impl Component for MealCard<'_> {
                             "#
                         )
                     } else {
-                        "".into()
+                        format!(
+                            r#"
+                            <button
+                                hx-post="{add_to_today_href}"
+                                hx-target="closest div[data-name='meal-card']"
+                                class="
+                                    align-self-right
+                                    bg-green-100
+                                    hover:bg-green-200
+                                    rounded
+                                    p-1
+                                    dark:text-black
+                                ">
+                                Duplicate
+                            </button>
+                            "#
+                        )
                     };
                     format!(
                         r#"
