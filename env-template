@@ -21,9 +21,9 @@ POSTGRES_DB=calcount
 OPENAI_API_KEY=<your api key goes here>
 STRIPE_API_KEY=<your api key goes here>
 # Note that the stripe CLI will print out the signing secret when you run
-# `make proxy-stripe-webhook`. It seems like this signing secret stays the
-# same for the lifetime of the stripe CLI installation, even between stops
-# and starts, which is nice.
+# `make dev`. It seems like this signing secret stays the same for the
+# lifetime of the stripe CLI installation, even between stops and starts,
+# which is nice.
 STRIPE_WEBHOOK_SIGNING_SECRET=<your secret goes here>
 SMTP_EMAIL_USERNAME=<your secret goes here>
 SMTP_EMAIL_PASSWORD=<your secret goes here>
