@@ -8,6 +8,35 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
+## Manual Meal Entry & Meal Date Customization
+
+Automatic calorie counting puts some pressure on giving users the ability to
+manually input meals, or change the date of meals produced by the LLM.
+
+See "Meal Date Selector" from the excalidraw sketch board. We should add a
+button to meal card (after meal input), which says, "Add Meal to a Previous
+Day." This should swap for a form which includes the meal date selector which is
+drawn out in the excalidraw.
+
+We should also add a secondary action button adjacent to the main CTA, "Count
+It," button on the home page, which should say, "input a meal manually." This
+will redirect to a simple form with all fields from the meal data-model:
+
+- datetime
+- description
+- \# of calories
+- \# of grams of fat, protein, and carbs
+
+For the sake of keeping our data clean for future LLM feedback, we should
+differentiate between manually entered meals, and meals that are sourced from
+ChatGPT. We can add a simple type column to store this metadata in the meal
+table.
+
+Overview of changes required:
+
+1. allow LLM meals to be added to previous days
+2. create a manual meal entry form for entering fully user-specified meals
+
 ## Automatic Calorie Balancing
 
 Apply deficit or excess calories after each day to the following days, ensuring
@@ -15,40 +44,57 @@ a continuous coercion towards the net calorie goal.
 
 ### Implementation Details
 
-We should work from the inside out. Ultimately, a consideration is that this
-system naively might aggregate over _all_ user meals, not just the current
-day, so we want to think ahead in terms of performance. At least, we want
-a core layer which will work if caching is introduced, even if we don't do any
-caching yet.
+New Pages:
 
-Another consideration is just how, exactly, we want this system to work, and
-which configuration options we want to provide. Should it look back infinitely
-into the past? Should diffs fall off after a period of time? Should that time
-period be adjustable? Should some diff threshold exist where, if exceeded, we
-will ignore?
+- calorie balancing page, which provides introspection into where the current
+  calorie goal came from
+- list of "resets" -- dates at which the auto-balancing has been reset
 
-First, it's safe to say that it would not be reasonable to ask the app to, for
-example, spread a calorie excess over a very long period of time like a year.
-I'm sorry, but if I binged on a cheesecake, amortizing those calories over the
-next decade doesn't help me reach my weight loss goals, ultimately! So, we can
-set a maximum window of, say, 30 days, and a default window of 7 days. 5 feels
-like a good default because any excess eating on the weekend is then accounted
-for during the following week. Plus, I feel that 500-1000 calories is a pretty
-typical weekend excess for me, so a resultant 100-200 cut-back in the following
-days seems reasonable and achievable. I think there are more bells and whistles
-that are possible here, like spreading especially large meals (think:
-thanksgiving dinner) over a longer period of time. Another future direction for
-this feature is setting upper and lower thresholds for rollover, where if you
-eat more than 1,000 calories in excess or deficit compared to your goal, maybe
-we don't roll that over. Still, I think this is not as important as basic
-rollover.
+Updates to the home page:
 
-Taking a step back, it also occurs to me that this feature puts more emphasis on
-the need for users to track _all_ calories. The whole system gets messed up if
-users don't track every calorie, since we end up rolling over calorie deficits
-and increasing calorie goals. What can we do about that?
+- add some ugly text indicating that the calorie goal came from auto-balancing
+- put a hyperlink in this text, which points to the calorie balancing page
 
-(planning on this feature is a work in progress)
+Updates to the user profile page:
+
+- add a checkbox to enable or disable this feature
+
+#### Caching
+
+I can't justify building out caching. Meals in the context of calorie balancing
+is just a tuple of calorie and datetime. It's 96 bits each. 1kb will hold over
+8,000 meals. 20 meals per day is way up on the top end of the bell curve for my
+own usage (obviously `meal` is a count of food items entered, not necessarily
+meals, so it's going to be much more than 3. My median is 9.5).
+
+Anyway, this means that I'd need to use the app for over 2 years before the data
+dependency of my daily meal count rises above 1kb. Obviously, if we get a decent
+number of users, the `meal` table will get quite big, but we can create a
+[covering
+index](https://www.postgresql.org/docs/current/indexes-index-only-scans.html) to
+ensure that the `created_at` and `calories` columns are included in the
+index on `user_id`. This would create locality and allow us to satisfy probably
+several years of meal data in one or two PostgreSQL pages.
+
+All together, there's no point even thinking about how I'd implement caching. I
+need to stop myself.
+
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+_I will not implement unnecessarily complicated caching_
+
+Hm nice, the chalk-board punishment is much easier in vim.
 
 ## Consumption Metrics
 
