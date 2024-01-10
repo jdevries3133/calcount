@@ -454,6 +454,19 @@
     },
     "query": "insert into openai_usage_user (usage_id, user_id) values ($1, $2)"
   },
+  "b10be26436ca11929fa3b3ba6537ece229d7bd04186ca821dd937e9ab25ac252": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Date",
+          "Int4"
+        ]
+      }
+    },
+    "query": "delete from balancing_checkpoint\n        where ignore_before = $1 and user_id = $2"
+  },
   "ba3452c8eb32bc14739ee17e1ed1c69a34bbd25a5c58bf6b90df09f232f5a0f8": {
     "describe": {
       "columns": [
@@ -643,6 +656,26 @@
     },
     "query": "SELECT salt, digest FROM users WHERE id = $1"
   },
+  "e34340777d41be8012873a2cd25fca1fbf3f79b41f40ed92a6dbc7e0d04637c9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "date",
+          "ordinal": 0,
+          "type_info": "Date"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select ignore_before as date\n        from balancing_checkpoint where user_id = $1\n        order by date desc"
+  },
   "e5a42384f602aa599794a9ef36829efb43e29168b3e9589f4d1f1a562bc6a28b": {
     "describe": {
       "columns": [],
@@ -722,5 +755,18 @@
       }
     },
     "query": "select 1 count from users"
+  },
+  "f9892517bce425bbb602e979143ea3923758d293f92729535de66561970675fc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Date"
+        ]
+      }
+    },
+    "query": "insert into balancing_checkpoint (user_id, ignore_before)\n        values ($1, $2)\n        on conflict do nothing\n        "
   }
 }

@@ -1,8 +1,8 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{
-    auth, controllers, count_chat, legal, metrics, middleware, models,
-    preferences, stripe,
+    auth, balancing, controllers, count_chat, legal, metrics, middleware,
+    models, preferences, stripe,
 };
 use axum::{
     middleware::{from_fn, from_fn_with_state},
@@ -28,6 +28,10 @@ use axum::{
 pub enum Route {
     About,
     AddMealToToday(Option<i32>),
+    BalancingCheckpoints,
+    BalancingCreateCheckpoint,
+    BalancingDeleteCheckpoint,
+    BalancingOverview,
     ChatDemo,
     ChatDemoRetry,
     ChatForm,
@@ -95,6 +99,12 @@ impl Route {
                 Some(value) => format!("/add-meal-to-today/{value}"),
                 None => "/add-meal-to-today/:id".into(),
             },
+            Self::BalancingCheckpoints => {
+                "/calorie-balancing/checkpoints".into()
+            }
+            Self::BalancingCreateCheckpoint => "/create-checkpoint".into(),
+            Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
+            Self::BalancingOverview => "/calorie-balancing".into(),
             Self::ChatDemo => "/chat-demo".into(),
             Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::ChatForm => "/chat-form".into(),
@@ -218,6 +228,22 @@ fn get_authenticated_free_routes() -> Router<models::AppState> {
 fn get_public_routes() -> Router<models::AppState> {
     Router::new()
         .route(&Route::About.as_string(), get(controllers::about))
+        .route(
+            &Route::BalancingOverview.as_string(),
+            get(balancing::overview),
+        )
+        .route(
+            &Route::BalancingCheckpoints.as_string(),
+            get(balancing::checkpoint_list),
+        )
+        .route(
+            &Route::BalancingCreateCheckpoint.as_string(),
+            post(balancing::create_checkpoint),
+        )
+        .route(
+            &Route::BalancingDeleteCheckpoint.as_string(),
+            delete(balancing::delete_checkpoint),
+        )
         .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
         .route(
             &Route::ChatDemo.as_string(),
