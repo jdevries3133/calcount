@@ -8,35 +8,6 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
-## Manual Meal Entry & Meal Date Customization
-
-Automatic calorie counting puts some pressure on giving users the ability to
-manually input meals, or change the date of meals produced by the LLM.
-
-See "Meal Date Selector" from the excalidraw sketch board. We should add a
-button to meal card (after meal input), which says, "Add Meal to a Previous
-Day." This should swap for a form which includes the meal date selector which is
-drawn out in the excalidraw.
-
-We should also add a secondary action button adjacent to the main CTA, "Count
-It," button on the home page, which should say, "input a meal manually." This
-will redirect to a simple form with all fields from the meal data-model:
-
-- datetime
-- description
-- \# of calories
-- \# of grams of fat, protein, and carbs
-
-For the sake of keeping our data clean for future LLM feedback, we should
-differentiate between manually entered meals, and meals that are sourced from
-ChatGPT. We can add a simple type column to store this metadata in the meal
-table.
-
-Overview of changes required:
-
-1. allow LLM meals to be added to previous days
-2. create a manual meal entry form for entering fully user-specified meals
-
 ## Automatic Calorie Balancing
 
 Apply deficit or excess calories after each day to the following days, ensuring
