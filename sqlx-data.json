@@ -1,22 +1,5 @@
 {
   "db": "PostgreSQL",
-  "0dae0a824801783b7b121bc231c669e86ebaeab5621ea2d39eab8f38cc4bc502": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Int4",
-          "Int4",
-          "Int4",
-          "Int4"
-        ]
-      }
-    },
-    "query": "insert into meal (user_id, name, calories, fat, protein, carbohydrates)\n        values ($1, $2, $3, $4, $5, $6)"
-  },
   "0f113ec6a146b99b54a7940ae97aeb8b9b591eb95283f2a89e52f00718f3da45": {
     "describe": {
       "columns": [
@@ -294,6 +277,24 @@
       }
     },
     "query": "lock audit_stripe_webhooks"
+  },
+  "62885715cfaeb976196e3074ff73e6e1eb0c32b6c5dc90ba4ee2b723f63839ed": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Int4",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "insert into meal\n        (\n            user_id,\n            name,\n            calories,\n            fat,\n            protein,\n            carbohydrates,\n            created_at\n        )\n        values ($1, $2, $3, $4, $5, $6, $7)"
   },
   "661fb6e34f044a583bb59df6d66beb9c94639a7dffa73cbae0667b8dd510aace": {
     "describe": {

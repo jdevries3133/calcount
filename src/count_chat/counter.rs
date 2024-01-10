@@ -207,6 +207,7 @@ impl Component for NewMealOptions<'_> {
     fn render(&self) -> String {
         let retry_route = Route::ChatForm;
         let save_route = Route::SaveMeal;
+        let prev_day_route = Route::PreviousDayMeal;
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
@@ -224,7 +225,18 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{created_at}" name="created_at" />
                 <button
                     class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
-                >Save</button>
+                >Add</button>
+            </form>
+            <form hx-post="{prev_day_route}" hx-target="#cal-chat-container">
+                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{calories}" name="calories" />
+                <input type="hidden" value="{protein}" name="protein_grams" />
+                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
+                <input type="hidden" value="{fat}" name="fat_grams" />
+                <input type="hidden" value="{created_at}" name="created_at" />
+                <button
+                    class="bg-indigo-100 p-1 rounded shadow hover:bg-indigo-200"
+                >Set Date</button>
             </form>
             <form hx-post="{retry_route}" hx-target="#cal-chat-container">
                 <input type="hidden" value="{meal_name}" name="meal_name" />
@@ -668,14 +680,24 @@ pub async fn handle_save_meal(
         .ok_or_else(|| ServerError::forbidden("handle save meal"))?;
     let preferences = session.get_preferences(&db).await?;
     query!(
-        "insert into meal (user_id, name, calories, fat, protein, carbohydrates)
-        values ($1, $2, $3, $4, $5, $6)",
+        "insert into meal
+        (
+            user_id,
+            name,
+            calories,
+            fat,
+            protein,
+            carbohydrates,
+            created_at
+        )
+        values ($1, $2, $3, $4, $5, $6, $7)",
         session.user_id,
         meal.meal_name,
         meal.calories,
         meal.fat_grams,
         meal.protein_grams,
-        meal.carbohydrates_grams
+        meal.carbohydrates_grams,
+        meal.created_at
     )
     .execute(&db)
     .await?;
@@ -712,6 +734,92 @@ pub async fn list_meals(
         next_page: page + 1,
         user_timezone: preferences.timezone,
         show_ai_warning: false,
+    }
+    .render())
+}
+
+struct PrevDayFormActions<'a> {
+    info: &'a MealInfo,
+}
+impl Component for PrevDayFormActions<'_> {
+    fn render(&self) -> String {
+        let save_meal = Route::SaveMeal;
+        let created_at = self.info.created_at.format("%d/%m/%Y");
+        let script = include_str!("./custom_date_widget_helper.js");
+        let meal_name = clean(&self.info.meal_name);
+        let calories = self.info.calories;
+        let protein = self.info.protein_grams;
+        let carbs = self.info.carbohydrates_grams;
+        let fat = self.info.fat_grams;
+        format!(
+            r##"
+            <form
+                hx-post="{save_meal}"
+                hx-target="closest div[data-name='meal-card']"
+                class="flex flex-col">
+                <label for="created_date">
+                    Date
+                </label>
+                <input
+                    required
+                    value="{created_at}"
+                    type="date"
+                    name="created_date"
+                    id="created_date"
+                />
+                <!-- This field gets populated by JS when the buttons below are
+                clicked -->
+                <input type="hidden" name="created_at" id="created_at" />
+                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{calories}" name="calories" />
+                <input type="hidden" value="{protein}" name="protein_grams" />
+                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
+                <input type="hidden" value="{fat}" name="fat_grams" />
+                <p class="text-sm">Approximately what time of day was this meal?</p>
+                <button
+                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
+                    id="breakfast"
+                >
+                    Breakfast
+                </button>
+                <button
+                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
+                    id="lunch"
+                >
+                    Lunch
+                </button>
+                <button
+                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
+                    id="dinner"
+                >
+                    Dinner
+                </button>
+                <button
+                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
+                    id="evening"
+                >
+                    Evening
+                </button>
+                <script>(() => {{{script}}})();</script>
+            </form>
+            "##
+        )
+    }
+}
+
+pub async fn prev_day_meal_form(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+    Form(meal): Form<MealInfo>,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "prev day meal form")?;
+    let preferences = session.get_preferences(&db).await?;
+    Ok(MealCard {
+        info: &meal,
+        meal_id: None,
+        actions: Some(&PrevDayFormActions { info: &meal }),
+        user_timezone: preferences.timezone,
+        show_ai_warning: true,
     }
     .render())
 }

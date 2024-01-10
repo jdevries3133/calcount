@@ -49,6 +49,10 @@ pub enum Route {
     PasswordReset,
     PasswordResetSecret(Option<String>),
     Ping,
+    /// Receives form data for a meal, and returns a new form which adds a
+    /// visible created_at field, allowing the user to save the meal to a
+    /// custom date.
+    PreviousDayMeal,
     PrivacyPolicy,
     Register,
     Root,
@@ -112,6 +116,7 @@ impl Route {
                 None => "/authentication/reset-password/:slug".into(),
             },
             Self::Ping => "/ping".into(),
+            Self::PreviousDayMeal => "/get-meal-custom-date-form".into(),
             Self::PrivacyPolicy => "/privacy".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
@@ -177,6 +182,10 @@ fn get_authenticated_routes() -> Router<models::AppState> {
         .route(
             &Route::SaveMeal.as_string(),
             post(count_chat::handle_save_meal),
+        )
+        .route(
+            &Route::PreviousDayMeal.as_string(),
+            post(count_chat::prev_day_meal_form),
         )
         .route(&Route::UserHome.as_string(), get(controllers::user_home))
         .route(
