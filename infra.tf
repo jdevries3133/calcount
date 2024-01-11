@@ -2,7 +2,6 @@ terraform {
 
   backend "s3" {
     bucket = "my-sites-terraform-remote-state"
-on the previous deployment, terraform failed to push state to S3. this is a breaking reminder to address that locally before deploying from CI again 
     key    = "calcount-state"
     region = "us-east-2"
   }
