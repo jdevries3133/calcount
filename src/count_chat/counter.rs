@@ -216,17 +216,6 @@ impl Component for NewMealOptions<'_> {
         let meal_name = clean(&self.info.meal_name);
         format!(
             r##"
-            <form hx-post="{save_route}" hx-target="#cal-chat-container">
-                <input type="hidden" value="{meal_name}" name="meal_name" />
-                <input type="hidden" value="{calories}" name="calories" />
-                <input type="hidden" value="{protein}" name="protein_grams" />
-                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
-                <input type="hidden" value="{fat}" name="fat_grams" />
-                <input type="hidden" value="{created_at}" name="created_at" />
-                <button
-                    class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
-                >Add</button>
-            </form>
             <form hx-post="{prev_day_route}" hx-target="#cal-chat-container">
                 <input type="hidden" value="{meal_name}" name="meal_name" />
                 <input type="hidden" value="{calories}" name="calories" />
@@ -243,6 +232,17 @@ impl Component for NewMealOptions<'_> {
                 <button
                     class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
                 >Try Again</button>
+            </form>
+            <form hx-post="{save_route}" hx-target="#cal-chat-container">
+                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{calories}" name="calories" />
+                <input type="hidden" value="{protein}" name="protein_grams" />
+                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
+                <input type="hidden" value="{fat}" name="fat_grams" />
+                <input type="hidden" value="{created_at}" name="created_at" />
+                <button
+                    class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                >Add</button>
             </form>
             "##
         )
