@@ -89,3 +89,17 @@ jobs:
           TF_VAR_stripe_webhook_signing_secret: ${{ secrets.STRIPE_WEBHOOK_SIGNING_SECRET }}
           TF_VAR_smtp_email_password: ${{ secrets.SMTP_EMAIL_PASSWORD }}
         run: make deploy
+
+        # It's possible for terraform to be unable to persist save state into
+        # AWS S3. In this case, it will produce an errored.tfstate file, which
+        # is the terraform state. Ideally, we can recover this file and persist
+        # the updated state into AWS S3 manually, or else configuration drift
+        # will have occurred.
+        #
+        # Ex: https://github.com/jdevries3133/calcount/actions/runs/7469335297/job/20326309777
+      - name: maybe save nonpersisted tfstate
+        uses: actions/upload-artifact@v3
+        with:
+          name: errored-tfstate
+          path: errored.tfstate
+          retention-days: 5
