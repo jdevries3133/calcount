@@ -17,18 +17,18 @@ a continuous coercion towards the net calorie goal.
 
 New Pages:
 
-- calorie balancing page, which provides introspection into where the current
+- [ ] calorie balancing page, which provides introspection into where the current
   calorie goal came from
-- list of "resets" -- dates at which the auto-balancing has been reset
+- [x] list of "resets" -- dates at which the auto-balancing has been reset
 
 Updates to the home page:
 
-- add some ugly text indicating that the calorie goal came from auto-balancing
-- put a hyperlink in this text, which points to the calorie balancing page
+- [ ] add some ugly text indicating that the calorie goal came from auto-balancing
+- [ ] put a hyperlink in this text, which points to the calorie balancing page
 
 Updates to the user profile page:
 
-- add a checkbox to enable or disable this feature
+- [ ] add a checkbox to enable or disable this feature
 
 #### Caching
 
