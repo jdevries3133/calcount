@@ -22,11 +22,12 @@ impl Component for BalancingOverview<'_> {
     }
 }
 
-pub async fn get_relevant_meals(
-    db: impl PgExecutor<'_>,
-    user_id: i32,
-    preferences: &UserPreference,
-) -> Aresult<Vec<Meal>> {
+pub async fn overview(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "balancing overview")?;
+    let preferences = session.get_preferences(&db).await?;
     struct Qres {
         id: i32,
         calories: i32,
@@ -36,7 +37,7 @@ pub async fn get_relevant_meals(
         meal_name: String,
         created_at: DateTime<Utc>,
     }
-    Ok(query_as!(
+    let relevant_meals = query_as!(
         Qres,
         "select
             id,
@@ -62,7 +63,7 @@ pub async fn get_relevant_meals(
         )
         and user_id = $2",
         preferences.timezone.to_string(),
-        user_id
+        session.user_id
     )
     .map(|row| Meal {
         id: row.id,
@@ -75,35 +76,9 @@ pub async fn get_relevant_meals(
             protein_grams: row.protein_grams,
         },
     })
-    .fetch_all(db)
-    .await?)
-}
+    .fetch_all(&db)
+    .await?;
 
-pub async fn get_current_goal(
-    db: impl PgExecutor<'_>,
-    user_id: i32,
-    preferences: &UserPreference,
-) -> Aresult<i32> {
-    let relevant_meals = get_relevant_meals(db, user_id, preferences).await?;
-    let balancing_history = compute_balancing(
-        Utc::now(),
-        preferences.timezone,
-        preferences
-            .caloric_intake_goal
-            .ok_or(Error::msg("user does not have caloric intake goal"))?,
-        &relevant_meals,
-    );
-    Ok(balancing_history.current_calorie_goal)
-}
-
-pub async fn overview(
-    State(AppState { db }): State<AppState>,
-    headers: HeaderMap,
-) -> Result<impl IntoResponse, ServerError> {
-    let session = Session::from_headers_err(&headers, "balancing overview")?;
-    let preferences = session.get_preferences(&db).await?;
-    let relevant_meals =
-        get_relevant_meals(&db, session.user_id, &preferences).await?;
     let balancing_history = compute_balancing(
         Utc::now(),
         preferences.timezone,

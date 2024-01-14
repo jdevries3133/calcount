@@ -19,4 +19,4 @@ pub use axum::{
 pub use chrono::prelude::*;
 pub use chrono_tz::Tz;
 pub use serde::Deserialize;
-pub use sqlx::{query, query_as, PgExecutor, PgPool};
+pub use sqlx::{query, query_as, PgPool, PgExecutor};
