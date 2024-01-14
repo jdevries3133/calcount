@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Deserialize)]
 pub struct Checkpoint {
-    date: NaiveDate,
+    pub date: NaiveDate,
 }
 
 impl Component for Checkpoint {
@@ -63,9 +63,20 @@ impl Component for CheckpointList<'_> {
                         yourself a clean slate as-of any date at any time as many
                         times as you'd like.
                     </p>
+                    <p>
+                        Note that if you set a checkpoint date in the future,
+                        you effectively disable calorie balancing until that
+                        date arrives. I can't decide if this is a bug or a
+                        feature, but please let me know what you think! Seems
+                        like it could be a handy trick for the holiday season,
+                        actually.
+                    </p>
                 </details>
             </div>
-            <h2 class="dark:text-slate-200 text-lg font-semibold">
+            <h2 
+                class="dark:text-slate-200 text-lg font-semibold
+                dark:bg-indigo-900 rounded-xl my-4 inline-block p-4"
+            >
                 Create Checkpoint
             </h2>
             <form
@@ -73,15 +84,19 @@ impl Component for CheckpointList<'_> {
                 hx-target="#prev-checkpoint-list"
                 hx-swap="afterbegin"
             >
-                <label for="date">New Checkpoint Date</label>
+                <label class="block" for="date">Date</label>
                 <input id="date" type="date" name="date" />
                 <button
-                    class="block bg-blue-100 hover:bg-blue-200 rounded p-2 my-1"
+                    class="block bg-blue-100 hover:bg-blue-200 rounded p-2 my-1
+                    dark:text-black"
                 >
                     Save
                 </button>
             </form>
-            <h2 class="dark:text-slate-200 text-lg font-semibold">
+            <h2
+                class="dark:text-slate-200 text-lg font-semibold
+                dark:bg-indigo-900 rounded-xl my-4 inline-block p-4"
+            >
                 Previous Checkpoints
             </h2>
             <div id="prev-checkpoint-list">

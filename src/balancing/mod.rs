@@ -1,4 +1,5 @@
 mod checkpoint_list;
+mod compute_balancing;
 mod overview_page;
 
 pub use checkpoint_list::{

@@ -11,8 +11,8 @@ const MEAL_PAGE_SIZE: u8 = 50;
 
 #[derive(Debug)]
 pub struct Meal {
-    id: i32,
-    info: MealInfo,
+    pub id: i32,
+    pub info: MealInfo,
 }
 
 #[derive(Debug, Deserialize)]
