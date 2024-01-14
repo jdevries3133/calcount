@@ -38,3 +38,8 @@ pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 
 #[cfg(not(feature = "use_stripe_test_instance"))]
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OVybrBhmccJFhTPiLUXZm1P";
+
+/// This is just Jack and Kate while calorie balancing is turbo-jank.
+pub fn enable_calorie_balancing(user_id: i32) -> bool {
+    user_id == 1 || user_id == 6
+}
