@@ -91,6 +91,20 @@ ifdef CI
 endif
 	terraform apply -auto-approve
 
+# Spawn a development database from a backup of the production database at
+# $HOME/calcount-backup.sql
+db-from-backup: _stop-db
+	$(ENV) docker run \
+        --name $(DB_CONTAINER_NAME) \
+        -e POSTGRES_DATABASE="$$POSTGRES_DB" \
+        -e POSTGRES_USER="$$POSTGRES_USER" \
+        -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
+        -v $$HOME/calcount-backup.sql:/docker-entrypoint-initdb.d/initdb.sql \
+        -p 5432:5432 \
+        -d \
+        postgres:15
+
+
 _start-db:
 	$(ENV) docker run \
         --name $(DB_CONTAINER_NAME) \
