@@ -26,7 +26,7 @@ struct BalancingEvent<'a> {
 #[derive(Debug)]
 pub struct BalancedCaloriesResult<'a> {
     /// The net calorie goal post-balancing
-    current_calorie_goal: i32,
+    pub current_calorie_goal: i32,
     details: Vec<BalancingEvent<'a>>,
 }
 

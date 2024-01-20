@@ -1,23 +1,28 @@
-use crate::{chrono_utils::is_before_today, count_chat::MealInfo, prelude::*};
+use crate::{
+    balancing, chrono_utils::is_before_today, config, count_chat::MealInfo,
+    prelude::*,
+};
 
 /// For now, these are implicitly an aggregation of all meals during the
 /// current day, but we could imagine adding explicit time constraints to
 /// this data structure.
-#[derive(Default)]
 pub struct Macros {
     calories: i32,
     protein_grams: i32,
     fat_grams: i32,
     carbohydrates_grams: i32,
+    user_id: i32,
 }
 impl Macros {
     pub fn is_empty(&self) -> bool {
         self.calories > 0
     }
     pub fn render_status(&self, caloric_intake_goal: Option<i32>) -> String {
+        dbg!("render status", self.user_id);
         MacroStatus {
             macros: self,
             caloric_intake_goal,
+            user_id: self.user_id,
         }
         .render()
     }
@@ -26,6 +31,7 @@ impl Macros {
 pub struct MacroStatus<'a> {
     macros: &'a Macros,
     caloric_intake_goal: Option<i32>,
+    user_id: i32,
 }
 impl Component for MacroStatus<'_> {
     fn render(&self) -> String {
@@ -36,8 +42,27 @@ impl Component for MacroStatus<'_> {
         let macros = Route::DisplayMacros;
         let calories_remaining = match self.caloric_intake_goal {
             Some(goal) => {
+                dbg!(self.user_id);
+                let computed_goal =
+                    if config::enable_calorie_balancing(self.user_id) {
+                        let overview = Route::BalancingOverview;
+                        let checkpoint = Route::BalancingCheckpoints;
+                        format!(
+                            r#"
+                            <p>Your computed goal is {goal} calories.</p>
+                            <a class="link" href="{overview}">
+                                View balancing overview.
+                            </a>
+                            <a class="link" href="{checkpoint}">
+                                View balancing checkpoints.
+                            </a>
+                            "#
+                        )
+                    } else {
+                        "".into()
+                    };
                 let diff = goal - calories;
-                format!("<p>You have {diff} calories left to eat today.</p>")
+                format!("{computed_goal}<p>You have {diff} calories left to eat today.</p>")
             }
             None => "".into(),
         };
@@ -117,13 +142,22 @@ pub async fn get_macros(
     Ok(result
         .iter()
         .filter(|m| !is_before_today(&m.created_at, user_preferences.timezone))
-        .fold(Macros::default(), |mut macros, meal| {
-            macros.calories += meal.calories;
-            macros.carbohydrates_grams += meal.carbohydrates_grams;
-            macros.protein_grams += meal.protein_grams;
-            macros.fat_grams += meal.fat_grams;
-            macros
-        }))
+        .fold(
+            Macros {
+                calories: 0,
+                protein_grams: 0,
+                fat_grams: 0,
+                carbohydrates_grams: 0,
+                user_id,
+            },
+            |mut macros, meal| {
+                macros.calories += meal.calories;
+                macros.carbohydrates_grams += meal.carbohydrates_grams;
+                macros.protein_grams += meal.protein_grams;
+                macros.fat_grams += meal.fat_grams;
+                macros
+            },
+        ))
 }
 
 pub async fn display_macros(
@@ -133,10 +167,20 @@ pub async fn display_macros(
     let session = Session::from_headers_err(&headers, "display macros")?;
     let preferences = session.get_preferences(&db).await?;
     let macros = get_macros(&db, session.user_id, &preferences).await?;
+    let caloric_intake_goal =
+        if config::enable_calorie_balancing(session.user_id) {
+            Some(
+                balancing::get_current_goal(&db, session.user_id, &preferences)
+                    .await?,
+            )
+        } else {
+            preferences.caloric_intake_goal
+        };
     if macros.is_empty() {
         Ok(MacroStatus {
             macros: &macros,
-            caloric_intake_goal: preferences.caloric_intake_goal,
+            caloric_intake_goal,
+            user_id: session.user_id,
         }
         .render())
     } else {
