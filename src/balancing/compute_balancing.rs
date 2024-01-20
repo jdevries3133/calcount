@@ -17,10 +17,67 @@ pub struct BalancingEvent<'a> {
     start: DateTime<Utc>,
     /// End of the period; typically the end of a user's day.
     end: DateTime<Utc>,
+    /// The goal that the user has actually set.
+    user_input_calorie_goal: i32,
     previous_calorie_goal: i32,
     new_calorie_goal: i32,
     calories_consumed_during_period: i32,
     meals: &'a [Meal],
+    user_tz: Tz,
+}
+
+impl Component for BalancingEvent<'_> {
+    fn render(&self) -> String {
+        let start = self.start.with_timezone(&self.user_tz).format("%b %d");
+        let prev = self.previous_calorie_goal;
+        let new = self.new_calorie_goal;
+        let consumed = self.calories_consumed_during_period;
+        let user_goal = self.user_input_calorie_goal;
+        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
+            acc.push_str(&meal.render());
+            acc
+        });
+        let meal_container = if meals.is_empty() {
+            r#"
+            <p class="text-xs italic">
+                Zero meals have been eaten on this date
+            </p>
+            "#
+            .into()
+        } else {
+            format!(
+                r#"
+                <details>
+                    <summary>View Meals</summary>
+                    <div class="flex gap-2 flex-wrap">
+                    {meals}
+                    </div>
+                </details>
+                "#
+            )
+        };
+        let new_goal_description =
+            if self.end > Utc::now().with_timezone(&self.user_tz) {
+                "tommorow's goal"
+            } else {
+                "new goal"
+            };
+        format!(
+            r#"
+            <div class="bg-blue-100 dark:bg-blue-800 p-2 rounded m-2">
+                <h2 class="text-lg">{start}</h2>
+                <div class="font-mono">
+                    <p>{prev} <sub>starting calculated goal</sub></p>
+                    <p>- {consumed} <sub>calories consumed</sub>
+                    <p>+ {user_goal} <sub>your goal</sub>
+                    <p>-----------------------------------------</p>
+                    <p>{new} <sub>{new_goal_description}</sub></p>
+                </div>
+                {meal_container}
+            </div>
+            "#
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -51,17 +108,17 @@ pub fn compute_balancing(
         .with_nanosecond(0)
         .expect("(1) zero is a valid nanosecond, and we are not spanning a DST transition");
     let mut meal_ptr = 0;
-    while date < now - Duration::days(1) {
+    while date < now {
         let mut calories_consumed = 0;
         let this_day_slice_start = meal_ptr;
-        let mut this_day_slice_end = this_day_slice_start;
-        for (i, meal) in meals[meal_ptr..].iter().enumerate() {
-            if meal.info.created_at.date_naive() == date.date_naive() {
+        for meal in meals[meal_ptr..].iter() {
+            let offset_from_date =
+                meal.info.created_at.with_timezone(&user_timezone) - date;
+            if offset_from_date > Duration::zero()
+                && offset_from_date < Duration::days(1)
+            {
                 calories_consumed += meal.info.calories;
-                this_day_slice_end = i + meal_ptr;
-            } else {
-                meal_ptr += i;
-                break;
+                meal_ptr += 1;
             }
         }
         let previous_calorie_goal = details
@@ -71,18 +128,30 @@ pub fn compute_balancing(
         details.push(BalancingEvent {
             start: date.with_timezone(&Utc),
             end: (date + Duration::days(1)).with_timezone(&Utc),
+            user_input_calorie_goal: calorie_goal,
             previous_calorie_goal,
             new_calorie_goal: calorie_goal
                 + details.last().map_or(calorie_goal, |e| e.new_calorie_goal)
                 - calories_consumed,
             calories_consumed_during_period: calories_consumed,
-            meals: &meals[this_day_slice_start..this_day_slice_end],
+            meals: &meals[this_day_slice_start..meal_ptr],
+            user_tz: user_timezone,
         });
         date += Duration::days(1);
     }
+    // Sort in descending order by date, so that the page reads from most recent
+    // to oldest.
+    details.sort_by(|a, b| {
+        if a.start < b.start {
+            std::cmp::Ordering::Greater
+        } else {
+            std::cmp::Ordering::Less
+        }
+    });
     BalancedCaloriesResult {
         current_calorie_goal: details
-            .last()
+            .iter()
+            .find(|i| i.end < Utc::now().with_timezone(&user_timezone))
             .map_or(calorie_goal, |d| d.new_calorie_goal),
         details,
     }
@@ -157,7 +226,7 @@ mod test {
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    meal_name: "3 days ago".into(),
                     created_at: now
                         - Duration::days(3)
                             .to_std()
@@ -171,7 +240,7 @@ mod test {
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    meal_name: "yesterday".into(),
                     created_at: now
                         - Duration::days(1)
                             .to_std()
@@ -180,6 +249,11 @@ mod test {
             },
         ];
         let result = compute_balancing(now, Tz::UTC, 2000, &history);
+        let html = result.details.iter().fold(String::new(), |mut acc, d| {
+            acc.push_str(&d.render());
+            acc
+        });
+        std::fs::write("out.html", &html).unwrap();
         assert_eq!(result.current_calorie_goal, 3800);
     }
     #[test]

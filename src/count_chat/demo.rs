@@ -86,17 +86,7 @@ pub async fn handle_chat(
             info: &meal,
             meal_id: None,
             actions: Some(&DemoMealOptions {}),
-            // We don't know where the user is, but it also doesn't really
-            // matter. We just want to ensure that this meal card renders with
-            // the current-day style, and not the "yesterday" style. The meal's
-            // creation time is basically "now" so as long as we choose a
-            // timezone with a very negative offset, the timezone-aware
-            // date comparison will end up determining that the meal created
-            // "now" UTC is not yesterday or before. If anything, the meal
-            // might end up being in the future from the users' real
-            // perspective, but again for this specific use-case
-            // that is OK.
-            user_timezone: Tz::US__Samoa,
+            rendering_behavior: counter::RenderingBehavior::RenderAsToday,
             show_ai_warning: true,
         }
         .render()),

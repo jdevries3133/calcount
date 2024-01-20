@@ -5,30 +5,24 @@ use crate::{
 };
 
 struct BalancingOverview<'a> {
-    meals: &'a [Meal],
     result: &'a BalancedCaloriesResult<'a>,
 }
 impl Component for BalancingOverview<'_> {
     fn render(&self) -> String {
-        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
-            acc.push_str(&format!("<p>{meal:?}</p>"));
-            acc
-        });
         let current_calorie_goal = self.result.current_calorie_goal;
         let details =
             self.result
                 .details
                 .iter()
                 .fold(String::new(), |mut acc, event| {
-                    acc.push_str(&format!("<p>{event:?}</p>"));
+                    acc.push_str(&event.render());
                     acc
                 });
         format!(
             r#"
             <h1 class="text-2xl font-extrabold">Calorie Balancing</h1>
-            {meals}
-            <div>current calorie goal: {current_calorie_goal}</div>
-            <p>details: {details}</p>
+            <p>Current Calorie Goal: {current_calorie_goal} calories</p>
+            {details}
             "#
         )
     }
@@ -59,12 +53,12 @@ pub async fn get_relevant_meals(
             name meal_name,
             created_at
         from meal
-        where created_at > (
+        where created_at at time zone $1 > (
             case when exists (
                 select 1 from balancing_checkpoint where user_id = $2
             )
             then (
-                select ignore_before at time zone $1
+                select ignore_before
                 from balancing_checkpoint
                 where user_id = $2
                 order by ignore_before desc
@@ -131,7 +125,6 @@ pub async fn overview(
         title: "Calorie Balancing",
         children: &PageContainer {
             children: &BalancingOverview {
-                meals: &relevant_meals,
                 result: &balancing_history,
             },
         },

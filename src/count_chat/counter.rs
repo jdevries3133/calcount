@@ -25,6 +25,25 @@ pub struct MealInfo {
     pub created_at: DateTime<Utc>,
 }
 
+struct Void;
+impl Component for Void {
+    fn render(&self) -> String {
+        "".into()
+    }
+}
+impl Component for Meal {
+    fn render(&self) -> String {
+        MealCard {
+            meal_id: Some(self.id),
+            info: &self.info,
+            actions: Some(&Void {}),
+            rendering_behavior: RenderingBehavior::RenderAsToday,
+            show_ai_warning: false,
+        }
+        .render()
+    }
+}
+
 pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
     pub prompt: Option<&'a str>,
@@ -88,7 +107,7 @@ impl Component for PreviousMeals<'_> {
             r#"<h2 class="
                     sticky
                     top-[-1px]
-                    bg-sinc-50
+                    bg-zinc-50
                     dark:bg-slate-900
                     rounded
                     p-2
@@ -249,17 +268,26 @@ impl Component for NewMealOptions<'_> {
     }
 }
 
+pub enum RenderingBehavior {
+    UseTimezone(Tz),
+    RenderAsToday,
+}
+
 pub struct MealCard<'a> {
     pub info: &'a MealInfo,
     pub meal_id: Option<i32>,
     pub actions: Option<&'a dyn Component>,
-    pub user_timezone: Tz,
+    pub rendering_behavior: RenderingBehavior,
     pub show_ai_warning: bool,
 }
 impl Component for MealCard<'_> {
     fn render(&self) -> String {
-        let is_meal_before_today =
-            is_before_today(&self.info.created_at, self.user_timezone);
+        let is_meal_before_today = match self.rendering_behavior {
+            RenderingBehavior::UseTimezone(tz) => {
+                is_before_today(&self.info.created_at, tz)
+            }
+            RenderingBehavior::RenderAsToday => false,
+        };
         let meal_name = clean(&self.info.meal_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
@@ -424,7 +452,9 @@ impl Component for MealSet<'_> {
                         info: &meal.info,
                         meal_id: Some(meal.id),
                         actions: None,
-                        user_timezone: self.user_timezone,
+                        rendering_behavior: RenderingBehavior::UseTimezone(
+                            self.user_timezone,
+                        ),
                         show_ai_warning: self.show_ai_warning,
                     }
                     .render(),
@@ -564,7 +594,9 @@ pub async fn handle_chat(
             info: &meal,
             meal_id: None,
             actions: Some(&NewMealOptions { info: &meal }),
-            user_timezone: preferences.timezone,
+            rendering_behavior: RenderingBehavior::UseTimezone(
+                preferences.timezone,
+            ),
             show_ai_warning: true,
         }
         .render()),
@@ -818,7 +850,9 @@ pub async fn prev_day_meal_form(
         info: &meal,
         meal_id: None,
         actions: Some(&PrevDayFormActions { info: &meal }),
-        user_timezone: preferences.timezone,
+        rendering_behavior: RenderingBehavior::UseTimezone(
+            preferences.timezone,
+        ),
         show_ai_warning: true,
     }
     .render())

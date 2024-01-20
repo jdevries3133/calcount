@@ -15,7 +15,7 @@ pub struct Macros {
 }
 impl Macros {
     pub fn is_empty(&self) -> bool {
-        self.calories > 0
+        self.calories == 0
     }
     pub fn render_status(&self, caloric_intake_goal: Option<i32>) -> String {
         MacroStatus {
@@ -174,14 +174,14 @@ pub async fn display_macros(
         } else {
             preferences.caloric_intake_goal
         };
-    if macros.is_empty() {
+    if macros.is_empty() && !config::enable_calorie_balancing(session.user_id) {
+        Ok(MacroPlaceholder {}.render())
+    } else {
         Ok(MacroStatus {
             macros: &macros,
             caloric_intake_goal,
             user_id: session.user_id,
         }
         .render())
-    } else {
-        Ok(MacroPlaceholder {}.render())
     }
 }
