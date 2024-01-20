@@ -44,7 +44,7 @@ pub async fn authenticate(
     if pw::check(password, &truth).is_ok() {
         Ok(Session {
             user_id: user.id,
-            username: "tim".to_string(),
+            username: user.username.clone(),
             created_at: Utc::now(),
         })
     } else {
