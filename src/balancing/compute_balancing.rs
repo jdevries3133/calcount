@@ -249,11 +249,6 @@ mod test {
             },
         ];
         let result = compute_balancing(now, Tz::UTC, 2000, &history);
-        let html = result.details.iter().fold(String::new(), |mut acc, d| {
-            acc.push_str(&d.render());
-            acc
-        });
-        std::fs::write("out.html", &html).unwrap();
         assert_eq!(result.current_calorie_goal, 3800);
     }
     #[test]
