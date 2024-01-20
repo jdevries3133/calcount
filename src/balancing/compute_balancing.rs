@@ -11,7 +11,7 @@ use chrono::Duration;
 /// This provides more detail than just providing an end goal, since it models
 /// the sequene of events that led to the current goal.
 #[derive(Debug)]
-struct BalancingEvent<'a> {
+pub struct BalancingEvent<'a> {
     /// Start of the period that this event covers; typically the beginning of
     /// a user's day.
     start: DateTime<Utc>,
@@ -27,7 +27,7 @@ struct BalancingEvent<'a> {
 pub struct BalancedCaloriesResult<'a> {
     /// The net calorie goal post-balancing
     pub current_calorie_goal: i32,
-    details: Vec<BalancingEvent<'a>>,
+    pub details: Vec<BalancingEvent<'a>>,
 }
 
 /// `meals` must be provided sorted by date.

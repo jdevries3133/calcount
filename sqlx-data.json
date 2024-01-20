@@ -454,63 +454,6 @@
     },
     "query": "insert into openai_usage_user (usage_id, user_id) values ($1, $2)"
   },
-  "aa79f1582f3664cba5a8ab6083b046a24660476be7b308362856ad3b4d3a7eeb": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "calories",
-          "ordinal": 1,
-          "type_info": "Int4"
-        },
-        {
-          "name": "protein_grams",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "carbohydrates_grams",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "fat_grams",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "meal_name",
-          "ordinal": 5,
-          "type_info": "Text"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 6,
-          "type_info": "Timestamptz"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Int4"
-        ]
-      }
-    },
-    "query": "select\n            id,\n            calories,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fat fat_grams,\n            name meal_name,\n            created_at\n        from meal\n        where created_at > (\n            case when exists (\n                select 1 from balancing_checkpoint where user_id = $2\n            )\n            then (\n                select ignore_before at time zone $1\n                from balancing_checkpoint\n                where user_id = $2\n                order by ignore_before desc\n                limit 1\n            ) else date('01-01-0')\n            end\n        )\n        and user_id = $2"
-  },
   "b10be26436ca11929fa3b3ba6537ece229d7bd04186ca821dd937e9ab25ac252": {
     "describe": {
       "columns": [],
@@ -825,5 +768,62 @@
       }
     },
     "query": "insert into balancing_checkpoint (user_id, ignore_before)\n        values ($1, $2)\n        on conflict do nothing\n        "
+  },
+  "fecdcdf8698acacbcc8a49979af090a52d845185001ccff741786eeaa27525f9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "calories",
+          "ordinal": 1,
+          "type_info": "Int4"
+        },
+        {
+          "name": "protein_grams",
+          "ordinal": 2,
+          "type_info": "Int4"
+        },
+        {
+          "name": "carbohydrates_grams",
+          "ordinal": 3,
+          "type_info": "Int4"
+        },
+        {
+          "name": "fat_grams",
+          "ordinal": 4,
+          "type_info": "Int4"
+        },
+        {
+          "name": "meal_name",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 6,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int4"
+        ]
+      }
+    },
+    "query": "select\n            id,\n            calories,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fat fat_grams,\n            name meal_name,\n            created_at\n        from meal\n        where created_at > (\n            case when exists (\n                select 1 from balancing_checkpoint where user_id = $2\n            )\n            then (\n                select ignore_before at time zone $1\n                from balancing_checkpoint\n                where user_id = $2\n                order by ignore_before desc\n                limit 1\n            ) else date('01-01-0')\n            end\n        )\n        and user_id = $2\n        order by created_at\n        "
   }
 }

@@ -18,7 +18,6 @@ impl Macros {
         self.calories > 0
     }
     pub fn render_status(&self, caloric_intake_goal: Option<i32>) -> String {
-        dbg!("render status", self.user_id);
         MacroStatus {
             macros: self,
             caloric_intake_goal,
@@ -42,7 +41,6 @@ impl Component for MacroStatus<'_> {
         let macros = Route::DisplayMacros;
         let calories_remaining = match self.caloric_intake_goal {
             Some(goal) => {
-                dbg!(self.user_id);
                 let computed_goal =
                     if config::enable_calorie_balancing(self.user_id) {
                         let overview = Route::BalancingOverview;
@@ -50,12 +48,12 @@ impl Component for MacroStatus<'_> {
                         format!(
                             r#"
                             <p>Your computed goal is {goal} calories.</p>
-                            <a class="link" href="{overview}">
+                            <p><a class="link" href="{overview}">
                                 View balancing overview.
-                            </a>
-                            <a class="link" href="{checkpoint}">
+                            </a></p>
+                            <p><a class="link" href="{checkpoint}">
                                 View balancing checkpoints.
-                            </a>
+                            </a></p>
                             "#
                         )
                     } else {

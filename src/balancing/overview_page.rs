@@ -10,13 +10,25 @@ struct BalancingOverview<'a> {
 }
 impl Component for BalancingOverview<'_> {
     fn render(&self) -> String {
-        let meals = self.meals;
-        let result = self.result;
+        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
+            acc.push_str(&format!("<p>{meal:?}</p>"));
+            acc
+        });
+        let current_calorie_goal = self.result.current_calorie_goal;
+        let details =
+            self.result
+                .details
+                .iter()
+                .fold(String::new(), |mut acc, event| {
+                    acc.push_str(&format!("<p>{event:?}</p>"));
+                    acc
+                });
         format!(
             r#"
             <h1 class="text-2xl font-extrabold">Calorie Balancing</h1>
-            {meals:?}
-            {result:?}
+            {meals}
+            <div>current calorie goal: {current_calorie_goal}</div>
+            <p>details: {details}</p>
             "#
         )
     }
@@ -60,7 +72,9 @@ pub async fn get_relevant_meals(
             ) else date('01-01-0')
             end
         )
-        and user_id = $2",
+        and user_id = $2
+        order by created_at
+        ",
         preferences.timezone.to_string(),
         user_id
     )
