@@ -146,7 +146,7 @@ pub async fn handle_registration(
     maybe_revoke_reddit_registration(&db).await?;
     let preferences = UserPreference {
         timezone: form.timezone,
-        caloric_intake_goal: None,
+        ..Default::default()
     };
     save_user_preference(&db, user.id, &preferences).await?;
     let session = Session {

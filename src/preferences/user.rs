@@ -2,6 +2,7 @@
 
 use crate::{
     components::{Page, PageContainer, Saved},
+    config,
     prelude::*,
 };
 use axum::http::Method;
@@ -9,24 +10,54 @@ use chrono_tz::TZ_VARIANTS;
 use serde::Serialize;
 use std::default::Default;
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Debug)]
 pub struct UserPreference {
     pub timezone: Tz,
     pub caloric_intake_goal: Option<i32>,
+    pub calorie_balancing_enabled: bool,
+    /// This is optional because it's possible for calorie counts to just keep
+    /// rising forever.
+    pub calorie_balancing_max_calories: Option<i32>,
+    /// Though this will implicitly be zero if not set (since we don't want to
+    /// show negative calorie goals), we'll still model it as an optional
+    /// property so that we know whether to render an explicit zero, or a
+    /// blank form field on the preferences page.
+    pub calorie_balancing_min_calories: Option<i32>,
 }
+
 impl Default for UserPreference {
     fn default() -> Self {
         Self {
             timezone: Tz::UTC,
             caloric_intake_goal: None,
+            calorie_balancing_enabled: false,
+            calorie_balancing_max_calories: None,
+            calorie_balancing_min_calories: None,
         }
     }
 }
 
-impl Component for UserPreference {
+struct UserPreferenceForm<'a> {
+    preferences: UserPreference,
+    field_validation_error: Option<&'a [(&'a str, &'a str)]>,
+    user_id: i32,
+}
+
+impl<'a> UserPreferenceForm<'a> {
+    fn get_field_validation_err<'b>(&self, field: &'b str) -> Option<&'a str> {
+        self.field_validation_error.map(|some| {
+            some.iter()
+                .find(|(f, _msg)| *f == field)
+                .map(|(_f, msg)| *msg)
+        })?
+    }
+}
+
+impl Component for UserPreferenceForm<'_> {
     fn render(&self) -> String {
-        let tz = self.timezone;
+        let tz = self.preferences.timezone;
         let goal = self
+            .preferences
             .caloric_intake_goal
             .map_or("".to_string(), |g| g.to_string());
         let options = TZ_VARIANTS.iter().fold(String::new(), |mut acc, tz_choice| {
@@ -40,6 +71,137 @@ impl Component for UserPreference {
         });
         let self_url = Route::UserPreference;
         let home = Route::UserHome;
+        let checkbox = if self.preferences.calorie_balancing_enabled {
+            r#"
+            <input
+                class="w-6 h-6"
+                type="checkbox"
+                id="calorie_balancing_enabled"
+                name="calorie_balancing_enabled"
+                checked
+            />
+            "#
+        } else {
+            r#"
+            <input
+                class="w-6 h-6"
+                type="checkbox"
+                id="calorie_balancing_enabled"
+                name="calorie_balancing_enabled"
+            />
+            "#
+        };
+        let min_calories = self
+            .preferences
+            .calorie_balancing_min_calories
+            .map(|v| v.to_string())
+            .unwrap_or("".into());
+        let max_calories = self
+            .preferences
+            .calorie_balancing_max_calories
+            .map(|v| v.to_string())
+            .unwrap_or("".into());
+        let script = if config::enable_calorie_balancing(self.user_id) {
+            include_str!("./interactive_checkbox.js")
+        } else {
+            ""
+        };
+        let intake_goal_err = if let Some(err) =
+            self.get_field_validation_err("caloric_intake_goal")
+        {
+            format!("<p>{err}</p>")
+        } else {
+            "".into()
+        };
+        let min_cals_err = if let Some(err) =
+            self.get_field_validation_err("calorie_balancing_min_calories")
+        {
+            format!("<p>{err}</p>")
+        } else {
+            "".into()
+        };
+        let max_cals_err = if let Some(err) =
+            self.get_field_validation_err("calorie_balancing_max_calories")
+        {
+            format!("<p>{err}</p>")
+        } else {
+            "".into()
+        };
+        let new_stuff = if config::enable_calorie_balancing(self.user_id) {
+            format!(
+                r#"
+                <label for="calorie_balancing_enabled">
+                    Enable calorie balancing
+                </label>
+                <p class="text-xs">
+                    If enabled, excess or defecit calories from previous
+                    days will be applied to future days. Combined with
+                    accurate calorie counting, this can help you ensure
+                    that if you eat too many or too few calories on one
+                    day, you ultimately "catch-up," and continuously
+                    work towards your calorie goal.
+                </p>
+                <div class="bg-yellow-100 rounded p-1 prose text-black">
+                    <p class="text-xs">
+                        Warning: if you have a history of <a class="link"
+                        href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
+                        >any eating disorder,</a> please consult a dietician
+                        before using this product in general, but especially
+                        related to the use of this feature, which includes a
+                        risk of worsening existing ED conditions.
+                    </p>
+                    <p class="text-xs">
+                        To avoid receiving unhealthy calorie goals after
+                        unhealthy eating episodes, consider setting a
+                        minimum and maximum calorie limit which is close
+                        to your overall calorie goal, so that you never
+                        receive unhealthy calorie goals.
+                    </p>
+                    <p class="text-xs">
+                        I am particularly concerned about building this
+                        site to support healthy eating. Please do not
+                        hesitate to reach out and share any feedback
+                        on this application with me
+                        (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>).
+                    </p>
+                </div>
+                {checkbox}
+                <label for="calorie_balancing_min_calories">
+                    Minimum daily calorie limit
+                </label>
+                <p class="text-xs">
+                    If this is blank, your daily calorie goal can go all
+                    the way down to zero if you've counted excess calories
+                    in previous days which are equal to or greater than
+                    your daily calorie goal.
+                </p>
+                {min_cals_err}
+                <input
+                    type="number"
+                    id="calorie_balancing_min_calories"
+                    name="calorie_balancing_min_calories"
+                    value="{min_calories}"
+                />
+                <label for="calorie_balancing_max_calories">
+                    Maximum daily calorie limit
+                </label>
+                <p class="text-xs">
+                    If this is blank, your daily calorie goal will have no
+                    upper limit, and continue to increase based on the
+                    calorie defecits you have.
+                </p>
+                {max_cals_err}
+                <input
+                    type="number"
+                    id="calorie_balancing_max_calories"
+                    name="calorie_balancing_max_calories"
+                    value="{max_calories}"
+                />
+                "#
+            )
+        } else {
+            "".into()
+        };
         format!(
             r#"
             <div class="flex flex-col items-center justify-center max-w-prose">
@@ -55,7 +217,7 @@ impl Component for UserPreference {
                         name="timezone"
                     >{options}</select>
                     <label for="caloric_intake_goal">Caloric Intake Goal</label>
-                    <p class="text-sm">
+                    <p class="text-xs">
                         This should be based on your Total Daily Energy
                         Expenditure (TDEE), and your goals for weight loss,
                         maintainance, or gain. Use an online resource like
@@ -63,13 +225,14 @@ impl Component for UserPreference {
                         TDEE calculator</a> to calculate the perfect calorie
                         goal for you.
                     </p>
+                    {intake_goal_err}
                     <input
                         type="number"
-                        step="100"
                         value="{goal}"
                         name="caloric_intake_goal"
                         id="caloric_intake_goal"
                     />
+                    {new_stuff}
                     <button class="bg-blue-200 rounded">Save</button>
                     <a
                         class="text-center rounded border-slate-800 border-2"
@@ -77,6 +240,11 @@ impl Component for UserPreference {
                     >Go back</a>
                 </form>
             </div>
+            <script>
+                (() => {{
+                    {script}
+                }})();
+            </script>
             "#
         )
     }
@@ -84,6 +252,7 @@ impl Component for UserPreference {
 
 struct SavedPreference {
     preferences: UserPreference,
+    user_id: i32,
 }
 impl Component for SavedPreference {
     fn render(&self) -> String {
@@ -91,11 +260,16 @@ impl Component for SavedPreference {
             message: "User preferences saved",
         }
         .render();
-        let form = self.preferences.render();
+        let form = UserPreferenceForm {
+            preferences: self.preferences,
+            field_validation_error: None,
+            user_id: self.user_id,
+        }
+        .render();
         format!(
             r#"
-            {saved}
             {form}
+            {saved}
             "#
         )
     }
@@ -108,10 +282,19 @@ pub async fn get_user_preference(
     struct Qres {
         timezone: String,
         caloric_intake_goal: Option<i32>,
+        calorie_balancing_enabled: bool,
+        calorie_balancing_max_calories: Option<i32>,
+        calorie_balancing_min_calories: Option<i32>,
     }
     let pref = query_as!(
         Qres,
-        "select timezone, caloric_intake_goal from user_preference
+        "select
+            caloric_intake_goal,
+            calorie_balancing_enabled,
+            calorie_balancing_max_calories,
+            calorie_balancing_min_calories,
+            timezone
+        from user_preference
         where user_id = $1",
         user_id
     )
@@ -119,6 +302,9 @@ pub async fn get_user_preference(
     .await?;
     match pref {
         Some(pref) => Ok(Some(UserPreference {
+            calorie_balancing_enabled: pref.calorie_balancing_enabled,
+            calorie_balancing_max_calories: pref.calorie_balancing_max_calories,
+            calorie_balancing_min_calories: pref.calorie_balancing_min_calories,
             timezone: pref.timezone.parse().map_err(|_| {
                 Error::msg(
                     "could not parse timezone returned from the database",
@@ -137,12 +323,28 @@ pub async fn save_user_preference(
 ) -> Aresult<()> {
     query!(
         "insert into user_preference
-        (user_id, timezone, caloric_intake_goal) values ($1, $2, $3)
+        (
+            user_id,
+            timezone,
+            caloric_intake_goal,
+            calorie_balancing_enabled,
+            calorie_balancing_min_calories,
+            calorie_balancing_max_calories
+        ) values ($1, $2, $3, $4, $5, $6)
         on conflict (user_id)
-        do update set timezone = $2, caloric_intake_goal = $3",
+        do update set
+            timezone = $2,
+            caloric_intake_goal = $3,
+            calorie_balancing_enabled = $4,
+            calorie_balancing_min_calories = $5,
+            calorie_balancing_max_calories = $6
+        ",
         user_id,
         preference.timezone.to_string(),
-        preference.caloric_intake_goal
+        preference.caloric_intake_goal,
+        preference.calorie_balancing_enabled,
+        preference.calorie_balancing_min_calories,
+        preference.calorie_balancing_max_calories
     )
     .execute(db)
     .await?;
@@ -152,8 +354,75 @@ pub async fn save_user_preference(
 
 #[derive(Deserialize)]
 pub struct UserPreferencePayload {
-    pub timezone: Tz,
-    pub caloric_intake_goal: String,
+    timezone: Tz,
+    caloric_intake_goal: String,
+    /// Checkboxes will be the string, "on" if set, or the filed will be
+    /// omitted if unset.
+    calorie_balancing_enabled: Option<String>,
+    calorie_balancing_min_calories: Option<String>,
+    calorie_balancing_max_calories: Option<String>,
+}
+impl UserPreferencePayload {
+    fn get_intake_goal(&self) -> Result<Option<i32>, &'static str> {
+        if self.caloric_intake_goal.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(self.caloric_intake_goal.parse().map_err(|_| {
+                "Caloric intake cannot be parsed into a number"
+            })?))
+        }
+    }
+    fn get_calorie_balancing_enabled(&self) -> bool {
+        self.calorie_balancing_enabled.is_some()
+    }
+    fn get_calorie_balancing_min_calories(
+        &self,
+    ) -> Result<Option<i32>, &'static str> {
+        match self.calorie_balancing_min_calories {
+            None => Ok(None),
+            Some(ref str) => {
+                if str.is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(str.parse().map_err(|_| {
+                        "Minimum calories cannot be parsed into a number"
+                    })?))
+                }
+            }
+        }
+    }
+    fn get_calorie_balancing_max_calories(
+        &self,
+    ) -> Result<Option<i32>, &'static str> {
+        match self.calorie_balancing_max_calories {
+            None => Ok(None),
+            Some(ref str) => {
+                if str.is_empty() {
+                    Ok(None)
+                } else {
+                    Ok(Some(str.parse().map_err(|_| {
+                        "Minimum calories cannot be parsed into a number"
+                    })?))
+                }
+            }
+        }
+    }
+    fn get_errors(&self) -> Vec<(&'static str, &'static str)> {
+        let mut errs = Vec::new();
+        match self.get_intake_goal() {
+            Ok(_) => {}
+            Err(e) => errs.push(("caloric_intake_goal", e)),
+        };
+        match self.get_calorie_balancing_min_calories() {
+            Ok(_) => {}
+            Err(e) => errs.push(("calorie_balancing_min_calories", e)),
+        };
+        match self.get_calorie_balancing_max_calories() {
+            Ok(_) => {}
+            Err(e) => errs.push(("calorie_balancing_max_calories", e)),
+        };
+        errs
+    }
 }
 
 pub async fn user_preference_controller(
@@ -163,40 +432,54 @@ pub async fn user_preference_controller(
     preferences: Option<Form<UserPreferencePayload>>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "user preferences")?;
+    let existing_preferences = session.get_preferences(&db).await?;
     match method {
         Method::GET => {
             let preferences = session.get_preferences(&db).await?;
-
             Ok(Page {
                 title: "User Preferences",
                 children: &PageContainer {
-                    children: &preferences,
+                    children: &UserPreferenceForm {
+                        preferences,
+                        field_validation_error: None,
+                        user_id: session.user_id,
+                    },
                 },
             }
             .render())
         }
         Method::POST => match preferences {
             Some(pref) => {
-                let pref = UserPreference {
-                    timezone: pref.timezone,
-                    caloric_intake_goal: if pref.caloric_intake_goal.is_empty()
-                    {
-                        None
-                    } else {
-                        let goal_int = pref.caloric_intake_goal
-                                .parse()
-                                .map_err(|_| {
-                                    let msg = "caloric intake cannot be parsed into a number";
-                                    ServerError::bad_request(
-                                        msg,
-                                        Some(msg.to_string())
-                                    )
-                                })?;
-                        Some(goal_int)
-                    },
-                };
-                save_user_preference(&db, session.user_id, &pref).await?;
-                Ok(SavedPreference { preferences: pref }.render())
+                let (intake, min_cals, max_cals) = (
+                    pref.get_intake_goal(),
+                    pref.get_calorie_balancing_min_calories(),
+                    pref.get_calorie_balancing_max_calories(),
+                );
+                match (intake, min_cals, max_cals) {
+                    (Ok(intake), Ok(min), Ok(max)) => {
+                        let pref = UserPreference {
+                            timezone: pref.timezone,
+                            caloric_intake_goal: intake,
+                            calorie_balancing_enabled: pref
+                                .get_calorie_balancing_enabled(),
+                            calorie_balancing_max_calories: max,
+                            calorie_balancing_min_calories: min,
+                        };
+                        save_user_preference(&db, session.user_id, &pref)
+                            .await?;
+                        Ok(SavedPreference {
+                            preferences: pref,
+                            user_id: session.user_id,
+                        }
+                        .render())
+                    }
+                    _ => Ok(UserPreferenceForm {
+                        preferences: existing_preferences,
+                        field_validation_error: Some(&pref.get_errors()),
+                        user_id: session.user_id,
+                    }
+                    .render()),
+                }
             }
             None => Err(ServerError::bad_request(
                 "form data is missing",
