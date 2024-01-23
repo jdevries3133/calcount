@@ -8,6 +8,41 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
+## Consumption Metrics
+
+When a calorie goal is defined, show a progress bar visualization.
+
+## Meal Recommendations
+
+Use the LLM to provide suggested meals. We'll create a prompt which takes
+several pieces of information into account:
+
+- user's past meals
+- the user's time of day
+- how many calories the user has eaten / how much of their calorie goal remains
+- which ingredients the user has at home
+- how much time the user wishes to spend preparing food
+- whether the user intends to make food or order food
+
+## Meal Pacing
+
+Help users understand if they are ahead or behind pace. This should incorporate
+the users' plan for the day, for example, planning on eating a large dinner.
+
+## Exercise Tracking
+
+Use a similar LLM interface to track exercise, which would add to calorie
+budgets.
+
+
+## Macro Goals
+
+Allow the input of macro goals (grams of protein, fat, and carbs).
+
+# Completed Items
+
+Looking back fondly at the road behind us.
+
 ## Automatic Calorie Balancing
 
 Apply deficit or excess calories after each day to the following days, ensuring
@@ -17,18 +52,14 @@ a continuous coercion towards the net calorie goal.
 
 New Pages:
 
-- [ ] calorie balancing page, which provides introspection into where the current
+- [x] calorie balancing page, which provides introspection into where the current
   calorie goal came from
 - [x] list of "resets" -- dates at which the auto-balancing has been reset
 
 Updates to the home page:
 
-- [ ] add some ugly text indicating that the calorie goal came from auto-balancing
-- [ ] put a hyperlink in this text, which points to the calorie balancing page
-
-Updates to the user profile page:
-
-- [ ] add a checkbox to enable or disable this feature
+- [x] add some ugly text indicating that the calorie goal came from auto-balancing
+- [x] put a hyperlink in this text, which points to the calorie balancing page
 
 #### Caching
 
@@ -66,35 +97,3 @@ _I will not implement unnecessarily complicated caching_
 _I will not implement unnecessarily complicated caching_
 
 Hm nice, the chalk-board punishment is much easier in vim.
-
-## Consumption Metrics
-
-When a calorie goal is defined, show a progress bar visualization.
-
-## Meal Recommendations
-
-Use the LLM to provide suggested meals. We'll create a prompt which takes
-several pieces of information into account:
-
-- user's past meals
-- the user's time of day
-- how many calories the user has eaten / how much of their calorie goal remains
-- which ingredients the user has at home
-- how much time the user wishes to spend preparing food
-- whether the user intends to make food or order food
-
-## Meal Pacing
-
-Help users understand if they are ahead or behind pace. This should incorporate
-the users' plan for the day, for example, planning on eating a large dinner.
-
-## Exercise Tracking
-
-Use a similar LLM interface to track exercise, which would add to calorie
-budgets.
-
-
-## Macro Goals
-
-Allow the input of macro goals (grams of protein, fat, and carbs).
-

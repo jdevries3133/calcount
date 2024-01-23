@@ -53,7 +53,7 @@ resource "random_password" "secret_key" {
   special = false
 }
 
-data "external" "git_describe" {
+data "external" "git_sha" {
   program = [
     "sh",
     "-c",
@@ -66,7 +66,7 @@ module "basic-deployment" {
   version = "3.0.2"
 
   app_name  = "calcount"
-  container = "jdevries3133/calcount:${data.external.git_describe.result.output}"
+  container = "jdevries3133/calcount:${data.external.git_sha.result.output}"
   domain    = "beancount.bot"
 
   extra_env = {
