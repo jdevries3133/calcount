@@ -8,10 +8,6 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
-## Consumption Metrics
-
-When a calorie goal is defined, show a progress bar visualization.
-
 ## Meal Recommendations
 
 Use the LLM to provide suggested meals. We'll create a prompt which takes
@@ -23,6 +19,10 @@ several pieces of information into account:
 - which ingredients the user has at home
 - how much time the user wishes to spend preparing food
 - whether the user intends to make food or order food
+
+## Consumption Metrics
+
+When a calorie goal is defined, show a progress bar visualization.
 
 ## Meal Pacing
 
