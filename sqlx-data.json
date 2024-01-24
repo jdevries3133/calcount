@@ -58,6 +58,32 @@
     },
     "query": "select\n            id,\n            name meal_name,\n            calories,\n            fat fat_grams,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            created_at\n        from meal\n        where user_id = $1\n        order by created_at desc\n        limit $2\n        offset $3\n        "
   },
+  "10879fbef28071f8f460559fdd9067e82990dc06f7936e7204504b02c2c2edb3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "timezone",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "caloric_intake_goal",
+          "ordinal": 1,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select timezone, caloric_intake_goal from user_preference\n        where user_id = $1"
+  },
   "14eae1fe6a09754b945207ee31e8fd73449ff163d206739c0f52693c587f4262": {
     "describe": {
       "columns": [
@@ -309,23 +335,6 @@
     },
     "query": "lock audit_stripe_webhooks"
   },
-  "5fabdcc10a1646502cedd111b91bec3cc4720637c3d95bc11f40c98b24bba64b": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Text",
-          "Int4",
-          "Bool",
-          "Int4",
-          "Int4"
-        ]
-      }
-    },
-    "query": "insert into user_preference\n        (\n            user_id,\n            timezone,\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_min_calories,\n            calorie_balancing_max_calories\n        ) values ($1, $2, $3, $4, $5, $6)\n        on conflict (user_id)\n        do update set\n            timezone = $2,\n            caloric_intake_goal = $3,\n            calorie_balancing_enabled = $4,\n            calorie_balancing_min_calories = $5,\n            calorie_balancing_max_calories = $6\n        "
-  },
   "62885715cfaeb976196e3074ff73e6e1eb0c32b6c5dc90ba4ee2b723f63839ed": {
     "describe": {
       "columns": [],
@@ -344,6 +353,20 @@
     },
     "query": "insert into meal\n        (\n            user_id,\n            name,\n            calories,\n            fat,\n            protein,\n            carbohydrates,\n            created_at\n        )\n        values ($1, $2, $3, $4, $5, $6, $7)"
   },
+  "661fb6e34f044a583bb59df6d66beb9c94639a7dffa73cbae0667b8dd510aace": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text",
+          "Int4"
+        ]
+      }
+    },
+    "query": "insert into user_preference\n        (user_id, timezone, caloric_intake_goal) values ($1, $2, $3)\n        on conflict (user_id)\n        do update set timezone = $2, caloric_intake_goal = $3"
+  },
   "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
     "describe": {
       "columns": [
@@ -361,50 +384,6 @@
       }
     },
     "query": "select key from registration_key"
-  },
-  "6e3f6e228c1f08bc7dfa5bb69d1184e209c4bb108ce71361b7b38bb359cdfa01": {
-    "describe": {
-      "columns": [
-        {
-          "name": "caloric_intake_goal",
-          "ordinal": 0,
-          "type_info": "Int4"
-        },
-        {
-          "name": "calorie_balancing_enabled",
-          "ordinal": 1,
-          "type_info": "Bool"
-        },
-        {
-          "name": "calorie_balancing_max_calories",
-          "ordinal": 2,
-          "type_info": "Int4"
-        },
-        {
-          "name": "calorie_balancing_min_calories",
-          "ordinal": 3,
-          "type_info": "Int4"
-        },
-        {
-          "name": "timezone",
-          "ordinal": 4,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        true,
-        false,
-        true,
-        true,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int4"
-        ]
-      }
-    },
-    "query": "select\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_max_calories,\n            calorie_balancing_min_calories,\n            timezone\n        from user_preference\n        where user_id = $1"
   },
   "74dc83227192193a2b06eee2816081297a6f6164781c498571992dde4bac706f": {
     "describe": {

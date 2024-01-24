@@ -29,9 +29,9 @@ impl ServerError {
     /// This can be used for things like bad requests or 404 errors, where
     /// nothing is really "wrong," it's just the expected beahvior of the
     /// API.
-    pub fn forbidden(log_msg: &'static str) -> Self {
+    pub fn forbidden(msg: &'static str) -> Self {
         ServerError {
-            err: Some(Error::msg(log_msg)),
+            err: Some(Error::msg(msg)),
             status: StatusCode::FORBIDDEN,
             response_body: "Forbidden".into(),
         }
@@ -44,11 +44,11 @@ impl ServerError {
         }
     }
     pub fn bad_request(
-        log_msg: &'static str,
+        msg: &'static str,
         response_body: Option<String>,
     ) -> Self {
         ServerError {
-            err: Some(Error::msg(log_msg)),
+            err: Some(Error::msg(msg)),
             status: StatusCode::METHOD_NOT_ALLOWED,
             response_body: response_body.unwrap_or("bad request".into()),
         }

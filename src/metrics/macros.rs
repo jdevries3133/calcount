@@ -48,41 +48,19 @@ impl Component for MacroStatus<'_> {
                         format!(
                             r#"
                             <p>Your computed goal is {goal} calories.</p>
-                            <a href="{overview}">
-                                <button
-                                    class="
-                                        bg-green-100 
-                                        hover:bg-green-200 
-                                        dark:bg-green-700 
-                                        dark:hover:bg-green-600 
-                                        rounded 
-                                        m-1 
-                                        p-1
-                                ">
-                                    View balancing overview.
-                                </button>
-                            </a>
-                            <a href="{checkpoint}">
-                                <button
-                                    class="
-                                        bg-green-100 
-                                        hover:bg-green-200 
-                                        dark:bg-green-700 
-                                        dark:hover:bg-green-600 
-                                        rounded 
-                                        m-1 
-                                        p-1
-                                ">
-                                    View balancing checkpoints.
-                                </button>
-                            </a>
+                            <p><a class="link" href="{overview}">
+                                View balancing overview.
+                            </a></p>
+                            <p><a class="link" href="{checkpoint}">
+                                View balancing checkpoints.
+                            </a></p>
                             "#
                         )
                     } else {
                         "".into()
                     };
                 let diff = goal - calories;
-                format!("<p>You have {diff} calories left to eat today.</p>{computed_goal}")
+                format!("{computed_goal}<p>You have {diff} calories left to eat today.</p>")
             }
             None => "".into(),
         };

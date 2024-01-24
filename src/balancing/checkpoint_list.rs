@@ -34,16 +34,13 @@ struct CheckpointList<'a> {
 impl Component for CheckpointList<'_> {
     fn render(&self) -> String {
         let create_checkpoint = Route::BalancingCreateCheckpoint;
-        let checkpoints = if self.prev_checkpoints.is_empty() {
-            "No checkpoints added yet!".into()
-        } else {
+        let checkpoints =
             self.prev_checkpoints
                 .iter()
                 .fold(String::new(), |mut acc, ch| {
                     acc.push_str(&ch.render());
                     acc
-                })
-        };
+                });
         format!(
             r##"
             <div class="prose dark:text-slate-200">

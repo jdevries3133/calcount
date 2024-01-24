@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  position: relative;
-  width: 100vw
-}
-
 .link {
   @apply text-blue-500 visited:text-purple-500 underline;
 }
