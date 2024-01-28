@@ -8,6 +8,16 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
+## Marketing Efforts
+
+- [ ] add some hero text to the home page
+- [ ] show the calorie balancing feature on the home page
+- [ ] try to communicate our mission and open-source-ness on the home page
+- [ ] get rid of registration keys / registration counter
+- [ ] allow users to jump right in without registration by creating a
+      auto-generated placeholder account (to be substituted with real info
+      if the user converts)
+
 ## Barcode Scanner
 
 Spend 1 week seeing if we can get a passably good barcode scanner to work.
