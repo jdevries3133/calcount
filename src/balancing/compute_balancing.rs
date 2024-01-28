@@ -70,7 +70,7 @@ impl Component for BalancingEvent<'_> {
                     <p>{prev} <sub>starting calculated goal</sub></p>
                     <p>- {consumed} <sub>calories consumed</sub>
                     <p>+ {user_goal} <sub>your goal</sub>
-                    <p>-----------------------------------------</p>
+                    <hr class="my-2" />
                     <p>{new} <sub>{new_goal_description}</sub></p>
                 </div>
                 {meal_container}
