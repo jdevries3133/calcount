@@ -21,6 +21,7 @@ pub struct BalancingEvent<'a> {
     /// The goal that the user has actually set.
     user_input_calorie_goal: i32,
     previous_calorie_goal: i32,
+    previous_excess_calories: i32,
     new_calorie_goal: i32,
     calories_consumed_during_period: i32,
     /// With calorie balancing, calories in excess of the user's minimum or
@@ -36,7 +37,6 @@ impl Component for BalancingEvent<'_> {
         let prev = self.previous_calorie_goal;
         let new = self.new_calorie_goal;
         let consumed = self.calories_consumed_during_period;
-        let leftover = self.calories_to_be_applied_at_a_later_date;
         let user_goal = self.user_input_calorie_goal;
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
             acc.push_str(&meal.render());
@@ -61,37 +61,38 @@ impl Component for BalancingEvent<'_> {
                 "#
             )
         };
-        let leftovers = if leftover != 0 {
-            format!(
-                r#"
-                <p class="text-xs italic">
-                    {leftover} calories exceed your minimum or maximum calorie
-                    limits, and will be applied to tomorrow.
-                </p>
-                "#
-            )
-        } else {
-            "".into()
-        };
         let new_goal_description =
             if self.end > Utc::now().with_timezone(&self.user_tz) {
                 "tommorow's goal"
             } else {
                 "new goal"
             };
+        let extra = self.calories_to_be_applied_at_a_later_date;
+        let naive_goal =
+            self.new_calorie_goal + self.calories_to_be_applied_at_a_later_date;
+        let abs_prev_extra = self.previous_excess_calories.abs();
+        let prev_extra = if self.previous_excess_calories == 0 {
+            "".to_string()
+        } else if self.previous_calorie_goal.is_positive() {
+            format!("<p>+ {abs_prev_extra} <sub>rollover from previous days</sub></p>")
+        } else {
+            format!("<p>- {abs_prev_extra} <sub>rollover from previous days</sub></p>")
+        };
         format!(
             r#"
             <div class="bg-blue-100 dark:bg-blue-800 p-2 rounded m-2">
                 <h2 class="text-lg">{start}</h2>
                 <div class="font-mono">
                     <p>{prev} <sub>starting calculated goal</sub></p>
+                    {prev_extra}
                     <p>- {consumed} <sub>calories consumed</sub>
                     <p>+ {user_goal} <sub>your goal</sub>
                     <hr class="my-2" />
-                    <p>{new} <sub>{new_goal_description}</sub></p>
+                    <p>{naive_goal} <sub>total</sub></p>
+                    <p>=> {new} <sub>{new_goal_description}</sub></p>
+                    <p>=> {extra} <sub>calories exceeding limits</sub></p>
                 </div>
                 {meal_container}
-                {leftovers}
             </div>
             "#
         )
@@ -174,6 +175,7 @@ pub fn compute_balancing(
             end: (date + Duration::days(1)).with_timezone(&Utc),
             user_input_calorie_goal: calorie_goal,
             previous_calorie_goal,
+            previous_excess_calories: previous_remainder,
             new_calorie_goal: limited_goal,
             calories_consumed_during_period: calories_consumed,
             calories_to_be_applied_at_a_later_date: new_remainder,

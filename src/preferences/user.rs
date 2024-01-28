@@ -227,7 +227,7 @@ impl Component for UserPreferenceForm<'_> {
                         name="calorie_balancing_max_calories"
                         value="{max_calories}"
                     />
-                    <button class="bg-blue-200 rounded">Save</button>
+                    <button class="bg-blue-200 text-black rounded">Save</button>
                     <a
                         class="text-center rounded border-slate-800 border-2"
                         href="{home}"
