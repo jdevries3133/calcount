@@ -58,7 +58,8 @@ impl Component for CheckpointList<'_> {
                 <a href="{home}">
                     <button
                         class="dark:bg-green-700 dark:hover:bg-green-800
-                        bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                        bg-green-100 hover:bg-green-200 p-1 m-1 rounded
+                        dark:text-slate-200"
                     >
                         Home
                     </button>
@@ -92,34 +93,39 @@ impl Component for CheckpointList<'_> {
                     </p>
                 </details>
             </div>
-            <h2 
-                class="dark:text-slate-200 text-lg font-semibold
-                dark:bg-indigo-900 rounded-xl mt-4 mb-2 inline-block"
-            >
-                Create Checkpoint
-            </h2>
-            <form
-                hx-post="{create_checkpoint}"
-                hx-target="#prev-checkpoint-list"
-                hx-swap="afterbegin"
-            >
-                <label class="block" for="date">Date</label>
-                <input id="date" type="date" name="date" />
-                <button
-                    class="block bg-blue-100 hover:bg-blue-200 rounded p-2 my-1
-                    dark:text-black"
+            <div class="bg-green-200 dark:bg-indigo-900 rounded p-2 my-2">
+                <h2 
+                    class="text-lg font-semibold
+                    rounded-xl mt-4 mb-2 inline-block"
                 >
-                    Save
-                </button>
-            </form>
-            <h2
-                class="dark:text-slate-200 text-lg font-semibold
-                dark:bg-indigo-900 rounded-xl mt-4 mb-2 inline-block"
-            >
-                Previous Checkpoints
-            </h2>
-            <div id="prev-checkpoint-list">
-                {checkpoints}
+                    Create Checkpoint
+                </h2>
+                <form
+                    hx-post="{create_checkpoint}"
+                    hx-target="#prev-checkpoint-list"
+                    hx-swap="afterbegin"
+                >
+                    <label class="block" for="date">Date</label>
+                    <input id="date" type="date" name="date" />
+                    <button
+                        class="block rounded p-2 my-1 dark:bg-indigo-500
+                        dark:hover:bg-indigo-600 text-black dark:text-white
+                        bg-green-100 hover:bg-green-300 font-semibold"
+                    >
+                        Save
+                    </button>
+                </form>
+            </div>
+            <div class="bg-green-200 dark:bg-indigo-900 rounded p-2 my-2">
+                <h2
+                    class="text-lg font-semibold
+                    rounded-xl mt-4 mb-2 inline-block"
+                >
+                    Previous Checkpoints
+                </h2>
+                <div id="prev-checkpoint-list">
+                    {checkpoints}
+                </div>
             </div>
             "##
         )
