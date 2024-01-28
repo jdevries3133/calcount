@@ -12,6 +12,7 @@ pub struct Macros {
     fat_grams: i32,
     carbohydrates_grams: i32,
     user_id: i32,
+    user_preferences: UserPreference,
 }
 impl Macros {
     pub fn is_empty(&self) -> bool {
@@ -22,6 +23,7 @@ impl Macros {
             macros: self,
             caloric_intake_goal,
             user_id: self.user_id,
+            user_preferences: &self.user_preferences,
         }
         .render()
     }
@@ -31,6 +33,7 @@ pub struct MacroStatus<'a> {
     macros: &'a Macros,
     caloric_intake_goal: Option<i32>,
     user_id: i32,
+    user_preferences: &'a UserPreference,
 }
 impl Component for MacroStatus<'_> {
     fn render(&self) -> String {
@@ -41,46 +44,34 @@ impl Component for MacroStatus<'_> {
         let macros = Route::DisplayMacros;
         let calories_remaining = match self.caloric_intake_goal {
             Some(goal) => {
-                let computed_goal =
-                    if config::enable_calorie_balancing(self.user_id) {
-                        let overview = Route::BalancingOverview;
-                        let checkpoint = Route::BalancingCheckpoints;
-                        format!(
-                            r#"
-                            <p>Your computed goal is {goal} calories.</p>
-                            <a href="{overview}">
-                                <button
-                                    class="
-                                        bg-green-100 
-                                        hover:bg-green-200 
-                                        dark:bg-green-700 
-                                        dark:hover:bg-green-600 
-                                        rounded 
-                                        m-1 
-                                        p-1
-                                ">
-                                    View balancing overview.
-                                </button>
-                            </a>
-                            <a href="{checkpoint}">
-                                <button
-                                    class="
-                                        bg-green-100 
-                                        hover:bg-green-200 
-                                        dark:bg-green-700 
-                                        dark:hover:bg-green-600 
-                                        rounded 
-                                        m-1 
-                                        p-1
-                                ">
-                                    View balancing checkpoints.
-                                </button>
-                            </a>
+                let computed_goal = if config::enable_calorie_balancing(
+                    self.user_id,
+                    self.user_preferences,
+                ) {
+                    let history = Route::BalancingHistory;
+                    format!(
+                        r#"
+                            <p>Your computed goal is {goal} calories.
+                                <a href="{history}">
+                                    <button
+                                        class="
+                                            bg-green-100 
+                                            hover:bg-green-200 
+                                            dark:bg-green-700 
+                                            dark:hover:bg-green-600 
+                                            rounded 
+                                            m-1 
+                                            p-1
+                                    ">
+                                        Balancing History
+                                    </button>
+                                </a>
+                            </p>
                             "#
-                        )
-                    } else {
-                        "".into()
-                    };
+                    )
+                } else {
+                    "".into()
+                };
                 let diff = goal - calories;
                 format!("<p>You have {diff} calories left to eat today.</p>{computed_goal}")
             }
@@ -169,6 +160,7 @@ pub async fn get_macros(
                 fat_grams: 0,
                 carbohydrates_grams: 0,
                 user_id,
+                user_preferences: *user_preferences,
             },
             |mut macros, meal| {
                 macros.calories += meal.calories;
@@ -188,7 +180,7 @@ pub async fn display_macros(
     let preferences = session.get_preferences(&db).await?;
     let macros = get_macros(&db, session.user_id, &preferences).await?;
     let caloric_intake_goal =
-        if config::enable_calorie_balancing(session.user_id) {
+        if config::enable_calorie_balancing(session.user_id, &preferences) {
             Some(
                 balancing::get_current_goal(&db, session.user_id, &preferences)
                     .await?,
@@ -196,13 +188,16 @@ pub async fn display_macros(
         } else {
             preferences.caloric_intake_goal
         };
-    if macros.is_empty() && !config::enable_calorie_balancing(session.user_id) {
+    if macros.is_empty()
+        && !config::enable_calorie_balancing(session.user_id, &preferences)
+    {
         Ok(MacroPlaceholder {}.render())
     } else {
         Ok(MacroStatus {
             macros: &macros,
             caloric_intake_goal,
             user_id: session.user_id,
+            user_preferences: &preferences,
         }
         .render())
     }

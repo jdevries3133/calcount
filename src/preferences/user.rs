@@ -2,7 +2,6 @@
 
 use crate::{
     components::{Page, PageContainer, Saved},
-    config,
     prelude::*,
 };
 use axum::http::Method;
@@ -40,7 +39,6 @@ impl Default for UserPreference {
 struct UserPreferenceForm<'a> {
     preferences: UserPreference,
     field_validation_error: Option<&'a [(&'a str, &'a str)]>,
-    user_id: i32,
 }
 
 impl<'a> UserPreferenceForm<'a> {
@@ -101,11 +99,7 @@ impl Component for UserPreferenceForm<'_> {
             .calorie_balancing_max_calories
             .map(|v| v.to_string())
             .unwrap_or("".into());
-        let script = if config::enable_calorie_balancing(self.user_id) {
-            include_str!("./interactive_checkbox.js")
-        } else {
-            ""
-        };
+        let script = include_str!("./interactive_checkbox.js");
         let intake_goal_err = if let Some(err) =
             self.get_field_validation_err("caloric_intake_goal")
         {
@@ -124,81 +118,6 @@ impl Component for UserPreferenceForm<'_> {
             self.get_field_validation_err("calorie_balancing_max_calories")
         {
             format!(r#"<p class="text-red-500 italic text-sm">{err}</p>"#)
-        } else {
-            "".into()
-        };
-        let new_stuff = if config::enable_calorie_balancing(self.user_id) {
-            format!(
-                r#"
-                <label for="calorie_balancing_enabled">
-                    Enable calorie balancing
-                </label>
-                <p class="text-xs">
-                    If enabled, excess or defecit calories from previous
-                    days will be applied to future days. Combined with
-                    accurate calorie counting, this can help you ensure
-                    that if you eat too many or too few calories on one
-                    day, you ultimately "catch-up," and continuously
-                    work towards your calorie goal.
-                </p>
-                <div class="bg-yellow-100 rounded p-1 prose text-black">
-                    <p class="text-xs">
-                        Warning: if you have a history of <a class="link"
-                        href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
-                        >any eating disorder,</a> please consult a dietician
-                        before using this product in general, but especially
-                        related to the use of this feature, which includes a
-                        risk of worsening existing ED conditions.
-                    </p>
-                    <p class="text-xs">
-                        To avoid receiving unhealthy calorie goals after
-                        unhealthy eating episodes, consider setting a
-                        minimum and maximum calorie limit which is close
-                        to your overall calorie goal, so that you never
-                        receive unhealthy calorie goals.
-                    </p>
-                    <p class="text-xs">
-                        I am particularly concerned about building this
-                        site to support healthy eating. Please do not
-                        hesitate to reach out and share any feedback
-                        on this application with me
-                        (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>).
-                    </p>
-                </div>
-                {checkbox}
-                <label for="calorie_balancing_min_calories">
-                    Minimum daily calorie limit
-                </label>
-                <p class="text-xs">
-                    If this is blank, your daily calorie goal can go all
-                    the way down to zero if you've counted excess calories
-                    in previous days which are equal to or greater than
-                    your daily calorie goal.
-                </p>
-                {min_cals_err}
-                <input
-                    type="number"
-                    id="calorie_balancing_min_calories"
-                    name="calorie_balancing_min_calories"
-                    value="{min_calories}"
-                />
-                <label for="calorie_balancing_max_calories">
-                    Maximum daily calorie limit
-                </label>
-                <p class="text-xs">
-                    If this is blank, your daily calorie goal will have no
-                    upper limit, and continue to increase based on the
-                    calorie defecits you have.
-                </p>
-                {max_cals_err}
-                <input
-                    type="number"
-                    id="calorie_balancing_max_calories"
-                    name="calorie_balancing_max_calories"
-                    value="{max_calories}"
-                />
-                "#
-            )
         } else {
             "".into()
         };
@@ -232,7 +151,73 @@ impl Component for UserPreferenceForm<'_> {
                         name="caloric_intake_goal"
                         id="caloric_intake_goal"
                     />
-                    {new_stuff}
+                    <label for="calorie_balancing_enabled">
+                        Enable calorie balancing
+                    </label>
+                    <p class="text-xs">
+                        If enabled, excess or defecit calories from previous
+                        days will be applied to future days. Combined with
+                        accurate calorie counting, this can help you ensure
+                        that if you eat too many or too few calories on one
+                        day, you ultimately "catch-up," and continuously
+                        work towards your calorie goal.
+                    </p>
+                    <div class="bg-yellow-100 rounded p-1 prose text-black">
+                        <p class="text-xs">
+                            Warning: if you have a history of <a class="link"
+                            href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
+                            >any eating disorder,</a> please consult a dietician
+                            before using this product in general, but especially
+                            related to the use of this feature, which includes a
+                            risk of worsening existing ED conditions.
+                        </p>
+                        <p class="text-xs">
+                            To avoid receiving unhealthy calorie goals after
+                            unhealthy eating episodes, consider setting a
+                            minimum and maximum calorie limit which is close
+                            to your overall calorie goal, so that you never
+                            receive unhealthy calorie goals.
+                        </p>
+                        <p class="text-xs">
+                            I am particularly concerned about building this
+                            site to support healthy eating. Please do not
+                            hesitate to reach out and share any feedback
+                            on this application with me
+                            (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>).
+                        </p>
+                    </div>
+                    {checkbox}
+                    <label for="calorie_balancing_min_calories">
+                        Minimum daily calorie limit
+                    </label>
+                    <p class="text-xs">
+                        If this is blank, your daily calorie goal can go all
+                        the way down to zero if you've counted excess calories
+                        in previous days which are equal to or greater than
+                        your daily calorie goal.
+                    </p>
+                    {min_cals_err}
+                    <input
+                        type="number"
+                        id="calorie_balancing_min_calories"
+                        name="calorie_balancing_min_calories"
+                        value="{min_calories}"
+                    />
+                    <label for="calorie_balancing_max_calories">
+                        Maximum daily calorie limit
+                    </label>
+                    <p class="text-xs">
+                        If this is blank, your daily calorie goal will have no
+                        upper limit, and continue to increase based on the
+                        calorie defecits you have.
+                    </p>
+                    {max_cals_err}
+                    <input
+                        type="number"
+                        id="calorie_balancing_max_calories"
+                        name="calorie_balancing_max_calories"
+                        value="{max_calories}"
+                    />
                     <button class="bg-blue-200 rounded">Save</button>
                     <a
                         class="text-center rounded border-slate-800 border-2"
@@ -252,7 +237,6 @@ impl Component for UserPreferenceForm<'_> {
 
 struct SavedPreference {
     preferences: UserPreference,
-    user_id: i32,
 }
 impl Component for SavedPreference {
     fn render(&self) -> String {
@@ -263,7 +247,6 @@ impl Component for SavedPreference {
         let form = UserPreferenceForm {
             preferences: self.preferences,
             field_validation_error: None,
-            user_id: self.user_id,
         }
         .render();
         format!(
@@ -506,7 +489,6 @@ pub async fn user_preference_controller(
                     children: &UserPreferenceForm {
                         preferences,
                         field_validation_error: None,
-                        user_id: session.user_id,
                     },
                 },
             }
@@ -518,10 +500,10 @@ pub async fn user_preference_controller(
                 let min_cals = pref.get_calorie_balancing_min_calories();
                 let max_cals = pref.get_calorie_balancing_max_calories();
                 let min_cals = min_cals.combobulate(
-                    existing_preferences.calorie_balancing_max_calories,
+                    existing_preferences.calorie_balancing_min_calories,
                 );
                 let max_cals = max_cals.combobulate(
-                    existing_preferences.calorie_balancing_min_calories,
+                    existing_preferences.calorie_balancing_max_calories,
                 );
                 match (intake, min_cals, max_cals) {
                     (Ok(intake), Ok(min), Ok(max)) => {
@@ -535,16 +517,11 @@ pub async fn user_preference_controller(
                         };
                         save_user_preference(&db, session.user_id, &pref)
                             .await?;
-                        Ok(SavedPreference {
-                            preferences: pref,
-                            user_id: session.user_id,
-                        }
-                        .render())
+                        Ok(SavedPreference { preferences: pref }.render())
                     }
                     _ => Ok(UserPreferenceForm {
                         preferences: existing_preferences,
                         field_validation_error: Some(&pref.get_errors()),
-                        user_id: session.user_id,
                     }
                     .render()),
                 }

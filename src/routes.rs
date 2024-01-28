@@ -31,7 +31,7 @@ pub enum Route {
     BalancingCheckpoints,
     BalancingCreateCheckpoint,
     BalancingDeleteCheckpoint,
-    BalancingOverview,
+    BalancingHistory,
     ChatDemo,
     ChatDemoRetry,
     ChatForm,
@@ -104,7 +104,7 @@ impl Route {
             }
             Self::BalancingCreateCheckpoint => "/create-checkpoint".into(),
             Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
-            Self::BalancingOverview => "/calorie-balancing".into(),
+            Self::BalancingHistory => "/calorie-balancing".into(),
             Self::ChatDemo => "/chat-demo".into(),
             Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::ChatForm => "/chat-form".into(),
@@ -229,8 +229,8 @@ fn get_public_routes() -> Router<models::AppState> {
     Router::new()
         .route(&Route::About.as_string(), get(controllers::about))
         .route(
-            &Route::BalancingOverview.as_string(),
-            get(balancing::overview),
+            &Route::BalancingHistory.as_string(),
+            get(balancing::history),
         )
         .route(
             &Route::BalancingCheckpoints.as_string(),

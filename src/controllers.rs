@@ -164,11 +164,12 @@ pub async fn user_home(
     let macros = macros?;
     let meals = meals?;
     let sub_type = sub_type?;
-    let caloric_intake_goal = if config::enable_calorie_balancing(user.id) {
-        Some(caloric_intake_goal?)
-    } else {
-        preferences.caloric_intake_goal
-    };
+    let caloric_intake_goal =
+        if config::enable_calorie_balancing(user.id, &preferences) {
+            Some(caloric_intake_goal?)
+        } else {
+            preferences.caloric_intake_goal
+        };
     let html = components::Page {
         title: "Home Page",
         children: &components::PageContainer {

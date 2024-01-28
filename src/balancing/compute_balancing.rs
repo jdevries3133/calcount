@@ -2,6 +2,7 @@
 
 use crate::{count_chat::Meal, prelude::*};
 use chrono::Duration;
+use std::cmp::{max, min};
 
 /// Balancing events typically encapsulate the previous goal, some effects,
 /// and the new goal after those effects. Typically, these events will span
@@ -22,6 +23,9 @@ pub struct BalancingEvent<'a> {
     previous_calorie_goal: i32,
     new_calorie_goal: i32,
     calories_consumed_during_period: i32,
+    /// With calorie balancing, calories in excess of the user's minimum or
+    /// maximum limit will go into this bucket.
+    calories_to_be_applied_at_a_later_date: i32,
     meals: &'a [Meal],
     user_tz: Tz,
 }
@@ -32,6 +36,7 @@ impl Component for BalancingEvent<'_> {
         let prev = self.previous_calorie_goal;
         let new = self.new_calorie_goal;
         let consumed = self.calories_consumed_during_period;
+        let leftover = self.calories_to_be_applied_at_a_later_date;
         let user_goal = self.user_input_calorie_goal;
         let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
             acc.push_str(&meal.render());
@@ -56,6 +61,18 @@ impl Component for BalancingEvent<'_> {
                 "#
             )
         };
+        let leftovers = if leftover != 0 {
+            format!(
+                r#"
+                <p class="text-xs italic">
+                    {leftover} calories exceed your minimum or maximum calorie
+                    limits, and will be applied to tomorrow.
+                </p>
+                "#
+            )
+        } else {
+            "".into()
+        };
         let new_goal_description =
             if self.end > Utc::now().with_timezone(&self.user_tz) {
                 "tommorow's goal"
@@ -74,6 +91,7 @@ impl Component for BalancingEvent<'_> {
                     <p>{new} <sub>{new_goal_description}</sub></p>
                 </div>
                 {meal_container}
+                {leftovers}
             </div>
             "#
         )
@@ -92,8 +110,21 @@ pub fn compute_balancing(
     now: DateTime<Utc>,
     user_timezone: Tz,
     calorie_goal: i32,
+    max_calories: Option<i32>,
+    min_calories: Option<i32>,
     meals: &[Meal],
 ) -> BalancedCaloriesResult<'_> {
+    let max_calories = max_calories.unwrap_or(i32::MAX);
+    let min_calories = min_calories.unwrap_or(0);
+    // Hm, I wonder if max / min calories should be stored as an offset from
+    // the goal to avoid this invariant condition.
+    dbg!(min_calories, calorie_goal);
+    if min_calories > calorie_goal {
+        panic!("min calories cannot be greater than the calorie goal");
+    };
+    if max_calories < calorie_goal {
+        panic!("max calories cannot be less than the calorie goal");
+    };
     let mut details = vec![];
     let mut date = meals
         .first()
@@ -121,19 +152,31 @@ pub fn compute_balancing(
                 meal_ptr += 1;
             }
         }
+
         let previous_calorie_goal = details
             .last()
             .map_or(calorie_goal, |e: &BalancingEvent| e.new_calorie_goal);
+        let previous_remainder = details
+            .last()
+            .map_or(0, |e| e.calories_to_be_applied_at_a_later_date);
+
+        let goal_before_applying_limits = calorie_goal
+            + details.last().map_or(calorie_goal, |e| e.new_calorie_goal)
+            - calories_consumed;
+        let goal_with_remainder =
+            goal_before_applying_limits + previous_remainder;
+        let limited_goal =
+            min(max_calories, max(min_calories, goal_with_remainder));
+        let new_remainder = goal_with_remainder - limited_goal;
 
         details.push(BalancingEvent {
             start: date.with_timezone(&Utc),
             end: (date + Duration::days(1)).with_timezone(&Utc),
             user_input_calorie_goal: calorie_goal,
             previous_calorie_goal,
-            new_calorie_goal: calorie_goal
-                + details.last().map_or(calorie_goal, |e| e.new_calorie_goal)
-                - calories_consumed,
+            new_calorie_goal: limited_goal,
             calories_consumed_during_period: calories_consumed,
+            calories_to_be_applied_at_a_later_date: new_remainder,
             meals: &meals[this_day_slice_start..meal_ptr],
             user_tz: user_timezone,
         });
@@ -177,7 +220,8 @@ mod test {
                         .expect("can convert days to std"),
             },
         }];
-        let result = compute_balancing(Utc::now(), Tz::UTC, 2000, &history);
+        let result =
+            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 1900);
     }
     #[test]
@@ -212,7 +256,8 @@ mod test {
                 },
             },
         ];
-        let result = compute_balancing(Utc::now(), Tz::UTC, 2000, &history);
+        let result =
+            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 1800);
     }
     #[test]
@@ -248,7 +293,8 @@ mod test {
                 },
             },
         ];
-        let result = compute_balancing(now, Tz::UTC, 2000, &history);
+        let result =
+            compute_balancing(now, Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 3800);
     }
     #[test]
@@ -267,7 +313,8 @@ mod test {
                         .expect("can convert days to std"),
             },
         }];
-        let result = compute_balancing(Utc::now(), Tz::UTC, 2000, &history);
+        let result =
+            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 2100);
     }
     #[test]
@@ -303,7 +350,8 @@ mod test {
                 },
             },
         ];
-        let result = compute_balancing(now, Tz::UTC, 2000, &history);
+        let result =
+            compute_balancing(now, Tz::UTC, 2000, None, None, &history);
         // If we skip a day, we want an entry to exist for the skipped day,
         // which will show zero calories consumed.
         let skipped_day = result.details.iter().find(|e| {
@@ -319,5 +367,161 @@ mod test {
             None => panic!("skipped day does not have an event"),
         }
         assert_eq!(result.current_calorie_goal, 3800);
+    }
+    #[test]
+    fn test_max_limit() {
+        let now = Utc::now();
+        let history = [Meal {
+            id: 1,
+            info: MealInfo {
+                calories: 1000,
+                fat_grams: 0,
+                protein_grams: 0,
+                carbohydrates_grams: 0,
+                meal_name: "test".into(),
+                created_at: now
+                    - Duration::days(1)
+                        .to_std()
+                        .expect("can convert days to std"),
+            },
+        }];
+        let result =
+            compute_balancing(now, Tz::UTC, 2000, Some(2200), None, &history);
+        assert_eq!(result.current_calorie_goal, 2200);
+        assert_eq!(
+            result
+                .details
+                .last()
+                .unwrap()
+                .calories_to_be_applied_at_a_later_date,
+            800
+        );
+    }
+    #[test]
+    fn test_min_limit() {
+        let now = Utc::now();
+        let history = [Meal {
+            id: 1,
+            info: MealInfo {
+                calories: 3000,
+                fat_grams: 0,
+                protein_grams: 0,
+                carbohydrates_grams: 0,
+                meal_name: "test".into(),
+                created_at: now
+                    - Duration::days(1)
+                        .to_std()
+                        .expect("can convert days to std"),
+            },
+        }];
+        let result =
+            compute_balancing(now, Tz::UTC, 2000, None, Some(1800), &history);
+        assert_eq!(result.current_calorie_goal, 1800);
+        assert_eq!(
+            result
+                .details
+                .last()
+                .unwrap()
+                .calories_to_be_applied_at_a_later_date,
+            -800
+        );
+    }
+    #[test]
+    fn test_min_and_max_limits_practical_example() {
+        let now = Utc::now();
+        let history = [
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 4000,
+                    fat_grams: 0,
+                    protein_grams: 0,
+                    carbohydrates_grams: 0,
+                    meal_name: "test".into(),
+                    created_at: now
+                        - Duration::days(6)
+                            .to_std()
+                            .expect("can convert days to std"),
+                },
+            },
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 2000,
+                    fat_grams: 0,
+                    protein_grams: 0,
+                    carbohydrates_grams: 0,
+                    meal_name: "test".into(),
+                    created_at: now
+                        - Duration::days(4)
+                            .to_std()
+                            .expect("can convert days to std"),
+                },
+            },
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 2400,
+                    fat_grams: 0,
+                    protein_grams: 0,
+                    carbohydrates_grams: 0,
+                    meal_name: "test".into(),
+                    created_at: now
+                        - Duration::days(3)
+                            .to_std()
+                            .expect("can convert days to std"),
+                },
+            },
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 1800,
+                    fat_grams: 0,
+                    protein_grams: 0,
+                    carbohydrates_grams: 0,
+                    meal_name: "test".into(),
+                    created_at: now
+                        - Duration::days(2)
+                            .to_std()
+                            .expect("can convert days to std"),
+                },
+            },
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 1000,
+                    fat_grams: 0,
+                    protein_grams: 0,
+                    carbohydrates_grams: 0,
+                    meal_name: "test".into(),
+                    created_at: now
+                        - Duration::days(1)
+                            .to_std()
+                            .expect("can convert days to std"),
+                },
+            },
+        ];
+        let result = compute_balancing(
+            now,
+            Tz::UTC,
+            2000,
+            Some(2200),
+            Some(1800),
+            &history,
+        );
+        // This is the day that we eat 2400 calories. Since our goal is 2000,
+        // and the limit is 1800, we end up with a next-day goal of 1800,
+        // and -200 in the "apply to a future date," category.
+        let overeating_day = &result.details[3];
+        assert_eq!(overeating_day.new_calorie_goal, 1800);
+        assert_eq!(overeating_day.calories_to_be_applied_at_a_later_date, -200);
+
+        // This is the day where we eat 1000 calories; after starting the day
+        // with an 1800 calorie goal.
+        let undereating_day = &result.details[1];
+        assert_eq!(undereating_day.new_calorie_goal, 2200);
+        assert_eq!(undereating_day.calories_to_be_applied_at_a_later_date, 600);
+
+        assert_eq!(result.current_calorie_goal, 2200);
     }
 }

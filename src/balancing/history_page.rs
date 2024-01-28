@@ -4,12 +4,13 @@ use crate::{
     prelude::*,
 };
 
-struct BalancingOverview<'a> {
+struct BalancingHistory<'a> {
     result: &'a BalancedCaloriesResult<'a>,
 }
-impl Component for BalancingOverview<'_> {
+impl Component for BalancingHistory<'_> {
     fn render(&self) -> String {
         let current_calorie_goal = self.result.current_calorie_goal;
+        let checkpoint = Route::BalancingCheckpoints;
         let details =
             self.result
                 .details
@@ -20,7 +21,22 @@ impl Component for BalancingOverview<'_> {
                 });
         format!(
             r#"
-            <h1 class="text-2xl font-extrabold">Calorie Balancing</h1>
+            <button
+                class="dark:bg-green-700 dark:hover:bg-green-800
+                bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                onclick="history.back()"
+            >
+                Back
+            </button>
+            <a href="{checkpoint}">
+                <button
+                    class="dark:bg-green-700 dark:hover:bg-green-800
+                    bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                >
+                    View or Create a Checkpoint
+                </button>
+            </a>
+            <h1 class="text-2xl font-extrabold">Balancing History</h1>
             <p>Current Calorie Goal: {current_calorie_goal} calories</p>
             {details}
             "#
@@ -99,16 +115,18 @@ pub async fn get_current_goal(
         preferences
             .caloric_intake_goal
             .ok_or(Error::msg("user does not have caloric intake goal"))?,
+        preferences.calorie_balancing_max_calories,
+        preferences.calorie_balancing_min_calories,
         &relevant_meals,
     );
     Ok(balancing_history.current_calorie_goal)
 }
 
-pub async fn overview(
+pub async fn history(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
-    let session = Session::from_headers_err(&headers, "balancing overview")?;
+    let session = Session::from_headers_err(&headers, "balancing history")?;
     let preferences = session.get_preferences(&db).await?;
     let relevant_meals =
         get_relevant_meals(&db, session.user_id, &preferences).await?;
@@ -118,13 +136,15 @@ pub async fn overview(
         preferences
             .caloric_intake_goal
             .expect("user has caloric intake goal"),
+        preferences.calorie_balancing_max_calories,
+        preferences.calorie_balancing_min_calories,
         &relevant_meals,
     );
 
     Ok(Page {
         title: "Calorie Balancing",
         children: &PageContainer {
-            children: &BalancingOverview {
+            children: &BalancingHistory {
                 result: &balancing_history,
             },
         },

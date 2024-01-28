@@ -1,3 +1,4 @@
+use super::preferences::UserPreference;
 use std::time::Duration;
 
 /// This is for all authentication sessions; users will need to log in again
@@ -40,6 +41,6 @@ pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OVybrBhmccJFhTPiLUXZm1P";
 
 /// This is just Jack and Kate while calorie balancing is turbo-jank.
-pub fn enable_calorie_balancing(user_id: i32) -> bool {
-    user_id == 1 || user_id == 12
+pub fn enable_calorie_balancing(user_id: i32, prefs: &UserPreference) -> bool {
+    (user_id == 1 || user_id == 12) && prefs.calorie_balancing_enabled
 }

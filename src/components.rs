@@ -374,8 +374,10 @@ pub struct UserHome<'a> {
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let macros = if self.macros.is_empty()
-            && !config::enable_calorie_balancing(self.user.id)
-        {
+            && !config::enable_calorie_balancing(
+                self.user.id,
+                &self.preferences,
+            ) {
             metrics::MacroPlaceholder {}.render()
         } else {
             self.macros.render_status(self.caloric_intake_goal)

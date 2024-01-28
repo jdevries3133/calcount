@@ -34,6 +34,7 @@ struct CheckpointList<'a> {
 impl Component for CheckpointList<'_> {
     fn render(&self) -> String {
         let create_checkpoint = Route::BalancingCreateCheckpoint;
+        let home = Route::UserHome;
         let checkpoints = if self.prev_checkpoints.is_empty() {
             "No checkpoints added yet!".into()
         } else {
@@ -47,6 +48,21 @@ impl Component for CheckpointList<'_> {
         format!(
             r##"
             <div class="prose dark:text-slate-200">
+                <button
+                    class="dark:bg-green-700 dark:hover:bg-green-800
+                    bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                    onclick="history.back()"
+                >
+                    Back
+                </button>
+                <a href="{home}">
+                    <button
+                        class="dark:bg-green-700 dark:hover:bg-green-800
+                        bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                    >
+                        Home
+                    </button>
+                </a>
                 <h1 class="dark:text-slate-200 mb-2">Balancing Checkpoints</h1>
                 <details class="mb-2">
                     <summary>What are balancing checkpoints?</summary>
@@ -78,7 +94,7 @@ impl Component for CheckpointList<'_> {
             </div>
             <h2 
                 class="dark:text-slate-200 text-lg font-semibold
-                dark:bg-indigo-900 rounded-xl my-4 inline-block p-4"
+                dark:bg-indigo-900 rounded-xl mt-4 mb-2 inline-block"
             >
                 Create Checkpoint
             </h2>
@@ -98,7 +114,7 @@ impl Component for CheckpointList<'_> {
             </form>
             <h2
                 class="dark:text-slate-200 text-lg font-semibold
-                dark:bg-indigo-900 rounded-xl my-4 inline-block p-4"
+                dark:bg-indigo-900 rounded-xl mt-4 mb-2 inline-block"
             >
                 Previous Checkpoints
             </h2>
