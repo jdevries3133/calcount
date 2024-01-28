@@ -193,8 +193,8 @@ impl Component for UserPreferenceForm<'_> {
                     <p class="text-xs">
                         If this is blank, your daily calorie goal can go all
                         the way down to zero if you've counted excess calories
-                        in previous days which are equal to or greater than
-                        your daily calorie goal.
+                        in previous days which are greater than your daily
+                        calorie goal.
                     </p>
                     {min_cals_err}
                     <input
@@ -208,8 +208,8 @@ impl Component for UserPreferenceForm<'_> {
                     </label>
                     <p class="text-xs">
                         If this is blank, your daily calorie goal will have no
-                        upper limit, and continue to increase based on the
-                        calorie defecits you have.
+                        upper limit, and continue to increase based on
+                        calorie defecits in previous days.
                     </p>
                     {max_cals_err}
                     <input
