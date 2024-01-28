@@ -383,10 +383,16 @@ pub struct UserPreferencePayload {
 impl UserPreferencePayload {
     fn get_intake_goal(&self) -> Result<Option<i32>, &'static str> {
         if self.caloric_intake_goal.is_empty() {
-            Ok(None)
+            if self.calorie_balancing_enabled.is_some() {
+                Err(
+                    r#"A caloric intake goal is required if calorie balancing is enabled. If you want to remove this goal, also uncheck "enable calorie balancing.""#,
+                )
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(Some(self.caloric_intake_goal.parse().map_err(|_| {
-                "Caloric intake cannot be parsed into a number"
+                "Caloric intake cannot be parsed into a number."
             })?))
         }
     }
@@ -407,16 +413,16 @@ impl UserPreferencePayload {
                             match self.get_intake_goal() {
                                 Ok(Some(goal)) => {
                                     if val > goal {
-                                        CalorieBalancingLimitResult::Err("Minimum limit cannot be greater than your overall goal")
+                                        CalorieBalancingLimitResult::Err("Minimum limit cannot be greater than your overall goal.")
                                     } else {
                                         CalorieBalancingLimitResult::Some(val)
                                     }
                                 },
-                                _ => CalorieBalancingLimitResult::Err("Overall calorie goal is required with a minimum calorie limit")
+                                _ => CalorieBalancingLimitResult::Err("Set a caloric intake goal if you would like to use calorie balancing.")
                             }
                         }
                         Err(_) => CalorieBalancingLimitResult::Err(
-                            "Minimum calories cannot be parsed into a number",
+                            "Minimum calories cannot be parsed into a number.",
                         ),
                     }
                 }
@@ -437,16 +443,16 @@ impl UserPreferencePayload {
                             match self.get_intake_goal() {
                                 Ok(Some(goal)) => {
                                     if val < goal {
-                                        CalorieBalancingLimitResult::Err("Maximum limit cannot be less than your overall goal")
+                                        CalorieBalancingLimitResult::Err("Maximum limit cannot be less than your overall goal.")
                                     } else {
                                         CalorieBalancingLimitResult::Some(val)
                                     }
                                 },
-                                _ => CalorieBalancingLimitResult::Err("Overall calorie goal is required with a maximum calorie limit")
+                                _ => CalorieBalancingLimitResult::Err("Set a caloric intake goal if you would like to use calorie balancing.")
                             }
                         }
                         Err(_) => CalorieBalancingLimitResult::Err(
-                            "Maximum calories cannot be parsed into a number",
+                            "Maximum calories cannot be parsed into a number.",
                         ),
                     }
                 }
@@ -469,6 +475,33 @@ impl UserPreferencePayload {
             errs.push(("calorie_balancing_max_calories", e))
         };
         errs
+    }
+    /// Produce the best approximation of UserPreference from the unvalidated
+    /// data. This is used for re-rendering previous form inputs when
+    /// displaying validation errors.
+    fn get_unvalidated_data(
+        &self,
+        existing_preferences: &UserPreference,
+    ) -> UserPreference {
+        UserPreference {
+            timezone: existing_preferences.timezone,
+            caloric_intake_goal: self
+                .caloric_intake_goal
+                .parse()
+                .ok()
+                .or(existing_preferences.caloric_intake_goal),
+            calorie_balancing_enabled: self.calorie_balancing_enabled.is_some(),
+            calorie_balancing_max_calories: self
+                .calorie_balancing_max_calories
+                .as_ref()
+                .and_then(|v| v.parse().ok())
+                .or(existing_preferences.calorie_balancing_max_calories),
+            calorie_balancing_min_calories: self
+                .calorie_balancing_min_calories
+                .as_ref()
+                .and_then(|v| v.parse().ok())
+                .or(existing_preferences.calorie_balancing_min_calories),
+        }
     }
 }
 
@@ -520,7 +553,8 @@ pub async fn user_preference_controller(
                         Ok(SavedPreference { preferences: pref }.render())
                     }
                     _ => Ok(UserPreferenceForm {
-                        preferences: existing_preferences,
+                        preferences: pref
+                            .get_unvalidated_data(&existing_preferences),
                         field_validation_error: Some(&pref.get_errors()),
                     }
                     .render()),
