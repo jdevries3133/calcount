@@ -86,10 +86,8 @@ impl Component for CheckpointList<'_> {
                     <p>
                         Note that if you set a checkpoint date in the future,
                         you effectively disable calorie balancing until that
-                        date arrives. I can't decide if this is a bug or a
-                        feature, but please let me know what you think! Seems
-                        like it could be a handy trick for the holiday season,
-                        actually.
+                        date arrives, which might be a handy feature for the
+                        holiday season!
                     </p>
                 </details>
             </div>
