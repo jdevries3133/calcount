@@ -175,7 +175,7 @@ impl Component for ChatUI<'_> {
                             font-extrabold
                             text-3xl
                         ">
-                            Calorie Chat
+                            Bean Count &#129752;
                         </h1>
                     <div class="md:flex md:gap-3">
                         <div>
