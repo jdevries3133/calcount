@@ -8,17 +8,13 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
-## Meal Recommendations
+## Barcode Scanner
 
-Use the LLM to provide suggested meals. We'll create a prompt which takes
-several pieces of information into account:
+Spend 1 week seeing if we can get a passably good barcode scanner to work.
 
-- user's past meals
-- the user's time of day
-- how many calories the user has eaten / how much of their calorie goal remains
-- which ingredients the user has at home
-- how much time the user wishes to spend preparing food
-- whether the user intends to make food or order food
+## Exercise Tracking
+
+Keep track of calories spent during exercise.
 
 ## Consumption Metrics
 
@@ -28,12 +24,6 @@ When a calorie goal is defined, show a progress bar visualization.
 
 Help users understand if they are ahead or behind pace. This should incorporate
 the users' plan for the day, for example, planning on eating a large dinner.
-
-## Exercise Tracking
-
-Use a similar LLM interface to track exercise, which would add to calorie
-budgets.
-
 
 ## Macro Goals
 
