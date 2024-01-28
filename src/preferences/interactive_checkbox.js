@@ -19,9 +19,13 @@ function disable(el) {
   el.readOnly = true;
   el.classList.add("!bg-gray-400");
   const help = document.createElement("p");
-  help.innerText =
-    "Field is disabled because calorie balancing is disabled." +
-    help.classList.add("text-slate-800", "italic", "text-xs");
+  help.innerText = "Field is disabled because calorie balancing is disabled.";
+  help.classList.add(
+    "text-yellow-700",
+    "italic",
+    "text-xs",
+    "dark:text-yellow-200",
+  );
   help.id = "help-text";
   el.after(help);
 }

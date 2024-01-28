@@ -4,7 +4,7 @@
 
 body {
   position: relative;
-  width: 100vw
+  width: 100vw;
 }
 
 .link {
@@ -17,7 +17,8 @@ body {
   input[type="password"],
   input[type="email"],
   input[type="checkbox"],
-  input[type="date"] {
+  input[type="date"],
+  select {
     @apply text-white bg-slate-700;
   }
   input[type="checkbox"] {
@@ -33,7 +34,8 @@ input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="date"],
-input[type="checkbox"] {
+input[type="checkbox"],
+select {
   @apply rounded;
 }
 input[type="checkbox"] {

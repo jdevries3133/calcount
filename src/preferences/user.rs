@@ -126,7 +126,8 @@ impl Component for UserPreferenceForm<'_> {
             <div class="flex flex-col items-center justify-center max-w-prose">
                 <form
                     hx-post="{self_url}"
-                    class="p-4 bg-slate-200 text-black rounded w-prose flex
+                    class="p-4 bg-slate-200 dark:bg-indigo-900 dark:text-slate-200
+                    text-black rounded w-prose flex
                     flex-col gap-2"
                 >
                     <h1 class="text-2xl font-extrabold">User Preferences</h1>
@@ -143,6 +144,11 @@ impl Component for UserPreferenceForm<'_> {
                         <a class="link" href="https://tdeecalculator.net/">the
                         TDEE calculator</a> to calculate the perfect calorie
                         goal for you.
+                    </p>
+                    <p class="text-xs">
+                        Note: this is an optional setting. If you delete it,
+                        the app will feel more like calorie journaling, which
+                        can be a nice way to use the app.
                     </p>
                     {intake_goal_err}
                     <input
@@ -162,7 +168,10 @@ impl Component for UserPreferenceForm<'_> {
                         day, you ultimately "catch-up," and continuously
                         work towards your calorie goal.
                     </p>
-                    <div class="bg-yellow-100 rounded p-1 prose text-black">
+                    <div
+                        class="bg-yellow-100 dark:text-black rounded p-1 prose
+                        text-black"
+                    >
                         <p class="text-xs">
                             Warning: if you have a history of <a class="link"
                             href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
