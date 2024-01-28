@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{config, count_chat, metrics, models, prelude::*, timeutils};
+use super::{count_chat, metrics, models, prelude::*, timeutils};
 use ammonia::clean;
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
@@ -374,10 +374,8 @@ pub struct UserHome<'a> {
 impl Component for UserHome<'_> {
     fn render(&self) -> String {
         let macros = if self.macros.is_empty()
-            && !config::enable_calorie_balancing(
-                self.user.id,
-                &self.preferences,
-            ) {
+            && !self.preferences.calorie_balancing_enabled
+        {
             metrics::MacroPlaceholder {}.render()
         } else {
             self.macros.render_status(self.caloric_intake_goal)

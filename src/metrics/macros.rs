@@ -1,6 +1,5 @@
 use crate::{
-    balancing, chrono_utils::is_before_today, config, count_chat::MealInfo,
-    prelude::*,
+    balancing, chrono_utils::is_before_today, count_chat::MealInfo, prelude::*,
 };
 
 /// For now, these are implicitly an aggregation of all meals during the
@@ -11,7 +10,6 @@ pub struct Macros {
     protein_grams: i32,
     fat_grams: i32,
     carbohydrates_grams: i32,
-    user_id: i32,
     user_preferences: UserPreference,
 }
 impl Macros {
@@ -22,7 +20,6 @@ impl Macros {
         MacroStatus {
             macros: self,
             caloric_intake_goal,
-            user_id: self.user_id,
             user_preferences: &self.user_preferences,
         }
         .render()
@@ -32,7 +29,6 @@ impl Macros {
 pub struct MacroStatus<'a> {
     macros: &'a Macros,
     caloric_intake_goal: Option<i32>,
-    user_id: i32,
     user_preferences: &'a UserPreference,
 }
 impl Component for MacroStatus<'_> {
@@ -44,13 +40,11 @@ impl Component for MacroStatus<'_> {
         let macros = Route::DisplayMacros;
         let calories_remaining = match self.caloric_intake_goal {
             Some(goal) => {
-                let computed_goal = if config::enable_calorie_balancing(
-                    self.user_id,
-                    self.user_preferences,
-                ) {
-                    let history = Route::BalancingHistory;
-                    format!(
-                        r#"
+                let computed_goal =
+                    if self.user_preferences.calorie_balancing_enabled {
+                        let history = Route::BalancingHistory;
+                        format!(
+                            r#"
                             <p>Your computed goal is {goal} calories.
                                 <a href="{history}">
                                     <button
@@ -68,10 +62,10 @@ impl Component for MacroStatus<'_> {
                                 </a>
                             </p>
                             "#
-                    )
-                } else {
-                    "".into()
-                };
+                        )
+                    } else {
+                        "".into()
+                    };
                 let diff = goal - calories;
                 format!("<p>You have {diff} calories left to eat today.</p>{computed_goal}")
             }
@@ -159,7 +153,6 @@ pub async fn get_macros(
                 protein_grams: 0,
                 fat_grams: 0,
                 carbohydrates_grams: 0,
-                user_id,
                 user_preferences: *user_preferences,
             },
             |mut macros, meal| {
@@ -179,24 +172,20 @@ pub async fn display_macros(
     let session = Session::from_headers_err(&headers, "display macros")?;
     let preferences = session.get_preferences(&db).await?;
     let macros = get_macros(&db, session.user_id, &preferences).await?;
-    let caloric_intake_goal =
-        if config::enable_calorie_balancing(session.user_id, &preferences) {
-            Some(
-                balancing::get_current_goal(&db, session.user_id, &preferences)
-                    .await?,
-            )
-        } else {
-            preferences.caloric_intake_goal
-        };
-    if macros.is_empty()
-        && !config::enable_calorie_balancing(session.user_id, &preferences)
-    {
+    let caloric_intake_goal = if preferences.calorie_balancing_enabled {
+        Some(
+            balancing::get_current_goal(&db, session.user_id, &preferences)
+                .await?,
+        )
+    } else {
+        preferences.caloric_intake_goal
+    };
+    if macros.is_empty() && !preferences.calorie_balancing_enabled {
         Ok(MacroPlaceholder {}.render())
     } else {
         Ok(MacroStatus {
             macros: &macros,
             caloric_intake_goal,
-            user_id: session.user_id,
             user_preferences: &preferences,
         }
         .render())
