@@ -109,21 +109,21 @@ impl Component for UserPreferenceForm<'_> {
         let intake_goal_err = if let Some(err) =
             self.get_field_validation_err("caloric_intake_goal")
         {
-            format!("<p>{err}</p>")
+            format!(r#"<p class="text-red-500 italic text-sm">{err}</p>"#)
         } else {
             "".into()
         };
         let min_cals_err = if let Some(err) =
             self.get_field_validation_err("calorie_balancing_min_calories")
         {
-            format!("<p>{err}</p>")
+            format!(r#"<p class="text-red-500 italic text-sm">{err}</p>"#)
         } else {
             "".into()
         };
         let max_cals_err = if let Some(err) =
             self.get_field_validation_err("calorie_balancing_max_calories")
         {
-            format!("<p>{err}</p>")
+            format!(r#"<p class="text-red-500 italic text-sm">{err}</p>"#)
         } else {
             "".into()
         };
@@ -420,7 +420,18 @@ impl UserPreferencePayload {
                     CalorieBalancingLimitResult::Unset
                 } else {
                     match str.parse() {
-                        Ok(val) => CalorieBalancingLimitResult::Some(val),
+                        Ok(val) => {
+                            match self.get_intake_goal() {
+                                Ok(Some(goal)) => {
+                                    if val > goal {
+                                        CalorieBalancingLimitResult::Err("Minimum limit cannot be greater than your overall goal")
+                                    } else {
+                                        CalorieBalancingLimitResult::Some(val)
+                                    }
+                                },
+                                _ => CalorieBalancingLimitResult::Err("Overall calorie goal is required with a minimum calorie limit")
+                            }
+                        }
                         Err(_) => CalorieBalancingLimitResult::Err(
                             "Minimum calories cannot be parsed into a number",
                         ),
@@ -439,9 +450,20 @@ impl UserPreferencePayload {
                     CalorieBalancingLimitResult::Unset
                 } else {
                     match str.parse() {
-                        Ok(val) => CalorieBalancingLimitResult::Some(val),
+                        Ok(val) => {
+                            match self.get_intake_goal() {
+                                Ok(Some(goal)) => {
+                                    if val < goal {
+                                        CalorieBalancingLimitResult::Err("Maximum limit cannot be less than your overall goal")
+                                    } else {
+                                        CalorieBalancingLimitResult::Some(val)
+                                    }
+                                },
+                                _ => CalorieBalancingLimitResult::Err("Overall calorie goal is required with a maximum calorie limit")
+                            }
+                        }
                         Err(_) => CalorieBalancingLimitResult::Err(
-                            "Minimum calories cannot be parsed into a number",
+                            "Maximum calories cannot be parsed into a number",
                         ),
                     }
                 }
