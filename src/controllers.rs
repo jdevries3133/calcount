@@ -11,6 +11,8 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use futures::join;
+#[cfg(feature = "live_reload")]
+use serde::Deserialize;
 use sqlx::{query, query_as};
 
 pub async fn root() -> impl IntoResponse {
