@@ -89,9 +89,7 @@ impl Component for MacroPlaceholder {
         let macros = Route::DisplayMacros;
         format!(
             r#"
-            <p hx-get="{macros}" hx-trigger="reload-macros from:body">
-                Enter some food to get macro information.
-            </p>
+            <p hx-get="{macros}" hx-trigger="reload-macros from:body"></p>
             "#
         )
     }

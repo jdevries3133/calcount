@@ -526,7 +526,7 @@ impl Component for CannotParse<'_> {
 pub struct InputTooLong;
 impl Component for InputTooLong {
     fn render(&self) -> String {
-        let route = Route::ChatDemo;
+        let route = Route::HandleChat;
         format!(
             r##"
             <div class="prose">

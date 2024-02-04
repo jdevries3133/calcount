@@ -4,7 +4,7 @@ pub use crate::{
     auth::Session,
     components::{Component, Page, PageContainer},
     errors::ServerError,
-    models::{AppState, Id, User},
+    models::{AppState, Id},
     preferences::UserPreference,
     routes::Route,
     stripe::SubscriptionTypes,

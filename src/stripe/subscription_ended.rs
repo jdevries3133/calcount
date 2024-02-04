@@ -1,5 +1,5 @@
 use super::create_new_subscription::get_basic_plan_checkout_session;
-use crate::{components, prelude::*};
+use crate::{auth::is_anon, components, prelude::*};
 
 pub struct SubscriptionExpired<'a> {
     checkout_url: &'a str,
@@ -75,6 +75,12 @@ pub async fn subscription_ended(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "subscription ended")?;
+    // It should be impossible for this to happen, because anonymous users
+    // cannot create subscriptions in the first place.
+    if is_anon(&session.username) {
+        let uid = session.user_id;
+        println!("Warning: anonymous (id = {uid}) user is visiting subscription_ended; this probably won't work")
+    }
     let user = session.get_user(&db).await?;
     let checkout_url =
         get_basic_plan_checkout_session(&user.stripe_customer_id).await?;

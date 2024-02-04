@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{count_chat, metrics, models, prelude::*, timeutils};
+use super::{auth, count_chat, metrics, models, prelude::*, timeutils};
 use ammonia::clean;
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
@@ -128,7 +128,8 @@ impl Component for PageContainer<'_> {
                 <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
                     <a class="link" href="{privacy}">Privacy Policy</a>
                     <a class="link" href="{tos}">Terms of Service</a>
-                    <a class="link" href="{home}">Home</a>
+                    <a class="link" href="{home}">Dashboard</a>
+                    <a class="link" href="/">Home</a>
                     <a class="link" href="{about}">About</a>
                 </div>
             </div>
@@ -141,12 +142,7 @@ pub struct Home {}
 impl Component for Home {
     fn render(&self) -> String {
         let login_route = Route::Login;
-        let register_route = Route::Register;
-        let chat_demo = count_chat::ChatDemo {
-            prefill_prompt: None,
-        }
-        .render();
-
+        let init_anon = Route::InitAnon;
         format!(
             r#"
             <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
@@ -198,13 +194,14 @@ impl Component for Home {
                 </div>
             </div>
             <div class="flex items-center justify-center my-12">
-                <div
-                    class="bg-gradient-to-tr from-blue-300 to-indigo-300
-                    rounded-full p-12 text-black"
-                >
-                    <h2 class="text-xl font-bold">Create a Trial Account</h2>
-                    <p class="text-xs">Price will be $5/mo</p>
-                    <a href="{register_route}">
+                <a href="{init_anon}">
+                    <div
+                        class="bg-gradient-to-tr from-blue-300 to-indigo-300
+                        rounded-full p-12 text-black"
+                    >
+                        <h3 class="text-lg font-semibold">Try it Out!</h3>
+                        <p class="text-sm">Click here to jump right in and start using Bean
+                        Count. Zero-commitment sign-up & 30 days free, on us!</p>
                         <button
                             class="
                                 bg-gradient-to-tr
@@ -222,24 +219,11 @@ impl Component for Home {
                                 text-white
                                 my-4
                             "
-                        >Sign Up</button>
-                    </a>
-                </div>
-                </div>
-            <div class="flex justify-center items-center flex-col sm:flex-row gap-4">
-                <div
-                    class="flex items-center justify-center p-4 border-8
-                    border-slate-800 flex-col"
-                >
-                    <h2 class="text-xl font-bold text-center">Try it Out</h2>
-                    <p class="text-center text-sm max-w-md">
-                        With Bean Count, you can describe your food using
-                        natural language. Since you don't need to measure
-                        or lookup precise calorie information, calorie
-                        counting becomes easier than ever before!
-                    </p>
-                    {chat_demo}
-                </div>
+                        >Get Started</button>
+                    </div>
+                </a>
+            </div>
+            <div class="flex items-center justify-center">
                 <div class="bg-indigo-50 dark:bg-indigo-900 border-2
                     border-indigo-800 inline-flex p-6 rounded-full
                     items-center gap-3 mt-2"
@@ -344,9 +328,12 @@ struct ProfileChip<'a> {
 }
 impl Component for ProfileChip<'_> {
     fn render(&self) -> String {
-        let username = clean(self.username);
+        let username = if auth::is_anon(self.username) {
+            "anon".to_string()
+        } else {
+            clean(self.username)
+        };
         let timezone = self.timezone;
-        let logout = Route::Logout;
         let preferences = Route::UserPreference;
         let trial_warning = if let SubscriptionTypes::FreeTrial(duration) =
             self.subscription_type
@@ -407,20 +394,46 @@ impl Component for ProfileChip<'_> {
             }
             _ => "".into(),
         };
+        // For anonymous users, the primary account action button will be to
+        // register instead of log out. If they log out, they're going to
+        // lose access.
+        let acct_action = if auth::is_anon(self.username) {
+            let register = Route::Register;
+            format!(
+                r#"
+                <a class="inline" href="{register}">
+                    <button
+                        style="margin-left: auto"
+                        class="text-xs p-1 bg-green-100 hover:bg-green-200
+                        rounded-full text-black"
+                    >
+                        Register
+                    </button>
+                </a>
+                "#
+            )
+        } else {
+            let logout = Route::Logout;
+            format!(
+                r#"
+                <a class="inline" href="{logout}">
+                    <button
+                        style="margin-left: auto"
+                        class="text-xs p-1 bg-red-100 hover:bg-red-200
+                        rounded-full text-black"
+                    >
+                        Log Out
+                    </button>
+                </a>
+                "#
+            )
+        };
         format!(
             r#"
             <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">
                 <div class="flex flex-wrap mb-1 gap-2">
                     <p class="font-bold">Hi, {username}!</p>
-                    <a class="inline" href="{logout}">
-                        <button
-                            style="margin-left: auto"
-                            class="text-xs p-1 bg-red-100 hover:bg-red-200
-                            rounded-full text-black"
-                        >
-                            Log Out
-                        </button>
-                    </a>
+                    {acct_action}
                     <a class="inline" href="{preferences}">
                         <button
                             style="margin-left: auto"

@@ -1,5 +1,8 @@
 use super::create_new_subscription::get_basic_plan_checkout_session;
-use crate::prelude::*;
+use crate::{
+    auth::{is_anon, RegisterForm},
+    prelude::*,
+};
 
 pub struct SubscriptionExpired<'a> {
     stripe_checkout_url: &'a str,
@@ -46,21 +49,55 @@ impl Component for SubscriptionExpired<'_> {
         )
     }
 }
+
+struct AnonSubExpired;
+impl Component for AnonSubExpired {
+    fn render(&self) -> String {
+        let register = RegisterForm {}.render();
+        format!(
+            r#"
+            <div
+                class="flex flex-col bg-slate-200 m-8 p-4 items-center
+                justify-center prose gap-2 rounded"
+            >
+                <h1>Trial Expired</h1>
+                <p>
+                    Since your account is still anonymous, you'll need to
+                    register first, then reload this page, and then you will
+                    be able to proceed to stripe to make a monthly payment
+                    if you'd like to continue using Bean Count.
+                </p>
+                {register}
+            </div>
+            "#
+        )
+    }
+}
 pub async fn trial_expired(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "trial expired")?;
-    let user = session.get_user(&db).await?;
-    let stripe_url =
-        get_basic_plan_checkout_session(&user.stripe_customer_id).await?;
-    Ok(Page {
-        title: "Trial Expired",
-        children: &PageContainer {
-            children: &SubscriptionExpired {
-                stripe_checkout_url: &stripe_url,
+    if is_anon(&session.username) {
+        Ok(Page {
+            title: "Trial Expired",
+            children: &PageContainer {
+                children: &AnonSubExpired {},
             },
-        },
+        }
+        .render())
+    } else {
+        let user = session.get_user(&db).await?;
+        let stripe_url =
+            get_basic_plan_checkout_session(&user.stripe_customer_id).await?;
+        Ok(Page {
+            title: "Trial Expired",
+            children: &PageContainer {
+                children: &SubscriptionExpired {
+                    stripe_checkout_url: &stripe_url,
+                },
+            },
+        }
+        .render())
     }
-    .render())
 }

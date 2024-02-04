@@ -344,24 +344,6 @@
     },
     "query": "insert into meal\n        (\n            user_id,\n            name,\n            calories,\n            fat,\n            protein,\n            carbohydrates,\n            created_at\n        )\n        values ($1, $2, $3, $4, $5, $6, $7)"
   },
-  "68a469121ce660fafeb842413a14b4ec275bb6fcacdb10a939f5458329cf95a1": {
-    "describe": {
-      "columns": [
-        {
-          "name": "key",
-          "ordinal": 0,
-          "type_info": "Varchar"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "select key from registration_key"
-  },
   "6e3f6e228c1f08bc7dfa5bb69d1184e209c4bb108ce71361b7b38bb359cdfa01": {
     "describe": {
       "columns": [
@@ -405,18 +387,6 @@
       }
     },
     "query": "select\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_max_calories,\n            calorie_balancing_min_calories,\n            timezone\n        from user_preference\n        where user_id = $1"
-  },
-  "74dc83227192193a2b06eee2816081297a6f6164781c498571992dde4bac706f": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "insert into wait_list values ($1) on conflict do nothing"
   },
   "7ac64c0826a89e9d73c97d59caa22ff90d2c0ecd23546188365ab71811dee1bc": {
     "describe": {
@@ -806,33 +776,21 @@
     },
     "query": "select\n            r.user_id user_id,\n            r.slug slug,\n            r.created_at created_at,\n            u.username username\n            from password_reset_link r\n        join users u on u.id = r.user_id\n        where slug = $1"
   },
-  "f185b91094d82a66da1ea3ad61bbf914b14d77f2da3feca6d580bdbc441ef067": {
+  "f3d328905295377cf81eb8a6f5ba2b0c40f9c04a660a4392d910a56b23b540e7": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Varchar",
+          "Varchar",
+          "Varchar",
+          "Int4",
+          "Int4"
+        ]
       }
     },
-    "query": "delete from registration_key where key = 'a-reddit-new-year'"
-  },
-  "f246ed09abd9442ad50ee7d86684f51bb844626a2ef9a2db102883617d33220f": {
-    "describe": {
-      "columns": [
-        {
-          "name": "count",
-          "ordinal": 0,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "select 1 count from users"
+    "query": "update users set\n                username = $1,\n                email = $2,\n                stripe_customer_id = $3,\n                subscription_type_id = $4\n            where id = $5\n                "
   },
   "f9892517bce425bbb602e979143ea3923758d293f92729535de66561970675fc": {
     "describe": {

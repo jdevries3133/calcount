@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{
     postgres::{PgPool, PgPoolOptions},
-    query_as,
+    query, query_as,
 };
 
 pub async fn create_pg_pool() -> Result<sqlx::Pool<sqlx::Postgres>> {
@@ -130,8 +130,24 @@ impl DbModel<GetUserQuery<'_>, ()> for models::User {
     async fn list(_db: &PgPool, _query: &()) -> Result<Vec<Self>> {
         todo!()
     }
-    async fn save(&self, _db: &PgPool) -> Result<()> {
-        todo!()
+    async fn save(&self, db: &PgPool) -> Result<()> {
+        query!(
+            "update users set
+                username = $1,
+                email = $2,
+                stripe_customer_id = $3,
+                subscription_type_id = $4
+            where id = $5
+                ",
+            self.username,
+            self.email,
+            self.stripe_customer_id,
+            self.stripe_subscription_type.as_int(),
+            self.id
+        )
+        .execute(db)
+        .await?;
+        Ok(())
     }
     async fn delete(self, _db: &PgPool) -> Result<()> {
         todo!();

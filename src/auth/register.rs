@@ -1,7 +1,12 @@
 use super::pw;
 use crate::{
-    config, htmx, models::IdCreatedAt, preferences::save_user_preference,
-    prelude::*, stripe,
+    config,
+    db_ops::{DbModel, GetUserQuery},
+    htmx,
+    models::{IdCreatedAt, User},
+    preferences::save_user_preference,
+    prelude::*,
+    stripe,
 };
 
 pub struct RegisterForm {}
@@ -73,23 +78,75 @@ pub struct RegisterFormPayload {
 
 pub async fn handle_registration(
     State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
     Form(form): Form<RegisterFormPayload>,
 ) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers(&headers);
     let headers = HeaderMap::new();
     let hashed_pw = pw::hash_new(&form.password);
 
     let stripe_id =
         stripe::create_customer(&form.username, &form.email).await?;
 
-    let user = create_user(
-        &db,
-        form.username,
-        form.email,
-        &hashed_pw,
-        stripe_id,
-        stripe::SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION),
-    )
-    .await?;
+    let user = match session {
+        Some(mut ses) => {
+            if super::is_anon(&ses.username) {
+                // Anon users have a long-lived session. We want to change
+                // the session creation date back to "now"
+                ses.created_at = Utc::now();
+                let mut anon_user = User::get(
+                    &db,
+                    &GetUserQuery {
+                        identifier: crate::db_ops::UserIdentifer::Id(
+                            ses.user_id,
+                        ),
+                    },
+                )
+                .await?;
+                query!(
+                    "update users set salt = $1, digest = $2
+                    where id = $3",
+                    hashed_pw.salt,
+                    hashed_pw.digest,
+                    ses.user_id
+                )
+                .execute(&db)
+                .await?;
+
+                anon_user.username = form.username;
+                anon_user.email = form.email;
+                anon_user.stripe_customer_id = stripe_id;
+                anon_user.save(&db).await?;
+
+                anon_user
+            } else {
+                create_user(
+                    &db,
+                    form.username,
+                    form.email,
+                    &hashed_pw,
+                    stripe_id,
+                    stripe::SubscriptionTypes::FreeTrial(
+                        config::FREE_TRIAL_DURATION,
+                    ),
+                )
+                .await?
+            }
+        }
+        None => {
+            create_user(
+                &db,
+                form.username,
+                form.email,
+                &hashed_pw,
+                stripe_id,
+                stripe::SubscriptionTypes::FreeTrial(
+                    config::FREE_TRIAL_DURATION,
+                ),
+            )
+            .await?
+        }
+    };
     let preferences = UserPreference {
         timezone: form.timezone,
         ..Default::default()
@@ -106,7 +163,7 @@ pub async fn handle_registration(
 }
 
 pub async fn create_user(
-    db: &PgPool,
+    db: impl PgExecutor<'_>,
     username: String,
     email: String,
     pw: &pw::HashedPw,

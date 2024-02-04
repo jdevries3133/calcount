@@ -32,8 +32,6 @@ pub enum Route {
     BalancingCreateCheckpoint,
     BalancingDeleteCheckpoint,
     BalancingHistory,
-    ChatDemo,
-    ChatDemoRetry,
     ChatForm,
     DeleteMeal(Option<i32>),
     DisplayMacros,
@@ -47,6 +45,7 @@ pub enum Route {
     GotoStripePortal,
     HandleChat,
     Htmx,
+    InitAnon,
     ListMeals,
     Login,
     Logout,
@@ -104,8 +103,6 @@ impl Route {
             Self::BalancingCreateCheckpoint => "/create-checkpoint".into(),
             Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
             Self::BalancingHistory => "/calorie-balancing".into(),
-            Self::ChatDemo => "/chat-demo".into(),
-            Self::ChatDemoRetry => "/chat-demo-retry".into(),
             Self::ChatForm => "/chat-form".into(),
             Self::DeleteMeal(slug) => match slug {
                 Some(value) => format!("/delete-meal/{value}"),
@@ -116,6 +113,7 @@ impl Route {
             Self::GotoStripePortal => "/stripe-portal".into(),
             Self::HandleChat => "/chat".into(),
             Self::Htmx => "/static/htmx-1.9.10".into(),
+            Self::InitAnon => "/authentication/init-anon".into(),
             Self::ListMeals => "/list-meals".into(),
             Self::Login => "/authentication/login".into(),
             Self::Logout => "/authentication/logout".into(),
@@ -242,21 +240,13 @@ fn get_public_routes() -> Router<models::AppState> {
             &Route::BalancingDeleteCheckpoint.as_string(),
             delete(balancing::delete_checkpoint),
         )
-        .route(&Route::ChatDemo.as_string(), get(count_chat::get_demo_ui))
-        .route(
-            &Route::ChatDemo.as_string(),
-            post(count_chat::handle_demo_chat),
-        )
-        .route(
-            &Route::ChatDemoRetry.as_string(),
-            post(count_chat::handle_retry),
-        )
         .route(&Route::Favicon.as_string(), get(controllers::get_favicon))
         .route(
             &Route::StaticTinyIcon.as_string(),
             get(controllers::get_tiny_icon),
         )
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
+        .route(&Route::InitAnon.as_string(), get(auth::init_anon))
         .route(&Route::Login.as_string(), get(auth::get_login_form))
         .route(&Route::Login.as_string(), post(auth::handle_login))
         .route(&Route::Logout.as_string(), get(auth::logout))
