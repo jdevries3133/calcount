@@ -10,10 +10,8 @@ by sending me an email at
 
 ## Marketing Efforts
 
-- [ ] add some hero text to the home page
-- [ ] show the calorie balancing feature on the home page
-- [ ] try to communicate our mission and open-source-ness on the home page
-- [ ] get rid of registration keys / registration counter
+- [x] add some hero text to the home page
+- [x] get rid of registration keys / registration counter
 - [ ] allow users to jump right in without registration by creating a
       auto-generated placeholder account (to be substituted with real info
       if the user converts)
