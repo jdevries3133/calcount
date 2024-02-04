@@ -81,7 +81,7 @@ pub async fn get_htmx_js() -> impl IntoResponse {
         HeaderValue::from_str("public, max-age=31536000")
             .expect("we can set cache control header"),
     );
-    (headers, include_str!("./htmx-1.9.10.vendor.js"))
+    (headers, include_str!("./htmx-2.0.0a1.vendor.js"))
 }
 
 pub async fn get_favicon() -> impl IntoResponse {
