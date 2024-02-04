@@ -137,9 +137,7 @@ impl Component for PageContainer<'_> {
     }
 }
 
-pub struct Home {
-    pub trial_accounts_remaining: usize,
-}
+pub struct Home {}
 impl Component for Home {
     fn render(&self) -> String {
         let login_route = Route::Login;

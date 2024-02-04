@@ -26,13 +26,6 @@ pub const CHAT_MAX_LEN: usize = 200;
 pub const FREE_TRIAL_DURATION: Duration =
     Duration::from_secs(60 * 60 * 24 * 31);
 
-/// For initial launch, we're going to cap out at 200 registrations. When this
-/// threshold is passed, 2 things will happen:
-///
-/// 1. `a-reddit-new-year` registration key will be revoked
-/// 2. landing page will update, making the mailing list become the priary focus
-pub const MAX_ACCOUNT_LIMIT: usize = 205;
-
 #[cfg(feature = "use_stripe_test_instance")]
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 

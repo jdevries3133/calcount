@@ -1,6 +1,6 @@
 use super::{
     auth::Session, balancing, chrono_utils, client_events, components,
-    components::Component, config, count_chat, errors::ServerError, metrics,
+    components::Component, count_chat, errors::ServerError, metrics,
     models::AppState, stripe,
 };
 use anyhow::Result;
@@ -15,23 +15,14 @@ use futures::join;
 use serde::Deserialize;
 use sqlx::{query, query_as};
 
-pub async fn root(
-    State(AppState { db }): State<AppState>,
-) -> Result<impl IntoResponse, ServerError> {
-    let account_total =
-        query!("select 1 count from users").fetch_all(&db).await?;
-    let trial_accounts_remaining = config::MAX_ACCOUNT_LIMIT
-        .checked_sub(account_total.len())
-        .unwrap_or_default();
-    Ok(components::Page {
+pub async fn root() -> impl IntoResponse {
+    components::Page {
         title: "Bean Count",
         children: &components::PageContainer {
-            children: &components::Home {
-                trial_accounts_remaining,
-            },
+            children: &components::Home {},
         },
     }
-    .render())
+    .render()
 }
 
 #[cfg(feature = "live_reload")]
