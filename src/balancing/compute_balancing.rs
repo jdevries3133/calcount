@@ -119,7 +119,6 @@ pub fn compute_balancing(
     let min_calories = min_calories.unwrap_or(0);
     // Hm, I wonder if max / min calories should be stored as an offset from
     // the goal to avoid this invariant condition.
-    dbg!(min_calories, calorie_goal);
     if min_calories > calorie_goal {
         panic!("min calories cannot be greater than the calorie goal");
     };
