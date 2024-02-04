@@ -142,84 +142,8 @@ pub struct Home {
 }
 impl Component for Home {
     fn render(&self) -> String {
-        let trial_acct_container = if self.trial_accounts_remaining > 0 {
-            let trial_accounts = TrialAccountCounter {
-                count_remaining: self.trial_accounts_remaining,
-            }
-            .render();
-            let register_route = Route::Register;
-            let s = if self.trial_accounts_remaining > 1 {
-                "s"
-            } else {
-                ""
-            };
-            let snt = if self.trial_accounts_remaining > 1 {
-                ""
-            } else {
-                "s"
-            };
-            format!(
-                r#"
-                <div class="flex items-center justify-center my-12">
-                    <div
-                        class="bg-gradient-to-tr from-blue-300 to-indigo-300
-                        rounded-full p-12 text-black"
-                    >
-                        <h2 class="text-xl font-bold">Create a Trial Account</h2>
-                        <p class="italic text-sm">
-                            {trial_accounts} free trial account{s} remain{snt}!
-                        </p>
-                        <p>
-                            To create a 30-day free trial account, use
-                            registration code
-                            <span class="font-mono">"a-reddit-new-year"</span>.
-                        </p>
-                        <p class="text-xs">Price will be $5/mo</p>
-                        <a href="{register_route}">
-                            <button
-                                class="
-                                    bg-gradient-to-tr
-                                    from-blue-700
-                                    to-indigo-700
-                                    from-blue-100
-                                    to-indigo-200
-                                    p-2
-                                    rounded
-                                    shadow-md
-                                    hover:shadow-sm
-                                    dark:shadow-purple-200
-                                    text-xl
-                                    font-extrabold
-                                    text-white
-                                    my-4
-                                "
-                            >Sign Up</button>
-                        </a>
-                    </div>
-                </div>
-                "#
-            )
-        } else {
-            r#"
-            <div class="flex items-center justify-center my-12">
-                <div
-                    class="bg-gradient-to-tr from-blue-300 to-indigo-300
-                    rounded-full p-12 text-black"
-                >
-                    <h2 class="text-xl font-bold">All Trial Accounts Taken!</h2>
-                    <p class="max-w-xs">
-                        Uh oh! Bad news for you but good news for us: 200 trial
-                        users already registered. Join the wait list to be
-                        notified when we're ready for you to make an account.
-                    </p>
-                    <p class="text-xs">Price will be $5/mo</p>
-                </div>
-            </div>
-            "#
-            .into()
-        };
         let login_route = Route::Login;
-        let waitlist_signup = Route::WaitlistSignup;
+        let register_route = Route::Register;
         let chat_demo = count_chat::ChatDemo {
             prefill_prompt: None,
         }
@@ -230,6 +154,25 @@ impl Component for Home {
             <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
                 &#127793; Bean Count &#129752;
             </h1>
+            <div class="h-[90vh] flex justify-center flex-col">
+            <h2
+                class="bg-gradient-to-br from-blue-600 via-green-500
+                to-indigo-400 inline-block text-transparent bg-clip-text
+                text-6xl"
+            >
+                AI Calorie Counter
+            </h2>
+            <h2
+                class="text-4xl"
+            >
+                Toss out the food scale and meal prep containers:
+                <span
+                    class="font-extrabold dark:text-indigo-200 text-indigo-500"
+                >
+                    count the calories you actually eat.
+                </span>
+            </h2>
+            </div>
             <div
                 class="text-teal-50 dark:text-slate-200 grid md:grid-cols-3
                 gap-24 justfiy-center m-12"
@@ -252,65 +195,53 @@ impl Component for Home {
                     class="bg-purple-800 rounded p-2 inline-block my-2 flex
                     items-center text-lg font-semibold text-center"
                 >
-                    Keep track of total calories and grams of macros (carbs, fat,
-                    and protein) as they accumulate throughout the day.
+                    Set calorie goals, keep track of macroos, and hold yourself
+                    accountable.
                 </div>
             </div>
-            {trial_acct_container}
-            <div class="flex justify-center">
-                <div class="grid md:grid-cols-2 gap-3 max-w-[1200px]">
-                    <div
-                        class="flex items-center justify-center p-4 border-8
-                        border-slate-800 flex-col"
-                    >
-                        <h2 class="text-xl font-bold text-center">Try it Out</h2>
-                        <p class="text-center text-sm max-w-md">
-                            With Bean Count, you can describe your food using
-                            natural language. Since you don't need to measure
-                            or lookup precise calorie information, calorie
-                            counting becomes easier than ever before!
-                        </p>
-                        {chat_demo}
-                    </div>
-                    <div class="p-4 border-8 border-slate-800">
-                        <h2 class="text-xl text-center font-bold">
-                            Join the Wait List
-                        </h2>
-                        <form
-                            class="flex items-start justify-center"
-                            hx-post="{waitlist_signup}"
-                        >
-                            <div class="flex flex-col gap-2">
-                                <label class="block" for="email">
-                                    Email Address
-                                </label>
-                                <input
-                                    class="block"
-                                    type="email"
-                                    name="email"
-                                    id="email"
-                                    placeholder="Your Email"
-                                    required
-                                />
-                                <button class="block dark:bg-green-800
-                                dark:hover:bg-green-700 bg-green-200
-                                hover:bg-green-300 p-2 rounded font-semibold">
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
-                        <p class="text-center text-xs">
-                            Join the waitlist to find out when we're ready
-                            for unrestricted sign-ups. These emails will
-                            never be shared with a 3rd party, and will only
-                            be used to provide important updates about this
-                            product, and you can be removed from this list
-                            at anytime.
-                        </p>
-                    </div>
+            <div class="flex items-center justify-center my-12">
+                <div
+                    class="bg-gradient-to-tr from-blue-300 to-indigo-300
+                    rounded-full p-12 text-black"
+                >
+                    <h2 class="text-xl font-bold">Create a Trial Account</h2>
+                    <p class="text-xs">Price will be $5/mo</p>
+                    <a href="{register_route}">
+                        <button
+                            class="
+                                bg-gradient-to-tr
+                                from-blue-700
+                                to-indigo-700
+                                from-blue-100
+                                to-indigo-200
+                                p-2
+                                rounded
+                                shadow-md
+                                hover:shadow-sm
+                                dark:shadow-purple-200
+                                text-xl
+                                font-extrabold
+                                text-white
+                                my-4
+                            "
+                        >Sign Up</button>
+                    </a>
                 </div>
-            </div>
-            <div class="flex items-center justify-center">
+                </div>
+            <div class="flex justify-center items-center flex-col sm:flex-row gap-4">
+                <div
+                    class="flex items-center justify-center p-4 border-8
+                    border-slate-800 flex-col"
+                >
+                    <h2 class="text-xl font-bold text-center">Try it Out</h2>
+                    <p class="text-center text-sm max-w-md">
+                        With Bean Count, you can describe your food using
+                        natural language. Since you don't need to measure
+                        or lookup precise calorie information, calorie
+                        counting becomes easier than ever before!
+                    </p>
+                    {chat_demo}
+                </div>
                 <div class="bg-indigo-50 dark:bg-indigo-900 border-2
                     border-indigo-800 inline-flex p-6 rounded-full
                     items-center gap-3 mt-2"
@@ -318,7 +249,7 @@ impl Component for Home {
                     <p>Have an account?</p>
                     <a href="{login_route}">
                         <button
-                            class="border-2 border-slate-800 rounded p-2"
+                            class="border-2 border-slate-800 rounded p-2 text-nowrap"
                         >Log In</button>
                     </a>
                 </div>
