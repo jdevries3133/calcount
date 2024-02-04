@@ -8,11 +8,9 @@ use axum::{
     extract::{Path, State},
     http::{HeaderMap, HeaderValue},
     response::IntoResponse,
-    Form,
 };
 use chrono::{DateTime, Utc};
 use futures::join;
-use serde::Deserialize;
 use sqlx::{query, query_as};
 
 pub async fn root() -> impl IntoResponse {
@@ -256,30 +254,6 @@ pub async fn add_meal_to_today(
 
 pub async fn void() -> &'static str {
     ""
-}
-
-#[derive(Deserialize)]
-pub struct WaitListPayload {
-    email: String,
-}
-
-pub async fn wait_list(
-    State(AppState { db }): State<AppState>,
-    Form(WaitListPayload { email }): Form<WaitListPayload>,
-) -> Result<impl IntoResponse, ServerError> {
-    if !email.is_empty() {
-        query!(
-            "insert into wait_list values ($1) on conflict do nothing",
-            email
-        )
-        .execute(&db)
-        .await?;
-    };
-    Ok(r#"
-        <p class="text-center text-slate-200">
-            Email received; we will let you know when there is news to share!
-        </p>
-       "#)
 }
 
 pub async fn about() -> impl IntoResponse {

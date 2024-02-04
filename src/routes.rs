@@ -88,7 +88,6 @@ pub enum Route {
     /// Route which will return an empty string. This is mainly an HTMX utility
     /// to allow a component to easily be swapped with nothing.
     Void,
-    WaitlistSignup,
 }
 
 impl Route {
@@ -153,7 +152,6 @@ impl Route {
             Self::UserHome => "/home".into(),
             Self::UserPreference => "/preferences".into(),
             Self::Void => "/void".into(),
-            Self::WaitlistSignup => "/wait-list".into(),
         }
     }
 }
@@ -330,10 +328,6 @@ fn get_public_routes() -> Router<models::AppState> {
         )
         .route(&Route::TermsOfService.as_string(), get(legal::get_tos))
         .route(&Route::Void.as_string(), get(controllers::void))
-        .route(
-            &Route::WaitlistSignup.as_string(),
-            post(controllers::wait_list),
-        )
 }
 
 pub fn get_routes(state: models::AppState) -> Router<models::AppState> {
