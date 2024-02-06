@@ -8,38 +8,20 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
-## Marketing Efforts
-
-- [x] add some hero text to the home page
-- [x] get rid of registration keys / registration counter
-- [ ] allow users to jump right in without registration by creating a
-      auto-generated placeholder account (to be substituted with real info
-      if the user converts)
-
-## Barcode Scanner
-
-Spend 1 week seeing if we can get a passably good barcode scanner to work.
-
-## Exercise Tracking
-
-Keep track of calories spent during exercise.
-
-## Consumption Metrics
-
-When a calorie goal is defined, show a progress bar visualization.
-
-## Meal Pacing
-
-Help users understand if they are ahead or behind pace. This should incorporate
-the users' plan for the day, for example, planning on eating a large dinner.
-
-## Macro Goals
-
-Allow the input of macro goals (grams of protein, fat, and carbs).
+_(The roadmap is empty right now, while I'm working on marketing and getting
+feedback from users. Please send me feature requests!)_
 
 # Completed Items
 
 Looking back fondly at the road behind us.
+
+## Marketing Efforts
+
+- [x] add some hero text to the home page
+- [x] get rid of registration keys / registration counter
+- [x] allow users to jump right in without registration by creating a
+      auto-generated placeholder account (to be substituted with real info
+      if the user converts)
 
 ## Automatic Calorie Balancing
 
@@ -95,3 +77,31 @@ _I will not implement unnecessarily complicated caching_
 _I will not implement unnecessarily complicated caching_
 
 Hm nice, the chalk-board punishment is much easier in vim.
+
+# Backlog
+
+Items for a future yet to come.
+
+## Barcode Scanner
+
+~Spend 1 week seeing if we can get a passably good barcode scanner to work.~
+
+This is hard. If you want this feature, let me know! I will probably circle back
+to it some day.
+
+## Exercise Tracking
+
+Keep track of calories spent during exercise.
+
+## Consumption Metrics
+
+When a calorie goal is defined, show a progress bar visualization.
+
+## Meal Pacing
+
+Help users understand if they are ahead or behind pace. This should incorporate
+the users' plan for the day, for example, planning on eating a large dinner.
+
+## Macro Goals
+
+Allow the input of macro goals (grams of protein, fat, and carbs).
