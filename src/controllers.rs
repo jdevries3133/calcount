@@ -18,9 +18,7 @@ use sqlx::{query, query_as};
 pub async fn root() -> impl IntoResponse {
     components::Page {
         title: "Bean Count",
-        children: &components::PageContainer {
-            children: &components::Home {},
-        },
+        children: &components::Home {},
     }
     .render()
 }

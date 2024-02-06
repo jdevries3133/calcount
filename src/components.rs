@@ -108,16 +108,34 @@ impl Component for Page<'_> {
     }
 }
 
+struct Footer;
+impl Component for Footer {
+    fn render(&self) -> String {
+        let privacy = Route::PrivacyPolicy;
+        let tos = Route::TermsOfService;
+        let home = Route::UserHome;
+        let about = Route::About;
+        format!(
+            r#"
+            <footer class="flex flex-wrap items-center justify-center gap-2 p-4">
+                <a class="link" href="{privacy}">Privacy Policy</a>
+                <a class="link" href="{tos}">Terms of Service</a>
+                <a class="link" href="{home}">Dashboard</a>
+                <a class="link" href="/">Home</a>
+                <a class="link" href="{about}">About</a>
+            </footer>
+            "#
+        )
+    }
+}
+
 pub struct PageContainer<'a> {
     pub children: &'a dyn Component,
 }
 impl Component for PageContainer<'_> {
     fn render(&self) -> String {
         let children = self.children.render();
-        let privacy = Route::PrivacyPolicy;
-        let tos = Route::TermsOfService;
-        let home = Route::UserHome;
-        let about = Route::About;
+        let footer = Footer {}.render();
         format!(
             r#"
             <div
@@ -125,13 +143,7 @@ impl Component for PageContainer<'_> {
                 dark:text-slate-200 min-h-[100vh]"
             >
                 {children}
-                <div class="flex flex-wrap items-center justify-center gap-2 mt-4">
-                    <a class="link" href="{privacy}">Privacy Policy</a>
-                    <a class="link" href="{tos}">Terms of Service</a>
-                    <a class="link" href="{home}">Dashboard</a>
-                    <a class="link" href="/">Home</a>
-                    <a class="link" href="{about}">About</a>
-                </div>
+                {footer}
             </div>
             "#
         )
@@ -143,98 +155,134 @@ impl Component for Home {
     fn render(&self) -> String {
         let login_route = Route::Login;
         let init_anon = Route::InitAnon;
+        let footer = Footer {}.render();
         format!(
             r#"
-            <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
-                &#127793; Bean Count &#129752;
-            </h1>
-            <div class="h-[90vh] flex justify-center flex-col">
-            <h2
-                class="bg-gradient-to-br from-blue-600 via-green-500
-                to-indigo-400 inline-block text-transparent bg-clip-text
-                text-6xl"
+            <main
+                class="p-2 sm:p-4 md:p-8 bg-teal-50 dark:bg-indigo-1000
+                dark:text-slate-200 min-h-[100vh]"
             >
-                AI Calorie Counter
-            </h2>
-            <h2
-                class="text-4xl"
-            >
-                Toss out the food scale and meal prep containers:
-                <span
-                    class="font-extrabold dark:text-indigo-200 text-indigo-500"
+                <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
+                    &#127793; Bean Count &#129752;
+                </h1>
+                <div class="h-[90vh] flex justify-center flex-col">
+                <h2
+                    class="bg-gradient-to-br from-blue-600 via-green-500
+                    to-indigo-400 inline-block text-transparent bg-clip-text
+                    text-6xl"
                 >
-                    count the calories you actually eat.
-                </span>
-            </h2>
-            </div>
-            <div
-                class="text-teal-50 dark:text-slate-200 grid md:grid-cols-3
-                gap-24 justfiy-center m-12"
-            >
-                <div
-                    class="bg-blue-800 rounded p-2 inline-block my-2 flex
-                    items-center text-lg font-semibold text-center"
+                    AI Calorie Counter
+                </h2>
+                <h2
+                    class="text-4xl"
                 >
-                    Bean Count is an AI-powered  calorie counter, making calorie
-                    counting easy, effortless, and fun!
-                </div>
-                <div
-                    class="bg-indigo-800 rounded p-2 inline-block my-2 flex
-                    items-center text-lg font-semibold text-center"
-                >
-                    Use natural language to ask about food, and get back quick
-                    calorie estimates.
-                </div>
-                <div
-                    class="bg-purple-800 rounded p-2 inline-block my-2 flex
-                    items-center text-lg font-semibold text-center"
-                >
-                    Set calorie goals, keep track of macroos, and hold yourself
-                    accountable.
-                </div>
-            </div>
-            <div class="flex items-center justify-center my-12">
-                <a href="{init_anon}">
-                    <div
-                        class="bg-gradient-to-tr from-blue-300 to-indigo-300
-                        rounded-full p-12 text-black"
+                    Toss out the food scale and meal prep containers:
+                    <span
+                        class="font-extrabold dark:text-indigo-200 text-indigo-500"
                     >
-                        <h3 class="text-lg font-semibold">Try it Out!</h3>
-                        <p class="text-sm">Click here to jump right in and start using Bean
-                        Count. Zero-commitment sign-up & 30 days free, on us!</p>
-                        <button
-                            class="
-                                bg-gradient-to-tr
-                                from-blue-700
-                                to-indigo-700
-                                from-blue-100
-                                to-indigo-200
-                                p-2
-                                rounded
-                                shadow-md
-                                hover:shadow-sm
-                                dark:shadow-purple-200
-                                text-xl
-                                font-extrabold
-                                text-white
-                                my-4
-                            "
-                        >Get Started</button>
-                    </div>
-                </a>
-            </div>
-            <div class="flex items-center justify-center">
-                <div class="bg-indigo-50 dark:bg-indigo-900 border-2
-                    border-indigo-800 inline-flex p-6 rounded-full
-                    items-center gap-3 mt-2"
-                >
-                    <p>Have an account?</p>
-                    <a href="{login_route}">
-                        <button
-                            class="border-2 border-slate-800 rounded p-2 text-nowrap"
-                        >Log In</button>
+                        count the calories you actually eat.
+                    </span>
+                </h2>
+                <a href="{init_anon}">
+                    <button
+                        class="
+                            bg-gradient-to-tr
+                            from-blue-700
+                            to-indigo-700
+                            from-blue-100
+                            to-indigo-200
+                            p-2
+                            rounded
+                            shadow-md
+                            hover:shadow-sm
+                            dark:shadow-purple-200
+                            text-xl
+                            font-extrabold
+                            text-white
+                            my-4
+                        "
+                    >Get Started</button>
                     </a>
                 </div>
+            </main>
+            <div
+                class="bg-gradient-to-tr dark:from-emerald-900
+                dark:via-indigo-1000 dark:to-indigo-1000"
+            >
+                <div
+                    class="text-teal-50 dark:text-slate-200 grid
+                    md:grid-cols-3 gap-12 sm:gap-24 justfiy-center p-12"
+                >
+                    <div
+                        class="bg-blue-800 rounded p-2 inline-block my-2
+                        flex items-center text-lg font-semibold text-center"
+                    >
+                        Bean Count is an AI-powered  calorie counter, making
+                        calorie counting easy, effortless, and fun!
+                    </div>
+                    <div
+                        class="bg-indigo-800 rounded p-2 inline-block my-2
+                        flex items-center text-lg font-semibold text-center"
+                    >
+                        Use natural language to ask about food, and get back
+                        quick calorie estimates.
+                    </div>
+                    <div
+                        class="bg-purple-800 rounded p-2 inline-block my-2
+                        flex items-center text-lg font-semibold text-center"
+                    >
+                        Set calorie goals, keep track of macroos, and hold
+                        yourself accountable.
+                    </div>
+                </div>
+                <div class="flex items-center justify-center my-12">
+                    <a href="{init_anon}">
+                        <div
+                            class="bg-gradient-to-tr from-blue-300
+                            to-indigo-300 rounded-full p-12 text-black"
+                        >
+                            <h3 class="text-lg font-semibold">Try it Out!</h3>
+                            <p class="text-sm">
+                                Click here to jump right in and start using
+                                Bean Count. Zero-commitment sign-up & 30 days
+                                free, on us!
+                            </p>
+                            <button
+                                class="
+                                    bg-gradient-to-tr
+                                    from-blue-700
+                                    to-indigo-700
+                                    from-blue-100
+                                    to-indigo-200
+                                    p-2
+                                    rounded
+                                    shadow-md
+                                    hover:shadow-sm
+                                    dark:shadow-purple-200
+                                    text-xl
+                                    font-extrabold
+                                    text-white
+                                    my-4
+                                "
+                            >Get Started</button>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex items-center justify-center">
+                    <div class="bg-indigo-50 dark:bg-indigo-900 border-2
+                        border-indigo-800 inline-flex p-6 rounded-full
+                        items-center gap-3 mt-2 dark:text-slate-200"
+                    >
+                        <p>Have an account?</p>
+                        <a href="{login_route}">
+                            <button
+                                class="border-2 border-slate-800 rounded p-2
+                                text-nowrap"
+                            >Log In</button>
+                        </a>
+                    </div>
+                </div>
+            {footer}
             </div>
             "#
         )
