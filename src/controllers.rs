@@ -93,6 +93,16 @@ fn png_controller(bytes: &'static [u8]) -> impl IntoResponse {
     (headers, bytes)
 }
 
+fn webp_controller(bytes: &'static [u8]) -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("image/webp")
+            .expect("We can insert image/webp header"),
+    );
+    (headers, bytes)
+}
+
 pub async fn get_tiny_icon() -> impl IntoResponse {
     png_controller(include_bytes!("./static/icon-16x16.png"))
 }
@@ -123,6 +133,10 @@ pub async fn get_maskable_large_icon() -> impl IntoResponse {
 
 pub async fn get_apple_icon() -> impl IntoResponse {
     png_controller(include_bytes!("./static/apple-touch-icon.png"))
+}
+
+pub async fn get_og_image() -> impl IntoResponse {
+    webp_controller(include_bytes!("./static/og_image.webp"))
 }
 
 pub async fn get_manifest() -> impl IntoResponse {
