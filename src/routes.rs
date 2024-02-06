@@ -67,7 +67,6 @@ pub enum Route {
     StaticMaskableMediumIcon,
     StaticMaskableSmallIcon,
     StaticMediumIcon,
-    StaticOgImage,
     StaticSmallIcon,
     StaticTinyIcon,
     StripeWehhook,
@@ -142,7 +141,6 @@ impl Route {
                 "/static/maskable-small-icon".into()
             }
             Self::StaticMediumIcon => "/static/icon".into(),
-            Self::StaticOgImage => "/static/og-image".into(),
             Self::StaticSmallIcon => "/static/xs-icon".into(),
             Self::StaticTinyIcon => "/static/xxs-icon".into(),
             Self::StripeWehhook => "/stripe-webhook".into(),
@@ -309,10 +307,6 @@ fn get_public_routes() -> Router<models::AppState> {
         .route(
             &Route::StaticMediumIcon.as_string(),
             get(controllers::get_medium_icon),
-        )
-        .route(
-            &Route::StaticOgImage.as_string(),
-            get(controllers::get_og_image),
         )
         .route(
             &Route::StaticSmallIcon.as_string(),

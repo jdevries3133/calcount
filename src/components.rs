@@ -76,7 +76,6 @@ impl Component for Page<'_> {
         let htmx = Route::Htmx;
         let apple_icon = Route::StaticAppleIcon;
         let manifest = Route::StaticManifest;
-        let og_image = Route::StaticOgImage;
         format!(
             r##"<!DOCTYPE html>
             <html lang="en">
@@ -85,11 +84,6 @@ impl Component for Page<'_> {
                     <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
                     <meta name="theme-color" content="#BBF7D0"/>
                     <meta name="description" content="ChatGPT-powered calorie counter" />
-                    <meta property="og:title" content="beancount.bot" />
-                    <meta property="og:description" content="ChatGPT-powered calorie counter" />
-                    <meta property="og:image" content="https://beancount.bot{og_image}" />
-                    <meta property="og:image:width" content="1190">
-                    <meta property="og:image:height" content="603">
                     <title>{title}</title>
                     <style>
                         {tailwind}
