@@ -29,7 +29,7 @@ live-reload. To run the typical dev scripts, stop the app and run the dev rule:
 make dev
 ```
 
-There are very few unit tests, but you can run them with:
+You can run unit-tests with cargo:
 
 ```
 cargo test
@@ -49,13 +49,6 @@ Additionally, there is a rule for running CI just like it runs in CI!
 make check
 ```
 
-You will notice that there is a pre-push hook in `./githooks` which calls this
-Make rule. I recommend running `git config --local core.hooksPath githooks` to
-setup githooks for your local repo, which will run the checks locally before you
-push, giving some faster feedback. This is only truly crucial if you're given
-permission to push directly to the main branch, though, since CI will run these
-same checks for pull requests anyway.
-
 # Other Database Options
 
 Of course, the application will happily converse with any PostgreSQL instance.
@@ -67,3 +60,18 @@ other handy config levers.
 Note that the application only uses `DATABASE_URL`. The rest of the `POSTGRES_*`
 environment variables are only used in the Makefile and passed to the PostgreSQL
 Docker container during startup.
+
+# Contributing & License
+
+Keep in mind the notes in [the contribution guide](../CONTRIBUTING.md), and
+[license](../LICENSE). This project is open source but _not_ free, but the tech
+stack behind the website is free and open source, available in the [PHAT stack
+repo](https://github.com/jdevries3133/phat_stack).
+
+In general, my intent is to open source any components of this project in the
+tech stack / infrastructure layer, so if there are some new shiny goodies in
+this repository that are missing from PHAT stack, feel free to open a PR into
+PHAT stack to port them over.
+
+The primary intent of open sourcing this repository is for it to be a learning
+resource, and for transparency for our users.
