@@ -231,7 +231,7 @@ impl Component for Home {
                         class="bg-purple-800 rounded p-2 inline-block my-2
                         flex items-center text-lg font-semibold text-center"
                     >
-                        Set calorie goals, keep track of macroos, and hold
+                        Set calorie goals, keep track of macros, and hold
                         yourself accountable.
                     </div>
                 </div>
