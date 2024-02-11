@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: cargo cache
         uses: actions/cache@v3
         with:
@@ -25,7 +25,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: ${{ hashFiles('pnpm-lock.yaml') }}
+          # `node20` is just to bust the cache as we move to node v20, since
+          # the pnpm-lock did not change
+          key: node20-${{ hashFiles('pnpm-lock.yaml') }}
       - name: make check
         run: make check
 
@@ -81,7 +83,7 @@ jobs:
 
       - name: perform deployment
         env:
-          # credentials are used for terraform state bucket
+          # AWS credentials are used for terraform state bucket
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
