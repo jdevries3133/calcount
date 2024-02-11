@@ -25,9 +25,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: node_modules
-          # `node20` is just to bust the cache as we move to node v20, since
-          # the pnpm-lock did not change
-          key: node20-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ hashFiles('pnpm-lock.yaml') }}
       - name: make check
         run: make check
 
@@ -38,6 +36,9 @@ jobs:
     environment: Kubernetes
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: cargo cache
         uses: actions/cache@v3
         with:
