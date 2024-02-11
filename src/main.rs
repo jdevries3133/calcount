@@ -14,6 +14,7 @@ mod controllers;
 mod count_chat;
 mod db_ops;
 mod errors;
+mod html_sanitize;
 mod htmx;
 mod legal;
 mod metrics;

@@ -4,6 +4,7 @@ pub use crate::{
     auth::Session,
     components::{Component, Page, PageContainer},
     errors::ServerError,
+    html_sanitize::encode_quotes,
     models::{AppState, Id},
     preferences::UserPreference,
     routes::Route,

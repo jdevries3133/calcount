@@ -148,7 +148,8 @@ pub struct ChatUI<'a> {
 impl Component for ChatUI<'_> {
     fn render(&self) -> String {
         let handler = &self.post_request_handler;
-        let prompt = clean(self.prefill_prompt.unwrap_or_default());
+        let prompt =
+            encode_quotes(&clean(self.prefill_prompt.unwrap_or_default()));
         let children = self.children.map_or("".to_string(), |c| c.render());
         format!(
             r#"
@@ -232,7 +233,7 @@ impl Component for NewMealOptions<'_> {
         let carbs = self.info.carbohydrates_grams;
         let fat = self.info.fat_grams;
         let created_at = self.info.created_at;
-        let meal_name = clean(&self.info.meal_name);
+        let meal_name = encode_quotes(&clean(&self.info.meal_name));
         format!(
             r##"
             <form hx-post="{prev_day_route}" hx-target="#cal-chat-container">
@@ -494,7 +495,7 @@ impl Component for CannotParse<'_> {
         let retry_route = &self.retry_route;
         let parser_msg = clean(self.parser_msg);
         let llm_response = clean(self.llm_response);
-        let prompt = clean(self.original_user_prompt);
+        let prompt = encode_quotes(&clean(self.original_user_prompt));
         format!(
             r##"
             <div class="prose max-w-[400px] dark:text-slate-200">
@@ -778,7 +779,7 @@ impl Component for PrevDayFormActions<'_> {
         let save_meal = Route::SaveMeal;
         let created_at = self.info.created_at.format("%d/%m/%Y");
         let script = include_str!("./custom_date_widget_helper.js");
-        let meal_name = clean(&self.info.meal_name);
+        let meal_name = encode_quotes(&clean(&self.info.meal_name));
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
