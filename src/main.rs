@@ -25,7 +25,6 @@ mod prelude;
 mod routes;
 mod smtp;
 mod stripe;
-mod timeutils;
 
 #[tokio::main]
 async fn main() -> Result<()> {

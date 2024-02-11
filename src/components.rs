@@ -6,7 +6,7 @@
 // are and clippy knows more than me, maybe not.
 #![allow(clippy::let_and_return)]
 
-use super::{auth, count_chat, metrics, models, prelude::*, timeutils};
+use super::{auth, chrono_utils, count_chat, metrics, models, prelude::*};
 use ammonia::clean;
 use chrono::{DateTime, Utc};
 use chrono_tz::Tz;
@@ -386,7 +386,7 @@ impl Component for ProfileChip<'_> {
         let trial_warning = if let SubscriptionTypes::FreeTrial(duration) =
             self.subscription_type
         {
-            let cnt_remaining_days = timeutils::as_days(
+            let cnt_remaining_days = chrono_utils::as_days(
                 duration
                     .checked_sub(
                         Utc::now()

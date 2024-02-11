@@ -11,3 +11,7 @@ pub fn is_before_today(datetime: &DateTime<Utc>, user_timezone: Tz) -> bool {
         .date_naive();
     date <= yesterday
 }
+
+pub fn as_days(duration: Duration) -> u64 {
+    duration.as_secs() / 24 / 60 / 60
+}
