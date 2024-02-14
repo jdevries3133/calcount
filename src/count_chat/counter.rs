@@ -485,7 +485,6 @@ impl Component for MealSet<'_> {
 }
 
 pub struct CannotParse<'a> {
-    pub parser_msg: &'a str,
     pub llm_response: &'a str,
     pub original_user_prompt: &'a str,
     pub retry_route: Route,
@@ -493,16 +492,12 @@ pub struct CannotParse<'a> {
 impl Component for CannotParse<'_> {
     fn render(&self) -> String {
         let retry_route = &self.retry_route;
-        let parser_msg = clean(self.parser_msg);
         let llm_response = clean(self.llm_response);
         let prompt = encode_quotes(&clean(self.original_user_prompt));
         format!(
             r##"
             <div class="prose max-w-[400px] dark:text-slate-200">
-                <p><b>LLM response:</b> {llm_response}</p>
-                <p
-                    class="text-sm"
-                ><b>Error parsing LLM Response:</b> {parser_msg}</p>
+                <p><b>AI response:</b> {llm_response}</p>
                 <form hx-post="{retry_route}" hx-target="#cal-chat-container">
                     <input type="hidden" value="{prompt}" name="meal_name" />
                     <button
@@ -557,7 +552,13 @@ pub struct ChatPayload {
     pub chat: String,
 }
 
-pub const SYSTEM_MSG: &str = "I am overweight, and I've been trying to lose weight for a long time. My biggest problem is counting calories, and understanding the macronutrients of the food I eat. As we both know, nutrition is a somewhat inexact science. A close answer to questions about calories has a lot of value to me, and as long as many answers over time are roughly correct on average, I can finally make progress in my weight loss journey. When I ask you about the food I eat, please provide a concise and concrete estimate of the amount of calories and macronutrient breakdown of the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat to ensure that I can parse your message using some simple regular expressions. Do not, for example, identify the macros of a single portion and then provide the exact macros at the end. I'll probably get confused and ignore the second set of macros. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
+pub const SYSTEM_MSG: &str = "Act as an experienced nutritionist who can provide accurate calorie and macronutrient estimates. Your job is to give an approximation of calories and macros for foods that your client asks about. Do not hesitate to provide estimates for alcoholic beverages.
+
+If the your client's query is extremely vague and you feel that you cannot provide an accurate calorie estimate, please ask for more details. In the case of severe ambiguity, give the most helpful response you can, and coach your client to give you a more descriptive query. If a client gives an ad-hoc measurement like, \"a handful,\" or \"a spoon full,\" or \"a small bowl,\" please always accept these measurements and convert them into exact measurements yourself. Keep in mind, if you hesitate to provide an estimate, your client may give up and avoid counting the calories of what they're eating. This can have serious adverse health effects, so only ask a follow-up question if your client has been extremely ambiguous, and it is impossible to provide a reasonable estimate.
+
+Sometimes, users would like to manually add items. They may say, \"1200 calorie dinner.\" In this case, please just echo back, \"1200 calories, 0g of protein, 0g of fat, and 0g of carbohydrates.\" This is important to facilitate manually adding items. 
+
+To complete this task, respond with calorie estimates and macronutrient estimates for the food I describe. A macronutrient breakdown is the amount of protein, carbohydrates, and fat, each measured in grams. Always provide exactly one number each for calories, grams of protein, grams of carbohydrates, and grams of fat so that your response is easy to parse. Please match this style in your response: \"The food you asked about has {} calories, {}g of protein, {}g of fat, and {}g of carbohydrates.";
 
 pub async fn handle_chat(
     State(AppState { db }): State<AppState>,
@@ -601,16 +602,12 @@ pub async fn handle_chat(
             show_ai_warning: true,
         }
         .render()),
-        ParserResult::FollowUp(msg) => {
-            let msg = clean(&msg.parsing_error);
-            Ok(CannotParse {
-                parser_msg: &msg,
-                llm_response: &response.message,
-                original_user_prompt: &chat,
-                retry_route: Route::ChatForm,
-            }
-            .render())
+        ParserResult::FollowUp(_) => Ok(CannotParse {
+            llm_response: &response.message,
+            original_user_prompt: &chat,
+            retry_route: Route::ChatForm,
         }
+        .render()),
     }
 }
 
