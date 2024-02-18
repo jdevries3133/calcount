@@ -2,7 +2,7 @@
 use super::crypto;
 use crate::{
     config,
-    db_ops::{DbModel, GetUserQuery, UserIdentifer},
+    db_ops::{GetModel, GetUserQuery, UserIdentifer},
     errors::ServerError,
     models, preferences,
 };

@@ -1,7 +1,7 @@
 use super::pw;
 use crate::{
     config,
-    db_ops::{DbModel, GetUserQuery},
+    db_ops::{GetModel, GetUserQuery, SaveModel},
     htmx,
     models::{IdCreatedAt, User},
     preferences::save_user_preference,

@@ -3,7 +3,7 @@
 //! authenticating a user with the provided credentials.
 
 use super::{pw, Session};
-use crate::{db_ops, db_ops::DbModel, models};
+use crate::{db_ops, db_ops::GetModel, models};
 use anyhow::{bail, Result};
 use chrono::Utc;
 use sqlx::{postgres::PgPool, query_as};

@@ -2,7 +2,6 @@
 
 use super::{models, stripe};
 use anyhow::Result;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::{
     postgres::{PgPool, PgPoolOptions},
@@ -21,13 +20,15 @@ pub async fn create_pg_pool() -> Result<sqlx::Pool<sqlx::Postgres>> {
         .await?)
 }
 
-#[async_trait]
-pub trait DbModel<GetQuery>: Sync + Send {
+pub trait GetModel<GetQuery>: Send + Sync {
     /// Get exactly one object from the database, matching the query. WIll
     /// return an error variant if the item does not exist.
     async fn get(db: &PgPool, query: &GetQuery) -> Result<Self>
     where
         Self: Sized;
+}
+
+pub trait SaveModel: Send + Sync {
     /// Persist the object to the database
     async fn save(&self, db: &PgPool) -> Result<()>;
 }
@@ -63,9 +64,8 @@ fn map_into_user(row: Qres) -> models::User {
     }
 }
 
-#[async_trait]
-impl DbModel<GetUserQuery<'_>> for models::User {
-    async fn get(db: &PgPool, query: &GetUserQuery) -> Result<Self> {
+impl<'a> GetModel<GetUserQuery<'a>> for models::User {
+    async fn get(db: &PgPool, query: &GetUserQuery<'a>) -> Result<Self> {
         Ok(match query.identifier {
             UserIdentifer::Id(id) => {
                 query_as!(
@@ -105,6 +105,9 @@ impl DbModel<GetUserQuery<'_>> for models::User {
             }
         })
     }
+}
+
+impl SaveModel for models::User {
     async fn save(&self, db: &PgPool) -> Result<()> {
         query!(
             "update users set
