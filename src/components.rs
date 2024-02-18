@@ -72,6 +72,8 @@ htmx.on('htmx:responseError', () => {
     el.classList.add("p-2");
     el.classList.add("rounded");
     el.classList.add("w-full");
+    el.classList.add("sticky");
+    el.classList.add("top-0");
     el.classList.add("dark:text-black");
     document.body.insertBefore(el, document.body.firstChild);
     el.addEventListener('click', () => {
