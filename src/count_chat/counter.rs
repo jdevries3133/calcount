@@ -198,8 +198,9 @@ impl Component for ChatUI<'_> {
                                     placeholder="I am eating..."
                                     value="{prompt}"
                                     required
+                                    tabindex="1"
                                 />
-                                <button class="
+                                <button tabindex="2" class="
                                     bg-green-100
                                     dark:bg-green-800
                                     dark:hover:bg-green-700
@@ -245,12 +246,14 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{created_at}" name="created_at" />
                 <button
                     class="bg-indigo-100 p-1 rounded shadow hover:bg-indigo-200"
+                    tabindex="3"
                 >Set Date</button>
             </form>
             <form hx-post="{retry_route}" hx-target="#cal-chat-container">
                 <input type="hidden" value="{meal_name}" name="meal_name" />
                 <button
                     class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
+                    tabindex="2"
                 >Try Again</button>
             </form>
             <form hx-post="{save_route}" hx-target="#cal-chat-container">
@@ -262,7 +265,13 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{created_at}" name="created_at" />
                 <button
                     class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
+                    tabindex="1"
+                    id="add-meal"
                 >Add</button>
+                <script>
+                    // place focus on the add-meal button (above)
+                    document.getElementById('add-meal').focus()
+                </script>
             </form>
             "##
         )

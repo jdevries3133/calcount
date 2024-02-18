@@ -449,7 +449,7 @@ impl Component for ProfileChip<'_> {
             let register = Route::Register;
             format!(
                 r#"
-                <a class="inline" href="{register}">
+                <a class="inline" href="{register}" tabindex="-1">
                     <button
                         style="margin-left: auto"
                         class="text-xs p-1 bg-green-100 hover:bg-green-200
@@ -464,7 +464,7 @@ impl Component for ProfileChip<'_> {
             let logout = Route::Logout;
             format!(
                 r#"
-                <a class="inline" href="{logout}">
+                <a class="inline" href="{logout}" tabindex="-1">
                     <button
                         style="margin-left: auto"
                         class="text-xs p-1 bg-red-100 hover:bg-red-200
@@ -482,7 +482,7 @@ impl Component for ProfileChip<'_> {
                 <div class="flex flex-wrap mb-1 gap-2">
                     <p class="font-bold">Hi, {username}!</p>
                     {acct_action}
-                    <a class="inline" href="{preferences}">
+                    <a class="inline" href="{preferences}" tabindex="-1">
                         <button
                             style="margin-left: auto"
                             class="text-xs p-1 bg-cyan-100 hover:bg-cyan-200
