@@ -878,3 +878,97 @@ pub async fn prev_day_meal_form(
     }
     .render())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    /// If an anon user has less than 3 meals, they won't get a warning.
+    #[test]
+    fn test_no_anon_warning_for_inactive_anon() {
+        let mock_meals = &vec![
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 1,
+                    protein_grams: 1,
+                    carbohydrates_grams: 1,
+                    fat_grams: 1,
+                    meal_name: "Snack".into(),
+                    created_at: Utc::now(),
+                },
+            },
+            Meal {
+                id: 2,
+                info: MealInfo {
+                    calories: 1,
+                    protein_grams: 1,
+                    carbohydrates_grams: 1,
+                    fat_grams: 1,
+                    meal_name: "Snack".into(),
+                    created_at: Utc::now(),
+                },
+            },
+        ];
+        let ui = Chat {
+            meals: &mock_meals,
+            prompt: None,
+            user_timezone: Tz::UTC,
+            next_page: 1,
+            post_request_handler: Route::HandleChat,
+            is_anonymous: true,
+        }
+        .render();
+        assert!(!ui.contains("Anon Warning"));
+    }
+
+    /// Once an anon user has more than 3 meals, they'll see the anon warning.
+    #[test]
+    fn test_no_anon_warning_for_active_anon() {
+        let mock_meals = &vec![
+            Meal {
+                id: 1,
+                info: MealInfo {
+                    calories: 1,
+                    protein_grams: 1,
+                    carbohydrates_grams: 1,
+                    fat_grams: 1,
+                    meal_name: "Snack".into(),
+                    created_at: Utc::now(),
+                },
+            },
+            Meal {
+                id: 2,
+                info: MealInfo {
+                    calories: 1,
+                    protein_grams: 1,
+                    carbohydrates_grams: 1,
+                    fat_grams: 1,
+                    meal_name: "Snack".into(),
+                    created_at: Utc::now(),
+                },
+            },
+            Meal {
+                id: 3,
+                info: MealInfo {
+                    calories: 1,
+                    protein_grams: 1,
+                    carbohydrates_grams: 1,
+                    fat_grams: 1,
+                    meal_name: "Snack".into(),
+                    created_at: Utc::now(),
+                },
+            },
+        ];
+        let ui = Chat {
+            meals: &mock_meals,
+            prompt: None,
+            user_timezone: Tz::UTC,
+            next_page: 1,
+            post_request_handler: Route::HandleChat,
+            is_anonymous: true,
+        }
+        .render();
+        assert!(ui.contains("Anon Warning"));
+    }
+}
