@@ -1,12 +1,18 @@
 use super::{pw::hash_new, register::create_user};
-use crate::{config, htmx, prelude::*};
+use crate::{config, htmx, preferences::save_user_preference, prelude::*};
 use chrono::Days;
 use regex::Regex;
 use uuid::Uuid;
 
+#[derive(Deserialize)]
+pub struct AnonForm {
+    timezone: Tz,
+}
+
 pub async fn init_anon(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
+    Form(AnonForm { timezone }): Form<AnonForm>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = match Session::from_headers(&headers) {
         Some(ses) => ses,
@@ -24,6 +30,11 @@ pub async fn init_anon(
                 SubscriptionTypes::FreeTrial(config::FREE_TRIAL_DURATION),
             )
             .await?;
+            let preferences = UserPreference {
+                timezone,
+                ..Default::default()
+            };
+            save_user_preference(&db, user.id, &preferences).await?;
             Session {
                 user_id: user.id,
                 username: user.username,

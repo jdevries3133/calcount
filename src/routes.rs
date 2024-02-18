@@ -246,7 +246,7 @@ fn get_public_routes() -> Router<models::AppState> {
             get(controllers::get_tiny_icon),
         )
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
-        .route(&Route::InitAnon.as_string(), get(auth::init_anon))
+        .route(&Route::InitAnon.as_string(), post(auth::init_anon))
         .route(&Route::Login.as_string(), get(auth::get_login_form))
         .route(&Route::Login.as_string(), post(auth::handle_login))
         .route(&Route::Logout.as_string(), get(auth::logout))

@@ -216,7 +216,14 @@ impl Component for Home {
                         count the calories you actually eat.
                     </span>
                 </h2>
-                <a href="{init_anon}">
+                <form method="POST" action="{init_anon}">
+                    <input type="hidden" value="" name="timezone" id="timezone" />
+                    <script>
+                        (() => {{
+                            const el = document.getElementById("timezone");
+                            el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        }})();
+                    </script>
                     <button
                         class="
                             bg-gradient-to-tr
@@ -235,7 +242,7 @@ impl Component for Home {
                             my-4
                         "
                     >Get Started</button>
-                    </a>
+                    </form>
                 </div>
             </main>
             <div
@@ -269,7 +276,14 @@ impl Component for Home {
                     </div>
                 </div>
                 <div class="flex items-center justify-center my-12">
-                    <a href="{init_anon}">
+                    <form method="POST" action="{init_anon}">
+                        <input type="hidden" value="" name="timezone" id="timezone" />
+                        <script>
+                            (() => {{
+                                const el = document.getElementById("timezone");
+                                el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                            }})();
+                        </script>
                         <div
                             class="bg-gradient-to-tr from-blue-300
                             to-indigo-300 rounded-full p-12 text-black"
@@ -299,7 +313,7 @@ impl Component for Home {
                                 "
                             >Get Started</button>
                         </div>
-                    </a>
+                    </form>
                 </div>
                 <div class="flex items-center justify-center">
                     <div class="bg-indigo-50 dark:bg-indigo-900 border-2
