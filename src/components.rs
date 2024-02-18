@@ -47,6 +47,9 @@ const LIVE_RELOAD_SCRIPT: &str = r#"<script>
     })();
 </script>"#;
 
+#[cfg(not(feature = "live_reload"))]
+const LIVE_RELOAD_SCRIPT: &str = "";
+
 const HTMX_ERROR_HANDLER: &str = r#"<script>
 function makeId(length) {
     let result = '';
@@ -76,9 +79,6 @@ htmx.on('htmx:responseError', () => {
     });
 });
 </script>"#;
-
-#[cfg(not(feature = "live_reload"))]
-const LIVE_RELOAD_SCRIPT: &str = "";
 
 pub trait Component {
     /// Render the component to a HTML string. By convention, the
