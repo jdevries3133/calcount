@@ -354,6 +354,7 @@ impl Component for UserHome<'_> {
             prompt: None,
             next_page: 1,
             post_request_handler: Route::HandleChat,
+            is_anonymous: auth::is_anon(&self.user.username),
         }
         .render();
         format!(
@@ -589,6 +590,41 @@ impl Component for AboutPage {
                         jdevries3133@gmail.com
                     </a>.
                 </p>
+            </div>
+            "#
+        )
+    }
+}
+
+pub struct AnonWarning;
+impl Component for AnonWarning {
+    fn render(&self) -> String {
+        let register = Route::Register;
+        format!(
+            r#"
+            <div class="flex items-center justify-center">
+                <a href="{register}">
+                    <div
+                        class="text-black text-xs inline-block bg-yellow-100
+                        p-1 rounded-lg my-2 max-w-prose"
+                    >
+                        <h1 class="text-lg font-bold text-center">
+                            Anon Warning
+                        </h1>
+                        <p class="text-base">
+                            You're still registered as an anonymous user, which
+                            means that you haven't shared a username, email, or
+                            password. If you reset your cookies, move to a
+                            different device, or loose your device, your account
+                            cannot be recovered! Click here to register your
+                            account so that you can create a password, login on
+                            multiple devices, or use your email to recover your
+                            account in case you forget your password.
+                        </p>
+                        <p class="text-lg">Click here to register!</p
+                        >
+                    </div>
+                </a>
             </div>
             "#
         )

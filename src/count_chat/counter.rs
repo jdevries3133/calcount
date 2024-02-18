@@ -2,7 +2,10 @@
 //! are colocated here).
 
 use super::{llm_parse_response::ParserResult, openai::OpenAI};
-use crate::{chrono_utils::is_before_today, client_events, config, prelude::*};
+use crate::{
+    auth::is_anon, chrono_utils::is_before_today, client_events,
+    components::AnonWarning, config, prelude::*,
+};
 use axum::extract::Query;
 use futures::join;
 use std::default::Default;
@@ -50,6 +53,9 @@ pub struct Chat<'a> {
     pub user_timezone: Tz,
     pub next_page: i64,
     pub post_request_handler: Route,
+    /// If set, we'll render a banner nagging the user to register, and
+    /// warning them of their tenuous state!
+    pub is_anonymous: bool,
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
@@ -58,12 +64,18 @@ impl Component for Chat<'_> {
             user_timezone: self.user_timezone,
             next_page: self.next_page,
         };
-        ChatUI {
+        let chat = ChatUI {
             post_request_handler: &self.post_request_handler,
             prefill_prompt: self.prompt,
             children: Some(&prev_meals),
         }
-        .render()
+        .render();
+        let anon_warning = if self.is_anonymous && self.meals.len() >= 3 {
+            AnonWarning {}.render()
+        } else {
+            "".into()
+        };
+        format!("{chat}{anon_warning}")
     }
 }
 
@@ -649,6 +661,7 @@ pub async fn chat_form(
         },
         next_page: page + 1,
         post_request_handler: Route::HandleChat,
+        is_anonymous: is_anon(&session.username),
     };
     let content = chat.render();
     Ok(content)
@@ -750,6 +763,7 @@ pub async fn handle_save_meal(
             prompt: None,
             next_page: 1,
             post_request_handler: Route::HandleChat,
+            is_anonymous: is_anon(&session.username),
         }
         .render(),
     ))
