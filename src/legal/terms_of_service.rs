@@ -26,7 +26,7 @@ impl Component for Tos {
             <p>
               Bean Count provides a calorie counter tool that utilizes ChatGPT
               to estimate calorie counts for various foods. Users pay a
-              monthly subscription fee of $5 to access and use this service.
+              monthly subscription fee of $1 to access and use this service.
             </p>
 
             <h2>3. User Accounts</h2>
@@ -39,7 +39,7 @@ impl Component for Tos {
 
             <h2>4. Payment and Subscription</h2>
             <p>
-              Users are required to pay a monthly subscription fee of $5 to
+              Users are required to pay a monthly subscription fee of $1 to
               access the calorie counter services. Payments are processed
               securely through Stripe. Subscription fees are non-refundable.
             </p>

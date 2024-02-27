@@ -10,7 +10,7 @@ pub enum SubscriptionTypes {
     /// product, and see a message that they need to go to the stripe customer
     /// portal to manage their subscription.
     Initializing,
-    /// This is the $5/mo plan I intend to rollout. No one will have this
+    /// This is the $1/mo plan I intend to rollout. No one will have this
     /// until the Stripe integration goes live in production.
     Basic,
     /// This is friends and family (and me) -- free in perpetuity.

@@ -30,4 +30,4 @@ pub const FREE_TRIAL_DURATION: Duration =
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 
 #[cfg(not(feature = "use_stripe_test_instance"))]
-pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OVybrBhmccJFhTPiLUXZm1P";
+pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OoJ2oBhmccJFhTPaTT6PdEp";
