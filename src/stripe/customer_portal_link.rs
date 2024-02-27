@@ -48,6 +48,6 @@ pub async fn redirect_to_billing_portal(
         let url = response.json::<BillingPortalResponse>().await?.url;
         Ok(Redirect::to(&url))
     } else {
-        Err(Error::msg("request to create registration session failed").into())
+        Err(Error::msg("request to create registration session failed (redirect to billing portal)").into())
     }
 }

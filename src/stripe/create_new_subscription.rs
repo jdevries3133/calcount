@@ -71,7 +71,7 @@ pub async fn get_basic_plan_checkout_session(
     if response.status().is_success() {
         Ok(response.json::<BillingPortalResponse>().await?.url)
     } else {
-        Err(Error::msg("request to create registration session failed"))
+        Err(Error::msg("request to create registration session failed (get basic plan checkout)"))
     }
 }
 
