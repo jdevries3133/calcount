@@ -136,98 +136,110 @@ impl Component for UserPreferenceForm<'_> {
                         id="timezone"
                         name="timezone"
                     >{options}</select>
-                    <label for="caloric_intake_goal">Caloric Intake Goal</label>
-                    <p class="text-xs">
-                        This should be based on your Total Daily Energy
-                        Expenditure (TDEE), and your goals for weight loss,
-                        maintainance, or gain. Use an online resource like
-                        <a class="link" href="https://tdeecalculator.net/">the
-                        TDEE calculator</a> to calculate the perfect calorie
-                        goal for you.
-                    </p>
-                    <p class="text-xs">
-                        Note: this is an optional setting. If you delete it,
-                        the app will feel more like calorie journaling, which
-                        can be a nice way to use the app.
-                    </p>
-                    {intake_goal_err}
-                    <input
-                        type="number"
-                        value="{goal}"
-                        name="caloric_intake_goal"
-                        id="caloric_intake_goal"
-                    />
-                    <label for="calorie_balancing_enabled">
-                        Enable calorie balancing
-                    </label>
-                    <p class="text-xs">
-                        If enabled, excess or defecit calories from previous
-                        days will be applied to future days. Combined with
-                        accurate calorie counting, this can help you ensure
-                        that if you eat too many or too few calories on one
-                        day, you ultimately "catch-up," and continuously
-                        work towards your calorie goal.
-                    </p>
-                    <div
-                        class="bg-yellow-100 dark:text-black rounded p-1 prose
-                        text-black"
-                    >
+                    <div class="rounded my-3 p-3 border-2 border-black">
+                        <label for="caloric_intake_goal">Caloric Intake Goal</label>
                         <p class="text-xs">
-                            Warning: if you have a history of <a class="link"
-                            href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
-                            >any eating disorder,</a> please consult a dietician
-                            before using this product in general, but especially
-                            related to the use of this feature, which includes a
-                            risk of worsening existing ED conditions.
+                            (Optional setting) use an online resource like
+                            <a class="link" href="https://tdeecalculator.net/">the
+                            TDEE calculator</a> to calculate the perfect calorie
+                            goal for you.
                         </p>
-                        <p class="text-xs">
-                            To avoid receiving unhealthy calorie goals after
-                            unhealthy eating episodes, consider setting a
-                            minimum and maximum calorie limit which is close
-                            to your overall calorie goal, so that you never
-                            receive unhealthy calorie goals.
-                        </p>
-                        <p class="text-xs">
-                            I am particularly concerned about building this
-                            site to support healthy eating. Please do not
-                            hesitate to reach out and share any feedback
-                            on this application with me
-                            (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>).
-                        </p>
+                        {intake_goal_err}
+                        <input
+                            type="number"
+                            value="{goal}"
+                            name="caloric_intake_goal"
+                            id="caloric_intake_goal"
+                        />
                     </div>
-                    {checkbox}
-                    <label for="calorie_balancing_min_calories">
-                        Minimum daily calorie limit
-                    </label>
-                    <p class="text-xs">
-                        If this is blank, your daily calorie goal can go all
-                        the way down to zero if you've counted excess calories
-                        in previous days which are greater than your daily
-                        calorie goal.
-                    </p>
-                    {min_cals_err}
-                    <input
-                        type="number"
-                        id="calorie_balancing_min_calories"
-                        name="calorie_balancing_min_calories"
-                        value="{min_calories}"
-                    />
-                    <label for="calorie_balancing_max_calories">
-                        Maximum daily calorie limit
-                    </label>
-                    <p class="text-xs">
-                        If this is blank, your daily calorie goal will have no
-                        upper limit, and continue to increase based on
-                        calorie defecits in previous days.
-                    </p>
-                    {max_cals_err}
-                    <input
-                        type="number"
-                        id="calorie_balancing_max_calories"
-                        name="calorie_balancing_max_calories"
-                        value="{max_calories}"
-                    />
-                    <button class="bg-blue-200 text-black rounded">Save</button>
+                    <div class="rounded my-3 p-3 border-2 border-black">
+                        <label for="calorie_balancing_enabled">
+                            Enable calorie balancing
+                        </label>
+                        <details>
+                            <summary class="text-xs">Learn more</summary>
+                            <p class="text-xs">
+                                If enabled, excess or defecit calories from previous
+                                days will be applied to future days. Combined with
+                                accurate calorie counting, this can help you ensure
+                                that if you eat too many or too few calories on one
+                                day, you ultimately "catch-up," and continuously
+                                work towards your calorie goal.
+                            </p>
+                            <div
+                                class="bg-yellow-100 dark:text-black rounded p-1 prose
+                                text-black mt-1"
+                            >
+                                <p class="text-xs">
+                                    Warning: if you have a history of <a class="link"
+                                    href="https://www.mayoclinic.org/diseases-conditions/eating-disorders/symptoms-causes/syc-20353603"
+                                    >any eating disorder,</a> please consult a dietician
+                                    before using this product in general, but especially
+                                    related to the use of this feature, which includes a
+                                    risk of worsening existing ED conditions.
+                                </p>
+                                <p class="text-xs">
+                                    To avoid receiving unhealthy calorie goals after
+                                    unhealthy eating episodes, consider setting a
+                                    minimum and maximum calorie limit which is close
+                                    to your overall calorie goal, so that you never
+                                    receive unhealthy calorie goals.
+                                </p>
+                                <p class="text-xs">
+                                    I am particularly concerned about building this
+                                    site to support healthy eating. Please do not
+                                    hesitate to reach out and share any feedback
+                                    on this application with me
+                                    (<a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>).
+                                </p>
+                            </div>
+                        </details>
+                        {checkbox}
+                    </div>
+                    <div class="rounded my-3 p-3 border-2 border-black">
+                        <h2 class="text-lg">Calorie Limits</h2>
+                        <details class="text-xs">
+                            <summary>Learn more</summary>
+                            <p>
+                                Minimum and maximum limits apply to the calorie
+                                goals that we set for you via calorie balancing.
+                                We will never set a goal for you which is outside
+                                your limits, and instead, we'll apply any excess
+                                calories to a later date, allowing you to more
+                                gently work back towards your calorie counting goal.
+                            </p>
+                        </details>
+                        <label class="block" for="calorie_balancing_min_calories">
+                            Minimum daily calorie limit
+                        </label>
+                        {min_cals_err}
+                        <input
+                            type="number"
+                            id="calorie_balancing_min_calories"
+                            name="calorie_balancing_min_calories"
+                            value="{min_calories}"
+                        />
+                        <label class="block" for="calorie_balancing_max_calories">
+                            Maximum daily calorie limit
+                        </label>
+                        {max_cals_err}
+                        <input
+                            type="number"
+                            id="calorie_balancing_max_calories"
+                            name="calorie_balancing_max_calories"
+                            value="{max_calories}"
+                        />
+                    </div>
+                    <button class="
+                        bg-green-100 
+                        hover:bg-green-200 
+                        dark:bg-green-700 
+                        dark:hover:bg-green-600 
+                        rounded 
+                        p-1
+                    ">
+                        Save
+                    </button>
                     <a
                         class="text-center rounded border-slate-800 border-2"
                         href="{home}"
