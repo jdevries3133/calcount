@@ -12,6 +12,7 @@ use axum::{
     response::{IntoResponse, Redirect, Response},
 };
 use chrono::prelude::*;
+use chrono_tz::Tz;
 #[cfg(feature = "stripe")]
 use futures::join;
 #[cfg(feature = "stripe")]
@@ -88,10 +89,11 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
             .signed_duration_since(session.created_at)
             .num_days();
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
-            let path = request.uri().path();
+            let time = Utc::now().with_timezone(&Tz::US__Eastern);
             let method = request.method().as_str();
+            let path = request.uri().path();
             let username = session.username;
-            println!("{method} {path} from {username}");
+            println!("[{time}] {method} {path} from {username}");
             next.run(request).await
         } else {
             (response_headers(), Redirect::to(&Route::Login.to_string()))
@@ -104,9 +106,10 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
 }
 
 pub async fn log<B>(request: Request<B>, next: Next<B>) -> Response {
+    let time = Utc::now().with_timezone(&Tz::US__Eastern);
     let uri = request.uri().path();
     let method = request.method().as_str();
-    println!("{method} {uri} (anonymous)");
+    println!("[{time}] {method} {uri} (anonymous)");
     next.run(request).await
 }
 
