@@ -58,6 +58,7 @@ pub enum Route {
     PreviousDayMeal,
     PrivacyPolicy,
     Register,
+    RobotsTxt,
     Root,
     SaveMeal,
     StaticAppleIcon,
@@ -127,6 +128,7 @@ impl Route {
             Self::PrivacyPolicy => "/privacy".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
+            Self::RobotsTxt => "/robots.txt".into(),
             Self::SaveMeal => "/save-meal".into(),
             Self::StaticAppleIcon => "/static/apple_icon".into(),
             Self::StaticLargeIcon => "/static/large-icon".into(),
@@ -278,6 +280,10 @@ fn get_public_routes() -> Router<models::AppState> {
         .route(
             &Route::Register.as_string(),
             post(auth::handle_registration),
+        )
+        .route(
+            &Route::RobotsTxt.as_string(),
+            get(controllers::get_robots_txt),
         )
         .route(&Route::Root.as_string(), get(controllers::root))
         .route(

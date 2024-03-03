@@ -135,6 +135,16 @@ pub async fn get_manifest() -> impl IntoResponse {
     (headers, include_str!("./static/manifest.json"))
 }
 
+pub async fn get_robots_txt() -> impl IntoResponse {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "Content-Type",
+        HeaderValue::from_str("text/plain")
+            .expect("We can insert text/plain header"),
+    );
+    (headers, "# beep boop\nUser-agent: *\nAllow: /")
+}
+
 pub async fn user_home(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
