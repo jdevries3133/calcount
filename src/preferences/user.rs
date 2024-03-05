@@ -1,13 +1,9 @@
 //! User preferences
 
-use crate::{
-    components::{Page, PageContainer, Saved},
-    prelude::*,
-};
+use crate::{components::Saved, prelude::*};
 use axum::http::Method;
 use chrono_tz::TZ_VARIANTS;
 use serde::Serialize;
-use std::default::Default;
 
 #[derive(Copy, Clone, Serialize, Debug)]
 pub struct UserPreference {

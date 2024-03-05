@@ -1,6 +1,5 @@
-use super::models::{StripeUpdate, SubscriptionTypes};
+use super::models::StripeUpdate;
 use crate::prelude::*;
-use sqlx::PgExecutor;
 
 pub async fn persist_update_op(
     db: impl PgExecutor<'_>,

@@ -7,9 +7,6 @@
 #![allow(clippy::let_and_return)]
 
 use super::{auth, chrono_utils, count_chat, metrics, models, prelude::*};
-use ammonia::clean;
-use chrono::{DateTime, Utc};
-use chrono_tz::Tz;
 
 #[cfg(feature = "live_reload")]
 const LIVE_RELOAD_SCRIPT: &str = r#"<script>

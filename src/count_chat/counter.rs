@@ -8,7 +8,6 @@ use crate::{
 };
 use axum::extract::Query;
 use futures::join;
-use std::default::Default;
 
 const MEAL_PAGE_SIZE: u8 = 50;
 
