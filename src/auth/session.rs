@@ -153,7 +153,6 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{DateTime, Utc};
     use std::env;
 
     fn get_session() -> Session {
