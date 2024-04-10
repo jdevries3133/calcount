@@ -1,7 +1,7 @@
 //! The core calorie counting feature (models, components, and controllers
 //! are colocated here).
 
-use super::{llm_parse_response::ParserResult, openai::OpenAI};
+use super::openai::OpenAI;
 use crate::{
     auth::is_anon, chrono_utils::is_before_today, client_events,
     components::AnonWarning, config, prelude::*,
@@ -612,7 +612,7 @@ pub async fn handle_chat(
 
     let parse_result = MealInfo::parse(&response.message, &chat);
     match parse_result {
-        ParserResult::Ok(meal) => Ok(MealCard {
+        Ok(meal) => Ok(MealCard {
             info: &meal,
             meal_id: None,
             actions: Some(&NewMealOptions { info: &meal }),
@@ -622,7 +622,7 @@ pub async fn handle_chat(
             show_ai_warning: true,
         }
         .render()),
-        ParserResult::FollowUp(_) => Ok(CannotParse {
+        _ => Ok(CannotParse {
             llm_response: &response.message,
             original_user_prompt: &chat,
             retry_route: Route::ChatForm,
