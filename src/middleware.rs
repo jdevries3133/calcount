@@ -116,7 +116,7 @@ pub async fn log<B>(request: Request<B>, next: Next<B>) -> Response {
     let time = Utc::now().with_timezone(&Tz::US__Eastern);
     let uri = request.uri().path();
     let method = request.method().as_str();
-    println!("{time} {method} {uri} from anonymous; uuid = {uuid}");
+    println!("[{time}] {method} {uri} from anonymous; uuid = {uuid}");
     let response = next.run(request).await;
     let time = Utc::now().with_timezone(&Tz::US__Eastern);
     let stat = response.status();
