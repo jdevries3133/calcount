@@ -1,6 +1,6 @@
 use super::{
     auth::Session, balancing, chrono_utils, client_events, components,
-    components::Component, count_chat, errors::ServerError, metrics,
+    components::Component, count_chat, errors::ServerError, htmx, metrics,
     models::AppState, stripe,
 };
 use anyhow::Result;
@@ -70,7 +70,8 @@ pub async fn get_htmx_js() -> impl IntoResponse {
         HeaderValue::from_str("public, max-age=31536000")
             .expect("we can set cache control header"),
     );
-    (headers, include_str!("./htmx-1.9.10.vendor.js"))
+
+    (headers, htmx::get_client_script())
 }
 
 pub async fn get_favicon() -> impl IntoResponse {

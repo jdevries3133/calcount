@@ -47,38 +47,6 @@ const LIVE_RELOAD_SCRIPT: &str = r#"<script>
 #[cfg(not(feature = "live_reload"))]
 const LIVE_RELOAD_SCRIPT: &str = "";
 
-const HTMX_ERROR_HANDLER: &str = r#"<script>
-function makeId(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-}
-
-htmx.on('htmx:responseError', () => {
-    const el = document.createElement('p');
-    const id = makeId(20);
-    el.id = id;
-    el.innerText = "An error occurred. The app developer has been notified, and will look into the issue ASAP. Sorry for the inconvenience! (click to dismiss)";
-    el.classList.add("bg-red-100");
-    el.classList.add("p-2");
-    el.classList.add("rounded");
-    el.classList.add("w-full");
-    el.classList.add("sticky");
-    el.classList.add("top-0");
-    el.classList.add("dark:text-black");
-    document.body.insertBefore(el, document.body.firstChild);
-    el.addEventListener('click', () => {
-        document.getElementById(id).remove();
-    });
-});
-</script>"#;
-
 pub trait Component {
     /// Render the component to a HTML string. By convention, the
     /// implementation should sanitize all string properties at render-time
@@ -120,14 +88,10 @@ impl Component for Page<'_> {
                     {LIVE_RELOAD_SCRIPT}
                     <link rel="manifest" href="{manifest}" />
                     <link rel="apple-touch-icon" href="{apple_icon}">
+                    <script defer src="{htmx}"></script>
                 </head>
                 <body hx-boost="true">
                     {body_html}
-                    <script src="{htmx}"></script>
-                    {HTMX_ERROR_HANDLER}
-                    <script>
-                        htmx.config.defaultSwapStyle = "outerHTML"
-                    </script>
                 </body>
             </html>
             "##,
