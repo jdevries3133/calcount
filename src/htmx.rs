@@ -74,8 +74,10 @@ mod test {
     }
 }
 
-pub fn get_client_script() -> String {
-    let post_htmx = r#"
+pub const fn get_client_script() -> &'static str {
+    concat!(
+        include_str!("./htmx-1.9.12.vendor.js"),
+        r#"
         function makeId(length) {
             let result = '';
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -92,7 +94,7 @@ pub fn get_client_script() -> String {
             const el = document.createElement('p');
             const id = makeId(20);
             el.id = id;
-            el.innerText = "An error occurred. The app developer has been notified, and will look into the issue ASAP. Sorry for the inconvenience! (click to dismiss)";
+            el.innerText = "An error occurred; sorry for the inconvenience! (click to dismiss)";
             el.classList.add("bg-red-100");
             el.classList.add("p-2");
             el.classList.add("rounded");
@@ -100,6 +102,7 @@ pub fn get_client_script() -> String {
             el.classList.add("sticky");
             el.classList.add("top-0");
             el.classList.add("dark:text-black");
+            el.classList.add("cursor-pointer");
             document.body.insertBefore(el, document.body.firstChild);
             el.addEventListener('click', () => {
                 document.getElementById(id).remove();
@@ -107,16 +110,6 @@ pub fn get_client_script() -> String {
         });
 
         htmx.config.defaultSwapStyle = "outerHTML";
-    "#;
-
-    let htmx_vendor = include_str!("./htmx-1.9.10.vendor.js");
-
-    format!(
-        r#"if (!window?.htmx) {{
-            {htmx_vendor}
-            {post_htmx}
-        }} else {{
-            console.log("Skipping HTMX re-init");
-        }}"#
+    "#
     )
 }

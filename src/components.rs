@@ -29,7 +29,7 @@ const LIVE_RELOAD_SCRIPT: &str = r#"<script>
                         // At some point, a compiler error may be preventing
                         // the server from coming back
                         el.innerText = "Reload taking longer than usual; check for a compiler error";
-                    }, 2000);
+                    }, 5000);
                     // Now the server is down, we'll fast-poll it (trying to
                     // get an immediate response), and reload the page when it
                     // comes back
