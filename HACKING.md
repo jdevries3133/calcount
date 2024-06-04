@@ -18,6 +18,8 @@ The following ports also must be free on your machine:
 
 The `env-template` file shows environment variables that we expect. Note that this file is also used for bootstrapping a local PostgreSQL database, so you can keep the DB credentials and connection string the same, and a new DB will be created with those credentials.
 
+Developing against stripe requires setting up an account, creating products, and updating the "price id" to match yours. You can also simply develop without the stripe feature enabled by revising the dev script in the Makefile.
+
 ## Bootstrapping & Developing 
 
 You will need to bootstrap the app and database by performing on offline
