@@ -124,7 +124,9 @@ impl Component for EmailUsed {
             r#"
             <span>
                 An account exists using email address "{email}." Try
-                <a href="{reset_route}">resetting your password.</a>
+                <a class="cursor-pointer underline" href="{reset_route}">
+                    resetting your password.
+                </a>
             </span>
             "#
         )
