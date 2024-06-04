@@ -47,7 +47,7 @@ const LIVE_RELOAD_SCRIPT: &str = r#"<script>
 #[cfg(not(feature = "live_reload"))]
 const LIVE_RELOAD_SCRIPT: &str = "";
 
-pub trait Component {
+pub trait Component: Send + Sync {
     /// Render the component to a HTML string. By convention, the
     /// implementation should sanitize all string properties at render-time
     fn render(&self) -> String;
@@ -636,5 +636,14 @@ impl Component for AnonWarning {
             </div>
             "#
         )
+    }
+}
+
+pub struct Span {
+    pub content: String,
+}
+impl Component for Span {
+    fn render(&self) -> String {
+        format!("<span>{}</span>", clean(&self.content))
     }
 }

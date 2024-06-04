@@ -1,28 +1,46 @@
 use super::pw;
 use crate::{
+    components::Span,
     config,
     db_ops::{GetModel, GetUserQuery, SaveModel},
+    html_sanitize::encode_quotes,
     htmx,
     models::{IdCreatedAt, User},
     preferences::save_user_preference,
     prelude::*,
     stripe,
 };
+use ammonia::clean;
+use axum::http::StatusCode;
+use futures::join;
+use std::default::Default;
 
-pub struct RegisterForm {}
-impl Component for RegisterForm {
+#[derive(Default)]
+pub struct RegisterForm<'a> {
+    username: Option<&'a str>,
+    email: Option<&'a str>,
+    password: Option<&'a str>,
+    errors: Option<&'a dyn Component>,
+}
+impl Component for RegisterForm<'_> {
     fn render(&self) -> String {
         let register_route = Route::Register;
+        let username = encode_quotes(&clean(self.username.unwrap_or_default()));
+        let email = encode_quotes(&clean(self.email.unwrap_or_default()));
+        let password = encode_quotes(&clean(self.password.unwrap_or_default()));
+        let error_msg = self.errors.map_or("".into(), |e| e.render());
         format!(
             r#"
             <form class="flex flex-col gap-2 max-w-md" hx-post="{register_route}">
                 <h1 class="text-xl">Register for a Bean Count Account</h1>
+                {error_msg}
                 <label for="username">Username</label>
-                <input autocomplete="username" type="text" id="username" name="username" />
+                <input value="{username}" autocomplete="username" type="text" id="username" name="username" />
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" />
+                <input value="{email}" type="email" id="email" name="email" />
                 <label for="password">Password</label>
                 <input
+                    value="{password}"
                     autocomplete="current-password"
                     type="password"
                     id="password"
@@ -58,11 +76,66 @@ impl Component for RegisterForm {
     }
 }
 
+struct FormErrors<'a> {
+    error_messages: Vec<&'a dyn Component>,
+}
+impl Component for FormErrors<'_> {
+    fn render(&self) -> String {
+        let messages =
+            self.error_messages
+                .iter()
+                .fold(String::new(), |mut acc, msg| {
+                    acc.push_str(&ErrorChip { message: *msg }.render());
+                    acc
+                });
+        format!(
+            r#"
+            <div class="flex flex-col gap-2">
+                {messages}
+            </div>
+            "#
+        )
+    }
+}
+
+struct ErrorChip<'a> {
+    message: &'a dyn Component,
+}
+impl Component for ErrorChip<'_> {
+    fn render(&self) -> String {
+        let msg = self.message.render();
+        format!(
+            r#"
+            <p class="self-start inline-block dark:bg-red-800 bg-red-100
+                rounded p-2
+            ">{msg}</p>"#
+        )
+    }
+}
+
+struct EmailUsed {
+    email: String,
+}
+impl Component for EmailUsed {
+    fn render(&self) -> String {
+        let email = clean(&self.email);
+        let reset_route = Route::PasswordReset;
+        format!(
+            r#"
+            <span>
+                An account exists using email address "{email}." Try
+                <a href="{reset_route}">resetting your password.</a>
+            </span>
+            "#
+        )
+    }
+}
+
 pub async fn get_registration_form() -> impl IntoResponse {
     Page {
         title: "Register",
         children: &PageContainer {
-            children: &RegisterForm {},
+            children: &RegisterForm::default(),
         },
     }
     .render()
@@ -76,6 +149,7 @@ pub struct RegisterFormPayload {
     timezone: Tz,
 }
 
+#[axum_macros::debug_handler]
 pub async fn handle_registration(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
@@ -87,6 +161,43 @@ pub async fn handle_registration(
 
     let stripe_id =
         stripe::create_customer(&form.username, &form.email).await?;
+
+    let (is_username_available, is_email_available) = join![
+        is_username_available(&db, &form.username),
+        is_email_available(&db, &form.email)
+    ];
+    let is_username_available = is_username_available?;
+    let is_email_available = is_email_available?;
+    dbg!(is_username_available);
+    dbg!(is_email_available);
+
+    let mut errors: Vec<Box<dyn Component>> = vec![];
+    if !is_username_available {
+        let msg = format!(r#"Username "{}" is not available"#, form.username);
+        errors.push(Box::new(Span { content: msg }));
+    }
+    if !is_email_available {
+        errors.push(Box::new(EmailUsed {
+            email: form.email.clone(),
+        }));
+    }
+
+    if !errors.is_empty() {
+        return Ok((
+            StatusCode::BAD_REQUEST,
+            headers,
+            RegisterForm {
+                username: Some(&form.username),
+                email: Some(&form.email),
+                password: Some(&form.password),
+                errors: Some(&FormErrors {
+                    error_messages: errors.iter().map(|i| i.as_ref()).collect(),
+                }),
+            }
+            .render(),
+        )
+            .into_response());
+    }
 
     let user = match session {
         Some(mut ses) => {
@@ -159,7 +270,7 @@ pub async fn handle_registration(
     };
     let headers = session.update_headers(headers);
     let headers = htmx::redirect(headers, &Route::UserHome.as_string());
-    Ok((headers, "OK".to_string()))
+    Ok((StatusCode::OK, headers, "OK".to_string()).into_response())
 }
 
 pub async fn create_user(
@@ -201,4 +312,35 @@ pub async fn create_user(
         stripe_customer_id,
         stripe_subscription_type: subscription_type,
     })
+}
+
+async fn is_username_available(
+    db: impl PgExecutor<'_>,
+    username: &str,
+) -> Aresult<bool> {
+    struct Qres {
+        count: Option<i64>,
+    }
+    let Qres { count } = query_as!(
+        Qres,
+        "select count(1) from users where username = $1",
+        username
+    )
+    .fetch_one(db)
+    .await?;
+    Ok(count.map(|r| r == 0).unwrap_or(false))
+}
+
+async fn is_email_available(
+    db: impl PgExecutor<'_>,
+    email: &str,
+) -> Aresult<bool> {
+    struct Qres {
+        count: Option<i64>,
+    }
+    let Qres { count } =
+        query_as!(Qres, "select count(1) from users where email = $1", email)
+            .fetch_one(db)
+            .await?;
+    Ok(count.map(|r| r == 0).unwrap_or(false))
 }

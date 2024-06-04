@@ -53,7 +53,7 @@ impl Component for SubscriptionExpired<'_> {
 struct AnonSubExpired;
 impl Component for AnonSubExpired {
     fn render(&self) -> String {
-        let register = RegisterForm {}.render();
+        let register = RegisterForm::default().render();
         format!(
             r#"
             <div

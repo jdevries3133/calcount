@@ -489,6 +489,26 @@
     },
     "query": "select\n                        id,\n                        username,\n                        email,\n                        stripe_customer_id,\n                        subscription_type_id,\n                        created_at\n                    from users\n                    where username = $1 or email = $1"
   },
+  "953e23b705f087dfa9af40e8214655edc6960bd73e51a3cb01a986c932cf15c6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select count(1) from users where username = $1"
+  },
   "9558be18e38b36cad41c1612dd89b1c88ae818d9bff81936e39ce7baa2940ca6": {
     "describe": {
       "columns": [],
@@ -501,6 +521,26 @@
       }
     },
     "query": "insert into openai_usage_user (usage_id, user_id) values ($1, $2)"
+  },
+  "9fe25647157f5d348fd11399a54a2e83b5f7943b8192541d28f9553e323f3be4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "count",
+          "ordinal": 0,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "select count(1) from users where email = $1"
   },
   "b10be26436ca11929fa3b3ba6537ece229d7bd04186ca821dd937e9ab25ac252": {
     "describe": {
@@ -723,20 +763,6 @@
       }
     },
     "query": "select ignore_before as date\n        from balancing_checkpoint where user_id = $1\n        order by date desc"
-  },
-  "e5a42384f602aa599794a9ef36829efb43e29168b3e9589f4d1f1a562bc6a28b": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Int4",
-          "Int4",
-          "Int4"
-        ]
-      }
-    },
-    "query": "insert into openai_usage (prompt_tokens, completion_tokens, total_tokens)\n        values ($1, $2, $3)"
   },
   "ea7979eabc4809357b84ff50151b047d1869093d4f134968c9295ba416c25492": {
     "describe": {
