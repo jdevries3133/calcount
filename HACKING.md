@@ -14,6 +14,12 @@ The following ports also must be free on your machine:
 - `5432` for PostgreSQL
 - `8000` for this application
 
+## `.env` File
+
+The `env-template` file shows environment variables that we expect. Note that this file is also used for bootstrapping a local PostgreSQL database, so you can keep the DB credentials and connection string the same, and a new DB will be created with those credentials.
+
+## Bootstrapping & Developing 
+
 You will need to bootstrap the app and database by performing on offline
 compilation using `./sqlx-data.json` -- there's a handy make rule to get you
 started;
