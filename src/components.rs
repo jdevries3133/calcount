@@ -179,12 +179,6 @@ impl Component for Home {
                 </h2>
                 <form method="POST" action="{init_anon}">
                     <input type="hidden" value="" name="timezone" id="timezone" />
-                    <script>
-                        (() => {{
-                            const el = document.getElementById("timezone");
-                            el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        }})();
-                    </script>
                     <button
                         class="
                             bg-gradient-to-tr
@@ -239,12 +233,6 @@ impl Component for Home {
                 <div class="flex items-center justify-center my-12">
                     <form method="POST" action="{init_anon}">
                         <input type="hidden" value="" name="timezone" id="timezone" />
-                        <script>
-                            (() => {{
-                                const el = document.getElementById("timezone");
-                                el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                            }})();
-                        </script>
                         <div
                             class="bg-gradient-to-tr from-blue-300
                             to-indigo-300 rounded-full p-12 text-black"
@@ -292,6 +280,13 @@ impl Component for Home {
                 </div>
             {footer}
             </div>
+            <script>
+                (() => {{
+                    for (const el of document.querySelectorAll("[name='timezone'")) {{
+                        el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    }}
+                }})();
+            </script>
             "#
         )
     }
