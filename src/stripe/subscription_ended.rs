@@ -28,7 +28,7 @@ impl Component for SubscriptionExpired<'_> {
                 <a class="inline" href="{portal_url}" hx-boost="false">
                     <button
                         style="margin-left: auto"
-                        class="text-xs p-1 bg-green-100 hover:bg-green-200
+                        class="text-xs p-1 bg-emerald-100 hover:bg-emerald-200
                         rounded-full text-black"
                     >
                         Manage Existing Subscription via Stripe Customer Portal

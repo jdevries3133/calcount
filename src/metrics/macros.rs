@@ -49,10 +49,10 @@ impl Component for MacroStatus<'_> {
                                 <a href="{history}">
                                     <button
                                         class="
-                                            bg-green-100 
-                                            hover:bg-green-200 
-                                            dark:bg-green-700 
-                                            dark:hover:bg-green-600 
+                                            bg-emerald-100 
+                                            hover:bg-emerald-200 
+                                            dark:bg-emerald-700 
+                                            dark:hover:bg-emerald-600 
                                             rounded 
                                             m-1 
                                             p-1

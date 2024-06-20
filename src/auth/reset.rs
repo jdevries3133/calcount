@@ -20,7 +20,7 @@ impl Component for ResetRequestForm {
                     Input the email associated with your account
                 </p>
                 <input type="email" id="email" name="email" required />
-                <button class="self-start dark:bg-green-700 dark:hover:bg-green-600 bg-green-100 hover:bg-green-200 rounded p-1">
+                <button class="self-start dark:bg-emerald-700 dark:hover:bg-emerald-600 bg-emerald-100 hover:bg-emerald-200 rounded p-1">
                     Submit
                 </button>
             </form>
@@ -114,10 +114,10 @@ impl Component for ResetForm<'_> {
                 <input type="password" id="password" name="password" required />
                 <button class="
                     self-start
-                    dark:bg-green-700
-                    dark:hover:bg-green-600
-                    bg-green-100
-                    hover:bg-green-200
+                    dark:bg-emerald-700
+                    dark:hover:bg-emerald-600
+                    bg-emerald-100
+                    hover:bg-emerald-200
                     rounded
                     p-1
                 ">

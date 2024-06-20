@@ -30,10 +30,10 @@ impl Component for LoginForm {
                 <div class="flex gap-2">
                 <button class="
                     block
-                    bg-green-200
-                    hover:bg-green-300
-                    dark:bg-green-700
-                    dark:hover:bg-green-600
+                    bg-emerald-200
+                    hover:bg-emerald-300
+                    dark:bg-emerald-700
+                    dark:hover:bg-emerald-600
                     dark:text-white
                     hover:shadow-none
                     p-1

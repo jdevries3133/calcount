@@ -55,12 +55,12 @@ impl Component for RegisterForm<'_> {
                 </script>
                 <button
                     class="
-                        bg-green-100
+                        bg-emerald-100
                         block
                         dark:bg-slate-700
                         dark:hover:bg-slate-600
                         dark:text-white
-                        hover:bg-green-200
+                        hover:bg-emerald-200
                         hover:shadow-none
                         p-1
                         rounded

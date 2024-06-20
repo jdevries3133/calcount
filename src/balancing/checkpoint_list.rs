@@ -49,16 +49,16 @@ impl Component for CheckpointList<'_> {
             r##"
             <div class="prose dark:text-slate-200">
                 <button
-                    class="dark:bg-green-700 dark:hover:bg-green-800
-                    bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                    class="dark:bg-emerald-700 dark:hover:bg-emerald-800
+                    bg-emerald-100 hover:bg-emerald-200 p-1 m-1 rounded"
                     onclick="history.back()"
                 >
                     Back
                 </button>
                 <a href="{home}">
                     <button
-                        class="dark:bg-green-700 dark:hover:bg-green-800
-                        bg-green-100 hover:bg-green-200 p-1 m-1 rounded
+                        class="dark:bg-emerald-700 dark:hover:bg-emerald-800
+                        bg-emerald-100 hover:bg-emerald-200 p-1 m-1 rounded
                         dark:text-slate-200"
                     >
                         Home
@@ -91,7 +91,7 @@ impl Component for CheckpointList<'_> {
                     </p>
                 </details>
             </div>
-            <div class="bg-green-200 dark:bg-indigo-900 rounded p-2 my-2">
+            <div class="bg-emerald-200 dark:bg-indigo-900 rounded p-2 my-2">
                 <h2 
                     class="text-lg font-semibold
                     rounded-xl mt-4 mb-2 inline-block"
@@ -108,13 +108,13 @@ impl Component for CheckpointList<'_> {
                     <button
                         class="block rounded p-2 my-1 dark:bg-indigo-500
                         dark:hover:bg-indigo-600 text-black dark:text-white
-                        bg-green-100 hover:bg-green-300 font-semibold"
+                        bg-emerald-100 hover:bg-emerald-300 font-semibold"
                     >
                         Save
                     </button>
                 </form>
             </div>
-            <div class="bg-green-200 dark:bg-indigo-900 rounded p-2 my-2">
+            <div class="bg-emerald-200 dark:bg-indigo-900 rounded p-2 my-2">
                 <h2
                     class="text-lg font-semibold
                     rounded-xl mt-4 mb-2 inline-block"

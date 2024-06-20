@@ -80,7 +80,7 @@ impl Component for BalancingEvent<'_> {
         };
         format!(
             r#"
-            <div class="bg-blue-100 dark:bg-blue-800 p-2 rounded m-2">
+            <div class="bg-blue-200 dark:bg-blue-950 p-2 rounded m-2">
                 <h2 class="text-lg">{start}</h2>
                 <div class="font-mono">
                     <p>{prev} <sub>starting calculated goal</sub></p>

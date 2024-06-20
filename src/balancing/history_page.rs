@@ -22,16 +22,16 @@ impl Component for BalancingHistory<'_> {
         format!(
             r#"
             <button
-                class="dark:bg-green-700 dark:hover:bg-green-800
-                bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                class="dark:bg-emerald-700 dark:hover:bg-emerald-800
+                bg-emerald-100 hover:bg-emerald-200 p-1 m-1 rounded"
                 onclick="history.back()"
             >
                 Back
             </button>
             <a href="{checkpoint}">
                 <button
-                    class="dark:bg-green-700 dark:hover:bg-green-800
-                    bg-green-100 hover:bg-green-200 p-1 m-1 rounded"
+                    class="dark:bg-emerald-700 dark:hover:bg-emerald-800
+                    bg-emerald-100 hover:bg-emerald-200 p-1 m-1 rounded"
                 >
                     View or Create a Checkpoint
                 </button>

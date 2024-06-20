@@ -106,9 +106,10 @@ impl Component for PreviousMeals<'_> {
                     sticky
                     top-[-1px]
                     bg-zinc-50
-                    dark:bg-slate-900
+                    dark:bg-blue-950
                     rounded
                     p-2
+                    mt-2
                     text-xl
                     font-bold
                 ">
@@ -119,9 +120,10 @@ impl Component for PreviousMeals<'_> {
                     sticky
                     top-[-1px]
                     bg-zinc-50
-                    dark:bg-slate-900
+                    dark:bg-blue-950
                     rounded
                     p-2
+                    mt-2
                     text-xl
                     font-bold
                 ">
@@ -212,10 +214,10 @@ impl Component for ChatUI<'_> {
                                     tabindex="1"
                                 />
                                 <button tabindex="2" class="
-                                    bg-green-100
-                                    dark:bg-green-800
-                                    dark:hover:bg-green-700
-                                    hover:bg-green-200
+                                    bg-emerald-100
+                                    dark:bg-emerald-700
+                                    dark:hover:bg-emerald-800
+                                    hover:bg-emerald-200
                                     p-2
                                     rounded
                                 ">
@@ -328,8 +330,8 @@ impl Component for MealCard<'_> {
                                 hx-target="closest div[data-name='meal-card']"
                                 class="
                                     align-self-right
-                                    bg-green-100
-                                    hover:bg-green-200
+                                    bg-emerald-100
+                                    hover:bg-emerald-200
                                     rounded
                                     p-1
                                     dark:text-black
@@ -346,8 +348,8 @@ impl Component for MealCard<'_> {
                                 hx-target="closest div[data-name='meal-card']"
                                 class="
                                     align-self-right
-                                    bg-green-100
-                                    hover:bg-green-200
+                                    bg-emerald-100
+                                    hover:bg-emerald-200
                                     rounded
                                     p-1
                                     dark:text-black
@@ -397,7 +399,7 @@ impl Component for MealCard<'_> {
         format!(
             r##"
             <div
-                class="rounded p-2 shadow sm:w-[20rem] mr-4
+                class="rounded p-2 shadow sm:w-[20rem]
                 {background_style}
                 "
                 data-name="meal-card"

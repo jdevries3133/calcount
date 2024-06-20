@@ -170,7 +170,7 @@ impl Component for Home {
                 <h2
                     class="text-4xl"
                 >
-                    Toss out the food scale and meal prep containers:
+                    Toss out the food scale and forget about meal prep:
                     <span
                         class="font-extrabold dark:text-indigo-200 text-indigo-500"
                     >
@@ -204,79 +204,73 @@ impl Component for Home {
                 class="bg-gradient-to-tr dark:from-emerald-900
                 dark:via-indigo-1000 dark:to-indigo-1000"
             >
-                <div
-                    class="text-teal-50 dark:text-slate-200 grid
-                    md:grid-cols-3 gap-12 sm:gap-24 justfiy-center p-12"
-                >
+                <div class="flex items-center justify-center">
                     <div
-                        class="bg-blue-800 rounded p-2 inline-block my-2
-                        flex items-center text-lg font-semibold text-center"
+                        class="bg-emerald-700 max-w-md p-2 inline-block my-2
+                        text-lg text-center text-teal-50 dark:text-slate-200
+                        rounded"
                     >
-                        Bean Count is an AI-powered  calorie counter, making
-                        calorie counting easy, effortless, and fun!
-                    </div>
-                    <div
-                        class="bg-indigo-800 rounded p-2 inline-block my-2
-                        flex items-center text-lg font-semibold text-center"
-                    >
-                        Use natural language to ask about food, and get back
-                        quick calorie estimates.
-                    </div>
-                    <div
-                        class="bg-purple-800 rounded p-2 inline-block my-2
-                        flex items-center text-lg font-semibold text-center"
-                    >
-                        Set calorie goals, keep track of macros, and hold
-                        yourself accountable.
+
+                        <p class="my-6">
+                            Bean Count is an AI-powered  calorie counter, making
+                            calorie counting easy, effortless, and fun! Use natural
+                            language to ask about food, and get back quick calorie
+                            estimates. Set calorie goals, keep track of macros, and
+                            hold yourself accountable.
+                        </p>
+
+                        <div class="flex gap-3">
+                            <form method="POST" action="{init_anon}">
+                                <input type="hidden" value="" name="timezone" id="timezone" />
+                                <div
+                                    class="bg-gradient-to-tr from-blue-300
+                                    to-indigo-300 rounded-full p-3 text-black"
+                                >
+                                    <h3 class="text-lg font-semibold">Try it Out!</h3>
+                                    <p class="text-sm">
+                                        Click here to jump right in and start using
+                                        Bean Count. Zero-commitment sign-up & 30 days
+                                        free, on us!
+                                    </p>
+                                    <button
+                                        class="
+                                            bg-gradient-to-tr
+                                            from-blue-700
+                                            to-indigo-700
+                                            from-blue-100
+                                            to-indigo-200
+                                            p-2
+                                            rounded
+                                            shadow-md
+                                            hover:shadow-sm
+                                            dark:shadow-purple-200
+                                            text-xl
+                                            font-extrabold
+                                            text-white
+                                            my-4
+                                        "
+                                    >Get Started</button>
+                                </div>
+                            </form>
+                            <div class="bg-teal-50 dark:bg-indigo-900 border-2
+                                border-indigo-800 inline-flex p-3 rounded-full
+                                items-center gap-3 mt-2 dark:text-slate-200
+                                self-center text-black"
+                            >
+                                <p>Have an account?</p>
+                                <a href="{login_route}">
+                                    <button
+                                        class="border-2 border-slate-800 rounded p-2
+                                        text-nowrap hover:bg-emerald-100 transition"
+                                    >Log In</button>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center justify-center my-12">
-                    <form method="POST" action="{init_anon}">
-                        <input type="hidden" value="" name="timezone" id="timezone" />
-                        <div
-                            class="bg-gradient-to-tr from-blue-300
-                            to-indigo-300 rounded-full p-12 text-black"
-                        >
-                            <h3 class="text-lg font-semibold">Try it Out!</h3>
-                            <p class="text-sm">
-                                Click here to jump right in and start using
-                                Bean Count. Zero-commitment sign-up & 30 days
-                                free, on us!
-                            </p>
-                            <button
-                                class="
-                                    bg-gradient-to-tr
-                                    from-blue-700
-                                    to-indigo-700
-                                    from-blue-100
-                                    to-indigo-200
-                                    p-2
-                                    rounded
-                                    shadow-md
-                                    hover:shadow-sm
-                                    dark:shadow-purple-200
-                                    text-xl
-                                    font-extrabold
-                                    text-white
-                                    my-4
-                                "
-                            >Get Started</button>
-                        </div>
-                    </form>
                 </div>
                 <div class="flex items-center justify-center">
-                    <div class="bg-indigo-50 dark:bg-indigo-900 border-2
-                        border-indigo-800 inline-flex p-6 rounded-full
-                        items-center gap-3 mt-2 dark:text-slate-200"
-                    >
-                        <p>Have an account?</p>
-                        <a href="{login_route}">
-                            <button
-                                class="border-2 border-slate-800 rounded p-2
-                                text-nowrap"
-                            >Log In</button>
-                        </a>
-                    </div>
                 </div>
             {footer}
             </div>
@@ -435,7 +429,7 @@ impl Component for ProfileChip<'_> {
                     <a class="inline" href="{url}" hx-boost="false">
                         <button
                             style="margin-left: auto"
-                            class="text-xs p-1 bg-green-100 hover:bg-green-200
+                            class="text-xs p-1 bg-emerald-100 hover:bg-emerald-200
                             rounded-full text-black"
                         >
                             Manage Subscription via Stripe
@@ -456,7 +450,7 @@ impl Component for ProfileChip<'_> {
                 <a class="inline" href="{register}" tabindex="-1">
                     <button
                         style="margin-left: auto"
-                        class="text-xs p-1 bg-green-100 hover:bg-green-200
+                        class="text-xs p-1 bg-emerald-100 hover:bg-emerald-200
                         rounded-full text-black"
                     >
                         Register
@@ -482,7 +476,7 @@ impl Component for ProfileChip<'_> {
         };
         format!(
             r#"
-            <div class="self-start p-2 bg-blue-100 dark:bg-blue-800 rounded-2xl">
+            <div class="self-start p-2 bg-blue-100 dark:bg-blue-950 rounded-2xl">
                 <div class="flex flex-wrap mb-1 gap-2">
                     <p class="font-bold">Hi, {username}!</p>
                     {acct_action}
@@ -525,7 +519,7 @@ impl Component for Saved<'_> {
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
-                    class="inline bg-green-100 dark:bg-green-800 p-2
+                    class="inline bg-emerald-100 dark:bg-emerald-800 p-2
                     rounded-full w-8 h-8"
                 >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -556,20 +550,21 @@ impl Component for AboutPage {
                 <p><a class="link" href="{home}">Return Home</a></p>
                 <h2 class="dark:text-slate-200">Background</h2>
                 <p>
-                    I created Bean Count because I've always struggled with my own
-                    weight. First and foremost, Bean Count takes advantage of the
-                    fact that new Large Language Model (LLM) technology is pretty
-                    dang good at giving rough calorie estimates. This website uses
-                    OpenAI's ChatGPT on the backend to give calorie estimates.
-                    This means that you can simply describe what you're eating and
-                    get back an estimate which is about as good as the description
-                    you've written.
+                    I created Bean Count because I've always struggled with my
+                    own weight. First and foremost, Bean Count takes advantage
+                    of the fact that new Large Language Model (LLM) technology
+                    is pretty dang good at giving rough calorie estimates.
+                    This website uses OpenAI's ChatGPT on the backend to give
+                    calorie estimates.  This means that you can simply describe
+                    what you're eating and get back an estimate which is about
+                    as good as the description you've written.
                 </p>
                 <p>
-                    For me, this solves maybe the most substantial pain point around
-                    any calorie counting: I don't want to change my diet to eat
-                    things that are easy to calorie count -- I want it to be easy
-                    to count the calories <i>in the things I actually eat!</i>
+                    For me, this solves maybe the most substantial pain point
+                    around any calorie counting: I don't want to change my diet
+                    to eat things that are easy to calorie count -- I want it
+                    to be easy to count the calories <i>in the things I
+                    actually eat!</i>
                 </p>
                 <h2 class="dark:text-slate-200">Open Source</h2>
                 <p>

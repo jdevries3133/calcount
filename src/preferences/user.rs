@@ -122,7 +122,7 @@ impl Component for UserPreferenceForm<'_> {
             <div class="flex flex-col items-center justify-center max-w-prose">
                 <form
                     hx-post="{self_url}"
-                    class="p-4 bg-slate-200 dark:bg-indigo-900 dark:text-slate-200
+                    class="p-4 bg-blue-200 dark:bg-blue-950 dark:text-slate-200
                     text-black rounded w-prose flex
                     flex-col gap-2"
                 >
@@ -227,17 +227,17 @@ impl Component for UserPreferenceForm<'_> {
                         />
                     </div>
                     <button class="
-                        bg-green-100 
-                        hover:bg-green-200 
-                        dark:bg-green-700 
-                        dark:hover:bg-green-600 
+                        bg-emerald-100 
+                        hover:bg-emerald-200 
+                        dark:bg-emerald-700 
+                        dark:hover:bg-emerald-600 
                         rounded 
                         p-1
                     ">
                         Save
                     </button>
                     <a
-                        class="text-center rounded border-slate-800 border-2"
+                        class="text-center"
                         href="{home}"
                     >Go back</a>
                 </form>
