@@ -511,7 +511,8 @@ impl Component for Saved<'_> {
             <div
                 hx-get="{void}"
                 hx-trigger="load delay:2s"
-                class="my-2"
+                class="fixed top-2 my-2 bg-slate-200 dark:bg-emerald-800 p-2
+                rounded-xl"
                 >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -519,20 +520,12 @@ impl Component for Saved<'_> {
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
                     stroke="currentColor"
-                    class="inline bg-emerald-100 dark:bg-emerald-800 p-2
+                    class="inline bg-emerald-100 dark:bg-emerald-600 p-2
                     rounded-full w-8 h-8"
                 >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
                 {message}
-                <script>
-                    setTimeout(() => {{
-                        const iconElement = document.querySelector("#sort-icon");
-                        iconElement.classList.remove('text-black');
-                        iconElement.classList.remove('bg-yellow-100');
-                        htmx.trigger('body', 'toggle-sort-toolbar');
-                    }}, 2000);
-                </script>
             </div>
             "##
         )
