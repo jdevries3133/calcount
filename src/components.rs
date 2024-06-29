@@ -261,7 +261,8 @@ impl Component for Home {
                                 <a href="{login_route}">
                                     <button
                                         class="border-2 border-slate-800 rounded p-2
-                                        text-nowrap hover:bg-emerald-100 transition"
+                                        text-nowrap hover:bg-emerald-100
+                                        hover:dark:bg-emerald-800 transition"
                                     >Log In</button>
                                 </a>
                             </div>
