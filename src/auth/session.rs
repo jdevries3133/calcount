@@ -140,13 +140,25 @@ impl Session {
             .unwrap_or_default())
     }
     pub async fn get_user(&self, db: &PgPool) -> Result<models::User> {
-        models::User::get(
+        let result = models::User::get(
             db,
             &GetUserQuery {
                 identifier: UserIdentifer::Id(self.user_id),
             },
         )
-        .await
+        .await;
+
+        // Locally, we might wipe the database, but keep an auth cookie cached
+        // in the browser. This puts in a weird state where we receive a valid
+        // signed authentication cookie, but then it turns out that there is
+        // no user in the database. This only happens locally when we wipe
+        // out the DB, which is why we'll omit this code in prod.
+        #[cfg(not(feature = "production"))]
+        if result.is_err() {
+            println!("Warning: user was not found; did you forget to clear your cookies in dev mode?");
+        }
+
+        result
     }
 }
 
