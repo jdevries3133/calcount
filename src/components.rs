@@ -91,7 +91,6 @@ impl Component for Page<'_> {
                     <script defer src="{htmx}"></script>
                 </head>
                 <body hx-boost="true">
-                    <!-- deploy test -->
                     {body_html}
                 </body>
             </html>
