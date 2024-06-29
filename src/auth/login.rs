@@ -73,11 +73,16 @@ pub async fn get_login_form(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers);
-    let form = Page {
-        title: "Login",
-        children: &PageContainer {
-            children: &LoginForm {},
-        },
+    let form = if headers.contains_key("Hx-Request") {
+        LoginForm {}.render()
+    } else {
+        Page {
+            title: "Login",
+            children: &PageContainer {
+                children: &LoginForm {},
+            },
+        }
+        .render()
     };
     Ok(match session {
         Some(session) => {
@@ -100,10 +105,10 @@ pub async fn get_login_form(
 
                 (StatusCode::SEE_OTHER, headers).into_response()
             } else {
-                form.render().into_response()
+                form.into_response()
             }
         }
-        None => form.render().into_response(),
+        None => form.into_response(),
     })
 }
 
