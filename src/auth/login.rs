@@ -110,7 +110,9 @@ pub async fn get_login_form(
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers);
-    let form = if headers.contains_key("Hx-Request") {
+    let form = if headers.contains_key("Hx-Request")
+        && !headers.contains_key("Hx-Boosted")
+    {
         LoginForm {}.render()
     } else {
         Page {
