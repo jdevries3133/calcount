@@ -7,46 +7,56 @@ impl Component for LoginForm {
     fn render(&self) -> String {
         let login_route = Route::Login;
         let password_reset = Route::PasswordReset;
+        let init_anon = Route::InitAnon;
         format!(
-            r#"
-            <form class="flex flex-col gap-2 max-w-md" hx-post="{login_route}">
-                <h1 class="text-xl">Login to Bean Count</h1>
-                <label autocomplete="username" for="identifier">
-                    Username or Email
-                </label>
-                <input
-                    type="text"
-                    id="identifier"
-                    name="identifier"
-                    autocomplete="username"
-                />
-                <label for="passwored">Password</label>
-                <input
-                    autocomplete="current-password"
-                    type="password"
-                    id="password"
-                    name="password"
+            r##"
+            <div id="form-container">
+                <form
+                    id="login-form"
+                    class="flex flex-col gap-2 max-w-md"
+                    hx-post="{login_route}"
+                    hx-target="#form-container"
+                >
+                    <h1 class="text-xl">Login to Bean Count</h1>
+                    <label autocomplete="username" for="identifier">
+                        Username or Email
+                    </label>
+                    <input
+                        type="text"
+                        id="identifier"
+                        name="identifier"
+                        autocomplete="username"
                     />
-                <div class="flex gap-2">
-                <button class="
-                    block
-                    bg-emerald-200
-                    hover:bg-emerald-300
-                    dark:bg-emerald-700
-                    dark:hover:bg-emerald-600
-                    dark:text-white
-                    hover:shadow-none
-                    p-1
-                    rounded
-                    shadow
-                    transition
-                    w-36
-                ">
-                        Log In
+                    <label for="passwored">Password</label>
+                    <input
+                        autocomplete="current-password"
+                        type="password"
+                        id="password"
+                        name="password"
+                        />
+                </form>
+                <div class="flex gap-2 mt-3">
+                    <button
+                        type="submit"
+                        form="login-form"
+                        class="
+                        bg-emerald-200
+                        hover:bg-emerald-300
+                        dark:bg-emerald-700
+                        dark:hover:bg-emerald-600
+                        dark:text-white
+                        hover:shadow-none
+                        p-1
+                        rounded
+                        shadow
+                        transition
+                        w-36
+                        h-10
+                    ">
+                            Log In
                     </button>
                     <a href="{password_reset}">
                         <button class="
-                            block
                             bg-yellow-200
                             hover:bg-yellow-300
                             dark:bg-yellow-700
@@ -58,13 +68,40 @@ impl Component for LoginForm {
                             shadow
                             transition
                             w-36
+                            h-10
                         ">
                             Reset Password
                         </button>
                     </a>
+                    <form method="POST" action="{init_anon}">
+                        <input type="hidden" value="" name="timezone" id="timezone" />
+                        <script>
+                            (() => {{
+                                for (const el of document.querySelectorAll("[name='timezone'")) {{
+                                    el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                                }}
+                            }})();
+                        </script>
+                        <button class="
+                            border-emerald-200
+                            border-2
+                            hover:bg-emerald-200
+                            dark:border-emerald-700
+                            dark:hover:bg-emerald-700
+                            dark:text-white
+                            hover:shadow-none
+                            p-1
+                            rounded
+                            shadow
+                            transition
+                            w-36
+                            h-10
+                        "
+                        >Create Account</button>
+                    </form>
                 </div>
             </form>
-            "#
+            "##
         )
     }
 }
