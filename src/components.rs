@@ -160,43 +160,43 @@ impl Component for Home {
                     &#127793; Bean Count &#129752;
                 </h1>
                 <div class="h-[90vh] flex justify-center flex-col">
-                <h2
-                    class="bg-gradient-to-br from-blue-600 via-green-500
-                    to-indigo-400 inline-block text-transparent bg-clip-text
-                    text-6xl"
-                >
-                    AI Calorie Counter
-                </h2>
-                <h2
-                    class="text-4xl"
-                >
-                    Toss out the food scale and forget about meal prep:
-                    <span
-                        class="font-extrabold dark:text-indigo-200 text-indigo-500"
+                    <h2
+                        class="bg-gradient-to-br from-blue-600 via-green-500
+                        to-indigo-400 inline-block text-transparent bg-clip-text
+                        text-6xl"
                     >
-                        count the calories you actually eat.
-                    </span>
-                </h2>
-                <form method="POST" action="{init_anon}">
-                    <input type="hidden" value="" name="timezone" id="timezone" />
-                    <button
-                        class="
-                            bg-gradient-to-tr
-                            from-blue-700
-                            to-indigo-700
-                            from-blue-100
-                            to-indigo-200
-                            p-2
-                            rounded
-                            shadow-md
-                            hover:shadow-sm
-                            dark:shadow-purple-200
-                            text-xl
-                            font-extrabold
-                            text-white
-                            my-4
-                        "
-                    >Get Started</button>
+                        AI Calorie Counter
+                    </h2>
+                    <h2
+                        class="text-4xl"
+                    >
+                        Toss out the food scale and forget about meal prep:
+                        <span
+                            class="font-extrabold dark:text-indigo-200 text-indigo-500"
+                        >
+                            count the calories you actually eat.
+                        </span>
+                    </h2>
+                    <form method="POST" action="{init_anon}">
+                        <input type="hidden" value="" name="timezone" id="timezone" />
+                        <button
+                            class="
+                                bg-gradient-to-tr
+                                from-blue-700
+                                to-indigo-700
+                                from-blue-100
+                                to-indigo-200
+                                p-2
+                                rounded
+                                shadow-md
+                                hover:shadow-sm
+                                dark:shadow-purple-200
+                                text-xl
+                                font-extrabold
+                                text-white
+                                my-4
+                            "
+                        >Get Started</button>
                     </form>
                 </div>
             </main>
