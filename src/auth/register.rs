@@ -25,6 +25,7 @@ pub struct RegisterForm<'a> {
 impl Component for RegisterForm<'_> {
     fn render(&self) -> String {
         let register_route = Route::Register;
+        let login_route = Route::Login;
         let username = encode_quotes(&clean(self.username.unwrap_or_default()));
         let email = encode_quotes(&clean(self.email.unwrap_or_default()));
         let password = encode_quotes(&clean(self.password.unwrap_or_default()));
@@ -53,23 +54,44 @@ impl Component for RegisterForm<'_> {
                         el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     }})();
                 </script>
-                <button
-                    class="
-                        bg-emerald-100
-                        block
-                        dark:bg-slate-700
-                        dark:hover:bg-slate-600
-                        dark:text-white
-                        hover:bg-emerald-200
-                        hover:shadow-none
-                        p-1
-                        rounded
-                        shadow
-                        transition
-                        w-36
-                    ">
-                        Sign Up
-                    </button>
+                <div class="flex flex-row gap-2">
+                    <button
+                        class="
+                            bg-emerald-100
+                            block
+                            dark:bg-slate-700
+                            dark:hover:bg-slate-600
+                            dark:text-white
+                            hover:bg-emerald-200
+                            hover:shadow-none
+                            p-1
+                            rounded
+                            shadow
+                            transition
+                            w-36
+                        "
+                            >Sign Up</button>
+
+                    <a href="{login_route}">
+                        <button
+                            class="
+                                border-emerald-100
+                                hover:bg-emerald-100
+                                border-2
+                                block
+                                dark:border-slate-700
+                                dark:hover:bg-slate-700
+                                dark:text-white
+                                hover:shadow-none
+                                p-1
+                                rounded
+                                shadow
+                                transition
+                                w-36
+                            "
+                                >Log In</button>
+                    </a>
+                </div>
             </form>
             "#
         )
@@ -174,11 +196,19 @@ pub async fn handle_registration(
     dbg!(is_email_available);
 
     let mut errors: Vec<Box<dyn Component>> = vec![];
-    if !is_username_available {
+    if form.username.is_empty() {
+        errors.push(Box::new(Span {
+            content: "Username is required.".into(),
+        }));
+    } else if !is_username_available {
         let msg = format!(r#"Username "{}" is not available"#, form.username);
         errors.push(Box::new(Span { content: msg }));
     }
-    if !is_email_available {
+    if form.email.is_empty() {
+        errors.push(Box::new(Span {
+            content: "Email is required.".into(),
+        }));
+    } else if !is_email_available {
         errors.push(Box::new(EmailUsed {
             email: form.email.clone(),
         }));
