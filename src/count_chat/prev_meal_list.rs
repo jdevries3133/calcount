@@ -2,9 +2,7 @@ use super::{
     meal_card::{MealCard, RenderingBehavior},
     Meal, MealInfo,
 };
-use crate::{
-    chrono_utils::is_before_today, config::MEAL_PAGE_SIZE, prelude::*,
-};
+use crate::{config::MEAL_PAGE_SIZE, prelude::*};
 
 pub struct PreviousMeals<'a> {
     pub meals: &'a Vec<Meal>,
@@ -20,50 +18,12 @@ impl Component for PreviousMeals<'_> {
             show_ai_warning: false,
         }
         .render();
-        let is_any_meal_during_today = self
-            .meals
-            .iter()
-            .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
-        let meal_header = if self.meals.is_empty() {
-            ""
-        } else if is_any_meal_during_today {
-            // Pushing the top up by just 1px hides the text from revealing
-            // itself behind the top of this sticky header as the user scrolls
-            // through the container; weird browser behavior, weird fix.
-            r#"<h2 class="
-                    sticky
-                    top-[-1px]
-                    bg-zinc-50
-                    dark:bg-blue-950
-                    rounded
-                    p-2
-                    mt-2
-                    text-xl
-                    font-bold
-                ">
-                    Today's Food
-                </h2>"#
-        } else {
-            r#"<h2 class="
-                    sticky
-                    top-[-1px]
-                    bg-zinc-50
-                    dark:bg-slate-900
-                    rounded
-                    p-2
-                    text-xl
-                    font-bold
-                ">
-                    Previously Saved Items
-                </h2>"#
-        };
         let refresh_meals_href = format!("{}?page=0", Route::ListMeals);
         format!(
             r#"
             <div
                 class="flex flex-col gap-2 md:max-h-[70vh] md:overflow-y-auto"
             >
-                {meal_header}
                 <div
                     hx-get="{refresh_meals_href}"
                     hx-swap="innerHTML"
@@ -86,63 +46,21 @@ pub struct MealSet<'a> {
 }
 impl Component for MealSet<'_> {
     fn render(&self) -> String {
-        let mut found_meal_before_today = false;
-        let is_any_meal_during_today = self
-            .meals
-            .iter()
-            .any(|m| !is_before_today(&m.info.created_at, self.user_timezone));
-        let meals = self.meals.iter().enumerate().fold(
-            String::new(),
-            |mut acc, (i, meal)| {
-                if !found_meal_before_today
-                    && is_before_today(
-                        &meal.info.created_at,
+        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
+            acc.push_str(
+                &MealCard {
+                    info: &meal.info,
+                    meal_id: Some(meal.id),
+                    actions: None,
+                    rendering_behavior: RenderingBehavior::UseTimezone(
                         self.user_timezone,
-                    )
-                    && i != self.meals.len()
-                    && is_any_meal_during_today
-                {
-                    found_meal_before_today = true;
-                    acc.push_str(
-                        // Note: the 20rem width matches the width of
-                        // `MealCard`
-                        r#"
-                        <h2 class="
-                            sticky
-                            top-[-1px]
-                            bg-zinc-50
-                            dark:bg-slate-900
-                            rounded
-                            p-2
-                            text-xl
-                            font-bold
-                        ">
-                            Previous Food</h2>
-                        <div class="w-[20rem] border-b-4 border-black">
-                        <p class="text-xs my-4">
-                            Items after this line were input yesterday or
-                            before, and are not included in your daily totals
-                            at the top.
-                        </p>
-                    </div>
-                    "#,
-                    )
-                };
-                acc.push_str(
-                    &MealCard {
-                        info: &meal.info,
-                        meal_id: Some(meal.id),
-                        actions: None,
-                        rendering_behavior: RenderingBehavior::UseTimezone(
-                            self.user_timezone,
-                        ),
-                        show_ai_warning: self.show_ai_warning,
-                    }
-                    .render(),
-                );
-                acc
-            },
-        );
+                    ),
+                    show_ai_warning: self.show_ai_warning,
+                }
+                .render(),
+            );
+            acc
+        });
 
         let page_usize: usize = MEAL_PAGE_SIZE.into();
         let next_page_div = if self.meals.len() == page_usize {
