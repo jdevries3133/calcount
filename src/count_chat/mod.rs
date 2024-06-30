@@ -1,6 +1,7 @@
 mod counter;
 mod llm_parse_response;
 mod openai;
+mod prev_meal_list;
 
 pub use self::counter::{
     chat_form, handle_chat, handle_save_meal, list_meals, list_meals_op,
