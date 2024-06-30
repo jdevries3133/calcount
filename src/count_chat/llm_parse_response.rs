@@ -2,7 +2,7 @@
 //! next time an a resonably well-structured declarative way. Inspired by
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
-use super::counter::MealInfo;
+use super::MealInfo;
 use crate::chrono_utils::utc_now;
 use regex::{Captures, Regex};
 

@@ -2,8 +2,10 @@
 //! are colocated here).
 
 use super::{
+    meal_card::{MealCard, RenderingBehavior},
     openai::OpenAI,
-    prev_meal_list::{MealCard, MealSet, PreviousMeals, RenderingBehavior},
+    prev_meal_list::{MealSet, PrevDayFormActions, PreviousMeals},
+    Meal, MealInfo,
 };
 use crate::{
     auth::is_anon, client_events, components::AnonWarning, config,
@@ -11,41 +13,6 @@ use crate::{
 };
 use axum::extract::Query;
 use futures::join;
-
-#[derive(Debug)]
-pub struct Meal {
-    pub id: i32,
-    pub info: MealInfo,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct MealInfo {
-    pub calories: i32,
-    pub protein_grams: i32,
-    pub carbohydrates_grams: i32,
-    pub fat_grams: i32,
-    pub meal_name: String,
-    pub created_at: DateTime<Utc>,
-}
-
-struct Void;
-impl Component for Void {
-    fn render(&self) -> String {
-        "".into()
-    }
-}
-impl Component for Meal {
-    fn render(&self) -> String {
-        MealCard {
-            meal_id: Some(self.id),
-            info: &self.info,
-            actions: Some(&Void {}),
-            rendering_behavior: RenderingBehavior::RenderAsToday,
-            show_ai_warning: false,
-        }
-        .render()
-    }
-}
 
 pub struct Chat<'a> {
     pub meals: &'a Vec<Meal>,
@@ -503,75 +470,6 @@ pub async fn list_meals(
         show_ai_warning: false,
     }
     .render())
-}
-
-struct PrevDayFormActions<'a> {
-    info: &'a MealInfo,
-}
-impl Component for PrevDayFormActions<'_> {
-    fn render(&self) -> String {
-        let save_meal = Route::SaveMeal;
-        let created_at = self.info.created_at.format("%d/%m/%Y");
-        let script = include_str!("./custom_date_widget_helper.js");
-        let meal_name = encode_quotes(&clean(&self.info.meal_name));
-        let calories = self.info.calories;
-        let protein = self.info.protein_grams;
-        let carbs = self.info.carbohydrates_grams;
-        let fat = self.info.fat_grams;
-        format!(
-            r##"
-            <form
-                hx-post="{save_meal}"
-                hx-target="closest div[data-name='meal-card']"
-                class="flex flex-col">
-                <label for="created_date">
-                    Date
-                </label>
-                <input
-                    required
-                    value="{created_at}"
-                    type="date"
-                    name="created_date"
-                    id="created_date"
-                />
-                <!-- This field gets populated by JS when the buttons below are
-                clicked -->
-                <input type="hidden" name="created_at" id="created_at" />
-                <input type="hidden" value="{meal_name}" name="meal_name" />
-                <input type="hidden" value="{calories}" name="calories" />
-                <input type="hidden" value="{protein}" name="protein_grams" />
-                <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
-                <input type="hidden" value="{fat}" name="fat_grams" />
-                <p class="text-sm">Approximately what time of day was this meal?</p>
-                <button
-                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
-                    id="breakfast"
-                >
-                    Breakfast
-                </button>
-                <button
-                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
-                    id="lunch"
-                >
-                    Lunch
-                </button>
-                <button
-                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
-                    id="dinner"
-                >
-                    Dinner
-                </button>
-                <button
-                    class="block p-2 m-2 bg-blue-100 hover:bg-blue-200 rounded shadow hover:shadow-none"
-                    id="evening"
-                >
-                    Evening
-                </button>
-                <script>(() => {{{script}}})();</script>
-            </form>
-            "##
-        )
-    }
 }
 
 pub async fn prev_day_meal_form(

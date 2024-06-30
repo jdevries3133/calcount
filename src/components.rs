@@ -631,3 +631,10 @@ impl Component for Span {
         format!("<span>{}</span>", clean(&self.content))
     }
 }
+
+pub struct Void;
+impl Component for Void {
+    fn render(&self) -> String {
+        "".into()
+    }
+}
