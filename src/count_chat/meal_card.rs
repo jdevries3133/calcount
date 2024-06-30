@@ -49,6 +49,15 @@ impl Component for MealCard<'_> {
             }
             RenderingBehavior::RenderAsToday => false,
         };
+        let datetime = match self.rendering_behavior {
+            RenderingBehavior::UseTimezone(tz) => {
+                self.info.created_at.with_timezone(&tz)
+            }
+            RenderingBehavior::RenderAsToday => {
+                Utc::now().with_timezone(&Tz::UTC)
+            }
+        };
+        let date_str = datetime.format("%b %e");
         let meal_name = clean(&self.info.meal_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
@@ -134,6 +143,11 @@ impl Component for MealCard<'_> {
         } else {
             ""
         };
+        let date_style = if is_meal_before_today {
+            "text-right col-span-2 text-sm text-slate-700 dark:text-white"
+        } else {
+            "text-right col-span-2 text-sm text-slate-700"
+        };
         format!(
             r##"
             <div
@@ -143,7 +157,10 @@ impl Component for MealCard<'_> {
                 data-name="meal-card"
                 hx-swap="outerHTML"
             >
-                <h1 class="text-2xl bold serif">{meal_name}</h1>
+                <div class="grid grid-cols-7">
+                    <h1 class="col-span-5 text-2xl bold serif">{meal_name}</h1>
+                    <span class="{date_style}">{date_str}</span>
+                </div>
                 <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
                 <p class="text-sm"><b>Protein:</b> {protein} grams</p>
                 <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>

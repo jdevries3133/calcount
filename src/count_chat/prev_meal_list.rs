@@ -48,10 +48,9 @@ impl Component for PreviousMeals<'_> {
                     sticky
                     top-[-1px]
                     bg-zinc-50
-                    dark:bg-blue-950
+                    dark:bg-slate-900
                     rounded
                     p-2
-                    mt-2
                     text-xl
                     font-bold
                 ">
