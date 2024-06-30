@@ -28,8 +28,7 @@ impl Component for PreviousMeals<'_> {
                     hx-get="{refresh_meals_href}"
                     hx-swap="innerHTML"
                     hx-trigger="reload-meals from:body"
-                    class="flex flex-col gap-2"
-                >
+                    class="flex flex-col gap-2 mt-2 md:mt-0" >
                 {meals}
                 </div>
             </div>

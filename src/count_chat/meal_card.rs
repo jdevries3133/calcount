@@ -1,4 +1,8 @@
-use crate::{chrono_utils::is_before_today, components::Void, prelude::*};
+use crate::{
+    chrono_utils::{fmt_date, is_before_today},
+    components::Void,
+    prelude::*,
+};
 
 #[derive(Debug)]
 pub struct Meal {
@@ -49,15 +53,11 @@ impl Component for MealCard<'_> {
             }
             RenderingBehavior::RenderAsToday => false,
         };
-        let datetime = match self.rendering_behavior {
-            RenderingBehavior::UseTimezone(tz) => {
-                self.info.created_at.with_timezone(&tz)
-            }
-            RenderingBehavior::RenderAsToday => {
-                Utc::now().with_timezone(&Tz::UTC)
-            }
+        let (datetime, timezone) = match self.rendering_behavior {
+            RenderingBehavior::UseTimezone(tz) => (self.info.created_at, tz),
+            RenderingBehavior::RenderAsToday => (utc_now(), Tz::UTC),
         };
-        let date_str = datetime.format("%b %e");
+        let date_str = fmt_date(&datetime, timezone);
         let meal_name = clean(&self.info.meal_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
