@@ -896,7 +896,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     meal_name: "Snack".into(),
-                    created_at: Utc::now(),
+                    created_at: utc_now(),
                 },
             },
             Meal {
@@ -907,7 +907,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     meal_name: "Snack".into(),
-                    created_at: Utc::now(),
+                    created_at: utc_now(),
                 },
             },
         ];
@@ -935,7 +935,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     meal_name: "Snack".into(),
-                    created_at: Utc::now(),
+                    created_at: utc_now(),
                 },
             },
             Meal {
@@ -946,7 +946,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     meal_name: "Snack".into(),
-                    created_at: Utc::now(),
+                    created_at: utc_now(),
                 },
             },
             Meal {
@@ -957,7 +957,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     meal_name: "Snack".into(),
-                    created_at: Utc::now(),
+                    created_at: utc_now(),
                 },
             },
         ];

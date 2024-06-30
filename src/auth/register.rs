@@ -236,7 +236,7 @@ pub async fn handle_registration(
             if super::is_anon(&ses.username) {
                 // Anon users have a long-lived session. We want to change
                 // the session creation date back to "now"
-                ses.created_at = Utc::now();
+                ses.created_at = utc_now();
                 let mut anon_user = User::get(
                     &db,
                     &GetUserQuery {
@@ -298,7 +298,7 @@ pub async fn handle_registration(
     let session = Session {
         user_id: user.id,
         username: user.username,
-        created_at: Utc::now(),
+        created_at: utc_now(),
     };
     let headers = session.update_headers(headers);
     let headers = htmx::redirect(headers, &Route::UserHome.as_string());

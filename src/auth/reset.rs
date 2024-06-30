@@ -198,7 +198,7 @@ pub async fn handle_password_reset(
     let headers = HeaderMap::new();
     match existing_token {
         Some(tok) => {
-            if (Utc::now()
+            if (utc_now()
                 .signed_duration_since(tok.created_at)
                 .num_minutes()
                 > RESET_TOKEN_TIMEOUT_MINUTES)

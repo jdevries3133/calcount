@@ -110,7 +110,7 @@ pub async fn get_current_goal(
 ) -> Aresult<i32> {
     let relevant_meals = get_relevant_meals(db, user_id, preferences).await?;
     let balancing_history = compute_balancing(
-        Utc::now(),
+        utc_now(),
         preferences.timezone,
         preferences
             .caloric_intake_goal
@@ -131,7 +131,7 @@ pub async fn history(
     let relevant_meals =
         get_relevant_meals(&db, session.user_id, &preferences).await?;
     let balancing_history = compute_balancing(
-        Utc::now(),
+        utc_now(),
         preferences.timezone,
         preferences
             .caloric_intake_goal

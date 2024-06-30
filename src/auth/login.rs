@@ -125,7 +125,7 @@ pub async fn get_login_form(
     };
     Ok(match session {
         Some(session) => {
-            if Utc::now()
+            if utc_now()
                 .signed_duration_since(session.created_at)
                 .num_days()
                 < config::SESSION_EXPIRY_TIME_DAYS

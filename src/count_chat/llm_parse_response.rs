@@ -3,6 +3,7 @@
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
 use super::counter::MealInfo;
+use crate::chrono_utils::utc_now;
 use regex::{Captures, Regex};
 
 impl MealInfo {
@@ -46,7 +47,7 @@ impl MealInfo {
                 protein_grams,
                 carbohydrates_grams,
                 fat_grams,
-                created_at: chrono::Utc::now(),
+                created_at: utc_now(),
             }),
             _ => Err(()),
         }

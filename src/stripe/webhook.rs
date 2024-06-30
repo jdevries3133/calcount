@@ -148,7 +148,7 @@ fn authenticate_stripe(
     let timestamp =
         *entries.get("t").ok_or(Error::msg("timestamp is missing"))?;
     let timestamp_dt = timestamp.parse::<i64>()?;
-    let now = Utc::now().timestamp();
+    let now = utc_now().timestamp();
     let time_diff = if (timestamp_dt - now).is_negative() {
         now - timestamp_dt
     } else {

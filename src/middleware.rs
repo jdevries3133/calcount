@@ -1,6 +1,9 @@
 //! Axum middlewares, modeled as async functions.
 
-use super::{auth::Session, config, htmx, models::AppState, routes::Route};
+use super::{
+    auth::Session, chrono_utils::utc_now, config, htmx, models::AppState,
+    routes::Route,
+};
 #[cfg(feature = "stripe")]
 use super::{
     errors::ServerError, models::IdCreatedAt, stripe::SubscriptionTypes,
@@ -11,7 +14,6 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
-use chrono::prelude::*;
 use chrono_tz::Tz;
 #[cfg(feature = "stripe")]
 use futures::join;
@@ -86,18 +88,18 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
     };
 
     if let Some(session) = session {
-        let token_age_days = Utc::now()
+        let token_age_days = utc_now()
             .signed_duration_since(session.created_at)
             .num_days();
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
             let uuid = Uuid::new_v4();
-            let time = Utc::now().with_timezone(&Tz::US__Eastern);
+            let time = utc_now().with_timezone(&Tz::US__Eastern);
             let method = request.method().as_str();
             let path = request.uri().path();
             let username = session.username;
             println!("[{time}] {method} {path} from {username}; uuid = {uuid}");
             let response = next.run(request).await;
-            let time = Utc::now().with_timezone(&Tz::US__Eastern);
+            let time = utc_now().with_timezone(&Tz::US__Eastern);
             let stat = response.status();
             println!("[{time}] Responding {stat}; uuid = {uuid}");
             response
@@ -113,12 +115,12 @@ pub async fn auth<B>(request: Request<B>, next: Next<B>) -> Response {
 
 pub async fn log<B>(request: Request<B>, next: Next<B>) -> Response {
     let uuid = Uuid::new_v4();
-    let time = Utc::now().with_timezone(&Tz::US__Eastern);
+    let time = utc_now().with_timezone(&Tz::US__Eastern);
     let uri = request.uri().path();
     let method = request.method().as_str();
     println!("[{time}] {method} {uri} from anonymous; uuid = {uuid}");
     let response = next.run(request).await;
-    let time = Utc::now().with_timezone(&Tz::US__Eastern);
+    let time = utc_now().with_timezone(&Tz::US__Eastern);
     let stat = response.status();
     println!("[{time}] Responding {stat}; uuid = {uuid}");
     response
@@ -157,7 +159,7 @@ pub async fn narc_on_subscriptions<B>(
             Ok(details) => {
                 (SubscriptionTypes::from_int(details.id), details.created_at)
             }
-            Err(_) => (SubscriptionTypes::Free, Utc::now()),
+            Err(_) => (SubscriptionTypes::Free, utc_now()),
         };
         match sub_type {
             SubscriptionTypes::Initializing => {
@@ -171,7 +173,7 @@ pub async fn narc_on_subscriptions<B>(
             .into_response(),
             SubscriptionTypes::Basic | SubscriptionTypes::Free => response,
             SubscriptionTypes::FreeTrial(trial_duration) => {
-                let user_age = Utc::now()
+                let user_age = utc_now()
                     .signed_duration_since(created_at)
                     .to_std()
                     .unwrap_or_default();

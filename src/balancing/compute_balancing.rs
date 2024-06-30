@@ -62,7 +62,7 @@ impl Component for BalancingEvent<'_> {
             )
         };
         let new_goal_description =
-            if self.end > Utc::now().with_timezone(&self.user_tz) {
+            if self.end > utc_now().with_timezone(&self.user_tz) {
                 "tommorow's goal"
             } else {
                 "new goal"
@@ -128,7 +128,7 @@ pub fn compute_balancing(
     let mut details = vec![];
     let mut date = meals
         .first()
-        .map_or(Utc::now(), |m| m.info.created_at)
+        .map_or(utc_now(), |m| m.info.created_at)
         .with_timezone(&user_timezone)
         .with_hour(0)
         .expect("(1) zero is a valid hour, and we are not spanning a DST transition")
@@ -195,7 +195,7 @@ pub fn compute_balancing(
     BalancedCaloriesResult {
         current_calorie_goal: details
             .iter()
-            .find(|i| i.end < Utc::now().with_timezone(&user_timezone))
+            .find(|i| i.end < utc_now().with_timezone(&user_timezone))
             .map_or(calorie_goal, |d| d.new_calorie_goal),
         details,
     }
@@ -215,14 +215,14 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 meal_name: "test".into(),
-                created_at: Utc::now()
+                created_at: utc_now()
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
             },
         }];
         let result =
-            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
+            compute_balancing(utc_now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 1900);
     }
     #[test]
@@ -236,7 +236,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     meal_name: "test".into(),
-                    created_at: Utc::now()
+                    created_at: utc_now()
                         - Duration::days(2)
                             .to_std()
                             .expect("can convert days to std"),
@@ -250,7 +250,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     meal_name: "test".into(),
-                    created_at: Utc::now()
+                    created_at: utc_now()
                         - Duration::days(1)
                             .to_std()
                             .expect("can convert days to std"),
@@ -258,12 +258,12 @@ mod test {
             },
         ];
         let result =
-            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
+            compute_balancing(utc_now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 1800);
     }
     #[test]
     fn test_compute_balancing_handles_one_day_gap() {
-        let now = Utc::now();
+        let now = utc_now();
         let history = [
             Meal {
                 id: 1,
@@ -308,19 +308,19 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 meal_name: "test".into(),
-                created_at: Utc::now()
+                created_at: utc_now()
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
             },
         }];
         let result =
-            compute_balancing(Utc::now(), Tz::UTC, 2000, None, None, &history);
+            compute_balancing(utc_now(), Tz::UTC, 2000, None, None, &history);
         assert_eq!(result.current_calorie_goal, 2100);
     }
     #[test]
     fn test_compute_balancing_creates_correct_event_log() {
-        let now = Utc::now();
+        let now = utc_now();
         let history = [
             Meal {
                 id: 1,
@@ -371,7 +371,7 @@ mod test {
     }
     #[test]
     fn test_max_limit() {
-        let now = Utc::now();
+        let now = utc_now();
         let history = [Meal {
             id: 1,
             info: MealInfo {
@@ -400,7 +400,7 @@ mod test {
     }
     #[test]
     fn test_min_limit() {
-        let now = Utc::now();
+        let now = utc_now();
         let history = [Meal {
             id: 1,
             info: MealInfo {
@@ -429,7 +429,7 @@ mod test {
     }
     #[test]
     fn test_min_and_max_limits_practical_example() {
-        let now = Utc::now();
+        let now = utc_now();
         let history = [
             Meal {
                 id: 1,

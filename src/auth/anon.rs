@@ -42,7 +42,7 @@ pub async fn init_anon(
                 // creates a long-lived token. This user won't know their
                 // password until they convert into a non-anon registered
                 // user, so we don't want to surprise log them out.
-                created_at: Utc::now().checked_add_days(Days::new(365)).expect(
+                created_at: utc_now().checked_add_days(Days::new(365)).expect(
                     "can add 1 year to the current date w/o overflowing",
                 ),
             }

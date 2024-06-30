@@ -388,7 +388,7 @@ impl Component for ProfileChip<'_> {
             let cnt_remaining_days = chrono_utils::as_days(
                 duration
                     .checked_sub(
-                        Utc::now()
+                        utc_now()
                             .signed_duration_since(self.user_created_time)
                             .to_std()
                             .unwrap_or_default(),

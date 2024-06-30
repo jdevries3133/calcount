@@ -3,9 +3,8 @@
 //! authenticating a user with the provided credentials.
 
 use super::{pw, Session};
-use crate::{db_ops, db_ops::GetModel, models};
+use crate::{chrono_utils::utc_now, db_ops, db_ops::GetModel, models};
 use anyhow::{bail, Result};
-use chrono::Utc;
 use sqlx::{postgres::PgPool, query_as};
 
 /// We are a bit losey goosey on the identifier for a better user experience.
@@ -45,7 +44,7 @@ pub async fn authenticate(
         Ok(Session {
             user_id: user.id,
             username: user.username.clone(),
-            created_at: Utc::now(),
+            created_at: utc_now(),
         })
     } else {
         bail!("wrong password")
