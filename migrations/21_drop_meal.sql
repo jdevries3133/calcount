@@ -1,5 +1,5 @@
-insert into food
-select * from meal where id not in (
-    select id from food
-);
+create sequence food_id_seq;
+alter table food alter column id set default nextval('food_id_seq');
 drop table meal;
+
+
