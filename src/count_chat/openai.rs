@@ -67,14 +67,14 @@ impl OpenAI {
     pub async fn send_message(
         &self,
         system_msg: String,
-        meal_description: &str,
+        food_description: &str,
     ) -> Result<Response> {
-        if meal_description.len() > config::CHAT_MAX_LEN {
+        if food_description.len() > config::CHAT_MAX_LEN {
             return Err(Error::msg("tried to send a chat which is too long"));
         };
         let mut user_message =
-            String::from("The meal I'd like a calorie estimate for is ");
-        user_message.push_str(meal_description);
+            String::from("The food I'd like a calorie estimate for is ");
+        user_message.push_str(food_description);
         let payload = ChatCompletionRequest {
             model: "gpt-3.5-turbo-1106".into(),
             messages: vec![

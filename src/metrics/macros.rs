@@ -1,5 +1,6 @@
 use crate::{
-    balancing, chrono_utils::is_before_today, count_chat::MealInfo, prelude::*,
+    balancing, chrono_utils::is_before_today, count_chat::FoodItemDetails,
+    prelude::*,
 };
 
 /// For now, these are implicitly an aggregation of all meals during the
@@ -109,31 +110,31 @@ pub async fn get_macros(
         protein_grams: i32,
         carbohydrates_grams: i32,
         fat_grams: i32,
-        meal_name: String,
+        food_name: String,
         created_at: DateTime<Utc>,
     }
     let result = query_as!(
         Qres,
         "select
-            name meal_name,
+            name food_name,
             calories calories,
             protein protein_grams,
             fat fat_grams,
             carbohydrates carbohydrates_grams,
             created_at
-        from meal
+        from food
         where
             user_id = $1
             and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'
         ",
         user_id
     )
-    .map(|row| MealInfo {
+    .map(|row| FoodItemDetails {
         calories: row.calories,
         protein_grams: row.protein_grams,
         fat_grams: row.fat_grams,
         carbohydrates_grams: row.carbohydrates_grams,
-        meal_name: row.meal_name,
+        food_name: row.food_name,
         created_at: row.created_at,
     })
     .fetch_all(db)

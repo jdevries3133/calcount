@@ -1,13 +1,13 @@
 mod counter;
+mod food_card;
 mod llm_parse_response;
-mod meal_card;
 mod openai;
-mod prev_meal_list;
+mod prev_food_list;
 
 pub use self::{
     counter::{
-        chat_form, handle_chat, handle_save_meal, list_meals, list_meals_op,
-        prev_day_meal_form, Chat as ChatContainer,
+        chat_form, handle_chat, handle_save_food, list_food, list_meals_op,
+        prev_day_food_form, Chat as ChatContainer,
     },
-    meal_card::{Meal, MealInfo},
+    food_card::{FoodItem, FoodItemDetails},
 };

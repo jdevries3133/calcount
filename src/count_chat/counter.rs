@@ -2,20 +2,20 @@
 //! are colocated here).
 
 use super::{
-    meal_card::{MealCard, RenderingBehavior},
+    food_card::{FoodCard, RenderingBehavior},
     openai::OpenAI,
-    prev_meal_list::{MealSet, PrevDayFormActions, PreviousMeals},
-    Meal, MealInfo,
+    prev_food_list::{FoodList, PrevDayFormActions, PreviousFood},
+    FoodItem, FoodItemDetails,
 };
 use crate::{
     auth::is_anon, client_events, components::AnonWarning, config,
-    config::MEAL_PAGE_SIZE, prelude::*,
+    config::FOOD_PAGE_SIZE, prelude::*,
 };
 use axum::extract::Query;
 use futures::join;
 
 pub struct Chat<'a> {
-    pub meals: &'a Vec<Meal>,
+    pub food_items: &'a Vec<FoodItem>,
     pub prompt: Option<&'a str>,
     pub user_timezone: Tz,
     pub next_page: i64,
@@ -26,8 +26,8 @@ pub struct Chat<'a> {
 }
 impl Component for Chat<'_> {
     fn render(&self) -> String {
-        let prev_meals = PreviousMeals {
-            meals: self.meals,
+        let prev_meals = PreviousFood {
+            meals: self.food_items,
             user_timezone: self.user_timezone,
             next_page: self.next_page,
         };
@@ -37,7 +37,7 @@ impl Component for Chat<'_> {
             children: Some(&prev_meals),
         }
         .render();
-        let anon_warning = if self.is_anonymous && self.meals.len() >= 3 {
+        let anon_warning = if self.is_anonymous && self.food_items.len() >= 3 {
             AnonWarning {}.render()
         } else {
             "".into()
@@ -130,23 +130,23 @@ impl Component for ChatUI<'_> {
 }
 
 struct NewMealOptions<'a> {
-    info: &'a MealInfo,
+    info: &'a FoodItemDetails,
 }
 impl Component for NewMealOptions<'_> {
     fn render(&self) -> String {
         let retry_route = Route::ChatForm;
-        let save_route = Route::SaveMeal;
-        let prev_day_route = Route::PreviousDayMeal;
+        let save_route = Route::SaveFood;
+        let prev_day_route = Route::PreviousDayFood;
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
         let fat = self.info.fat_grams;
         let created_at = self.info.created_at;
-        let meal_name = encode_quotes(&clean(&self.info.meal_name));
+        let food_name = encode_quotes(&clean(&self.info.food_name));
         format!(
             r##"
             <form hx-post="{prev_day_route}" hx-target="#cal-chat-container">
-                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{food_name}" name="food_name" />
                 <input type="hidden" value="{calories}" name="calories" />
                 <input type="hidden" value="{protein}" name="protein_grams" />
                 <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
@@ -158,14 +158,14 @@ impl Component for NewMealOptions<'_> {
                 >Set Date</button>
             </form>
             <form hx-post="{retry_route}" hx-target="#cal-chat-container">
-                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{food_name}" name="food_name" />
                 <button
                     class="bg-red-100 p-1 rounded shadow hover:bg-red-200"
                     tabindex="2"
                 >Try Again</button>
             </form>
             <form hx-post="{save_route}" hx-target="#cal-chat-container">
-                <input type="hidden" value="{meal_name}" name="meal_name" />
+                <input type="hidden" value="{food_name}" name="food_name" />
                 <input type="hidden" value="{calories}" name="calories" />
                 <input type="hidden" value="{protein}" name="protein_grams" />
                 <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
@@ -201,7 +201,7 @@ impl Component for CannotParse<'_> {
             <div class="prose max-w-[400px] dark:text-slate-200">
                 <p><b>AI response:</b> {llm_response}</p>
                 <form hx-post="{retry_route}" hx-target="#cal-chat-container">
-                    <input type="hidden" value="{prompt}" name="meal_name" />
+                    <input type="hidden" value="{prompt}" name="food_name" />
                     <button
                         class="
                             bg-red-100
@@ -292,9 +292,9 @@ pub async fn handle_chat(
     .execute(&db)
     .await?;
 
-    let parse_result = MealInfo::parse(&response.message, &chat);
+    let parse_result = FoodItemDetails::parse(&response.message, &chat);
     match parse_result {
-        Ok(meal) => Ok(MealCard {
+        Ok(meal) => Ok(FoodCard {
             info: &meal,
             meal_id: None,
             actions: Some(&NewMealOptions { info: &meal }),
@@ -315,7 +315,7 @@ pub async fn handle_chat(
 
 #[derive(Deserialize)]
 pub struct PrevPrompt {
-    meal_name: String,
+    food_name: String,
 }
 
 #[derive(Deserialize)]
@@ -334,10 +334,10 @@ pub async fn chat_form(
     let page = page.map_or(0, |p| p.page);
     let meals = list_meals_op(&db, session.user_id, page).await?;
     let chat = Chat {
-        meals: &meals,
+        food_items: &meals,
         user_timezone: preferences.timezone,
         prompt: match prev_prompt {
-            Some(ref form) => Some(&form.meal_name),
+            Some(ref form) => Some(&form.food_name),
             None => None,
         },
         next_page: page + 1,
@@ -352,13 +352,13 @@ pub async fn list_meals_op<'a>(
     db: &PgPool,
     user_id: i32,
     page: i64,
-) -> Aresult<Vec<Meal>> {
-    let limit: i64 = MEAL_PAGE_SIZE.into();
+) -> Aresult<Vec<FoodItem>> {
+    let limit: i64 = FOOD_PAGE_SIZE.into();
     let offset = limit * page;
 
     struct Qres {
         id: i32,
-        meal_name: String,
+        food_name: String,
         calories: i32,
         fat_grams: i32,
         protein_grams: i32,
@@ -369,13 +369,13 @@ pub async fn list_meals_op<'a>(
         Qres,
         "select
             id,
-            name meal_name,
+            name food_name,
             calories,
             fat fat_grams,
             protein protein_grams,
             carbohydrates carbohydrates_grams,
             created_at
-        from meal
+        from food
         where user_id = $1
         order by created_at desc
         limit $2
@@ -390,10 +390,10 @@ pub async fn list_meals_op<'a>(
 
     Ok(res
         .drain(..)
-        .map(|r| Meal {
+        .map(|r| FoodItem {
             id: r.id,
-            info: MealInfo {
-                meal_name: r.meal_name,
+            details: FoodItemDetails {
+                food_name: r.food_name,
                 calories: r.calories,
                 carbohydrates_grams: r.carbohydrates_grams,
                 fat_grams: r.fat_grams,
@@ -401,19 +401,19 @@ pub async fn list_meals_op<'a>(
                 created_at: r.created_at,
             },
         })
-        .collect::<Vec<Meal>>())
+        .collect::<Vec<FoodItem>>())
 }
 
-pub async fn handle_save_meal(
+pub async fn handle_save_food(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
-    Form(meal): Form<MealInfo>,
+    Form(meal): Form<FoodItemDetails>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("handle save meal"))?;
     let preferences = session.get_preferences(&db).await?;
     query!(
-        "insert into meal
+        "insert into food
         (
             user_id,
             name,
@@ -425,7 +425,7 @@ pub async fn handle_save_meal(
         )
         values ($1, $2, $3, $4, $5, $6, $7)",
         session.user_id,
-        meal.meal_name,
+        meal.food_name,
         meal.calories,
         meal.fat_grams,
         meal.protein_grams,
@@ -439,7 +439,7 @@ pub async fn handle_save_meal(
     Ok((
         response_headers,
         Chat {
-            meals: &meals,
+            food_items: &meals,
             user_timezone: preferences.timezone,
             prompt: None,
             next_page: 1,
@@ -450,7 +450,7 @@ pub async fn handle_save_meal(
     ))
 }
 
-pub async fn list_meals(
+pub async fn list_food(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
     Query(Pagination { page }): Query<Pagination>,
@@ -463,7 +463,7 @@ pub async fn list_meals(
     let meals = meals?;
     let preferences = preferences?;
 
-    Ok(MealSet {
+    Ok(FoodList {
         meals: &meals[..],
         next_page: page + 1,
         user_timezone: preferences.timezone,
@@ -472,14 +472,14 @@ pub async fn list_meals(
     .render())
 }
 
-pub async fn prev_day_meal_form(
+pub async fn prev_day_food_form(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
-    Form(meal): Form<MealInfo>,
+    Form(meal): Form<FoodItemDetails>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "prev day meal form")?;
     let preferences = session.get_preferences(&db).await?;
-    Ok(MealCard {
+    Ok(FoodCard {
         info: &meal,
         meal_id: None,
         actions: Some(&PrevDayFormActions { info: &meal }),
@@ -499,31 +499,31 @@ mod test {
     #[test]
     fn test_no_anon_warning_for_inactive_anon() {
         let mock_meals = &vec![
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
                     carbohydrates_grams: 1,
                     fat_grams: 1,
-                    meal_name: "Snack".into(),
+                    food_name: "Snack".into(),
                     created_at: utc_now(),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 2,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
                     carbohydrates_grams: 1,
                     fat_grams: 1,
-                    meal_name: "Snack".into(),
+                    food_name: "Snack".into(),
                     created_at: utc_now(),
                 },
             },
         ];
         let ui = Chat {
-            meals: &mock_meals,
+            food_items: &mock_meals,
             prompt: None,
             user_timezone: Tz::UTC,
             next_page: 1,
@@ -538,42 +538,42 @@ mod test {
     #[test]
     fn test_no_anon_warning_for_active_anon() {
         let mock_meals = &vec![
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
                     carbohydrates_grams: 1,
                     fat_grams: 1,
-                    meal_name: "Snack".into(),
+                    food_name: "Snack".into(),
                     created_at: utc_now(),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 2,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
                     carbohydrates_grams: 1,
                     fat_grams: 1,
-                    meal_name: "Snack".into(),
+                    food_name: "Snack".into(),
                     created_at: utc_now(),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 3,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
                     carbohydrates_grams: 1,
                     fat_grams: 1,
-                    meal_name: "Snack".into(),
+                    food_name: "Snack".into(),
                     created_at: utc_now(),
                 },
             },
         ];
         let ui = Chat {
-            meals: &mock_meals,
+            food_items: &mock_meals,
             prompt: None,
             user_timezone: Tz::UTC,
             next_page: 1,

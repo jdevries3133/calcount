@@ -68,7 +68,7 @@ impl Component for CheckpointList<'_> {
                 <details class="mb-2">
                     <summary>What are balancing checkpoints?</summary>
                     <p>
-                        All meals before a checkpoint will be ignored for the
+                        All food before a checkpoint will be ignored for the
                         purpose of calorie balancing. Most of the time, calorie
                         balancing ensures that excess or defecit calories from
                         previous days will rollover into your goal for today.

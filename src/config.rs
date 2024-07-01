@@ -32,5 +32,5 @@ pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OTyEXBhmccJFhTPvs01VoJf";
 #[cfg(not(feature = "use_stripe_test_instance"))]
 pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OoJ2oBhmccJFhTPaTT6PdEp";
 
-/// Page size for the meal list view.
-pub const MEAL_PAGE_SIZE: u8 = 50;
+/// Page size for the food list view.
+pub const FOOD_PAGE_SIZE: u8 = 50;

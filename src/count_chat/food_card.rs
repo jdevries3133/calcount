@@ -5,26 +5,26 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Meal {
+pub struct FoodItem {
     pub id: i32,
-    pub info: MealInfo,
+    pub details: FoodItemDetails,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct MealInfo {
+pub struct FoodItemDetails {
     pub calories: i32,
     pub protein_grams: i32,
     pub carbohydrates_grams: i32,
     pub fat_grams: i32,
-    pub meal_name: String,
+    pub food_name: String,
     pub created_at: DateTime<Utc>,
 }
 
-impl Component for Meal {
+impl Component for FoodItem {
     fn render(&self) -> String {
-        MealCard {
+        FoodCard {
             meal_id: Some(self.id),
-            info: &self.info,
+            info: &self.details,
             actions: Some(&Void {}),
             rendering_behavior: RenderingBehavior::RenderAsToday,
             show_ai_warning: false,
@@ -38,14 +38,14 @@ pub enum RenderingBehavior {
     RenderAsToday,
 }
 
-pub struct MealCard<'a> {
-    pub info: &'a MealInfo,
+pub struct FoodCard<'a> {
+    pub info: &'a FoodItemDetails,
     pub meal_id: Option<i32>,
     pub actions: Option<&'a dyn Component>,
     pub rendering_behavior: RenderingBehavior,
     pub show_ai_warning: bool,
 }
-impl Component for MealCard<'_> {
+impl Component for FoodCard<'_> {
     fn render(&self) -> String {
         let is_meal_before_today = match self.rendering_behavior {
             RenderingBehavior::UseTimezone(tz) => {
@@ -58,7 +58,7 @@ impl Component for MealCard<'_> {
             RenderingBehavior::RenderAsToday => (utc_now(), Tz::UTC),
         };
         let date_str = fmt_date(&datetime, timezone);
-        let meal_name = clean(&self.info.meal_name);
+        let food_name = clean(&self.info.food_name);
         let calories = self.info.calories;
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
@@ -67,8 +67,8 @@ impl Component for MealCard<'_> {
             Some(action) => action.render(),
             None => match self.meal_id {
                 Some(id) => {
-                    let delete_href = Route::DeleteMeal(Some(id));
-                    let add_to_today_href = Route::AddMealToToday(Some(id));
+                    let delete_href = Route::DeleteFood(Some(id));
+                    let add_to_today_href = Route::AddFoodToToday(Some(id));
                     let add_to_today_button = if is_meal_before_today {
                         format!(
                             r#"
@@ -158,7 +158,7 @@ impl Component for MealCard<'_> {
                 hx-swap="outerHTML"
             >
                 <div class="grid grid-cols-7">
-                    <h1 class="col-span-5 text-2xl bold serif">{meal_name}</h1>
+                    <h1 class="col-span-5 text-2xl bold serif">{food_name}</h1>
                     <span class="{date_style}">{date_str}</span>
                 </div>
                 <p class="text-lg"><b>Calories:</b> {calories} kcal</p>

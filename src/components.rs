@@ -325,7 +325,7 @@ impl Component for ExternalLink<'_> {
 pub struct UserHome<'a> {
     pub user: &'a models::User,
     pub preferences: UserPreference,
-    pub meals: &'a Vec<count_chat::Meal>,
+    pub food_items: &'a Vec<count_chat::FoodItem>,
     pub macros: &'a metrics::Macros,
     pub subscription_type: SubscriptionTypes,
     pub caloric_intake_goal: Option<i32>,
@@ -347,7 +347,7 @@ impl Component for UserHome<'_> {
         }
         .render();
         let chat = count_chat::ChatContainer {
-            meals: self.meals,
+            food_items: self.food_items,
             user_timezone: self.preferences.timezone,
             prompt: None,
             next_page: 1,

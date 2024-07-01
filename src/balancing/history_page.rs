@@ -1,6 +1,6 @@
 use super::compute_balancing::{compute_balancing, BalancedCaloriesResult};
 use crate::{
-    count_chat::{Meal, MealInfo},
+    count_chat::{FoodItem, FoodItemDetails},
     prelude::*,
 };
 
@@ -44,18 +44,18 @@ impl Component for BalancingHistory<'_> {
     }
 }
 
-pub async fn get_relevant_meals(
+pub async fn get_relevant_food(
     db: impl PgExecutor<'_>,
     user_id: i32,
     preferences: &UserPreference,
-) -> Aresult<Vec<Meal>> {
+) -> Aresult<Vec<FoodItem>> {
     struct Qres {
         id: i32,
         calories: i32,
         protein_grams: i32,
         carbohydrates_grams: i32,
         fat_grams: i32,
-        meal_name: String,
+        food_name: String,
         created_at: DateTime<Utc>,
     }
     Ok(query_as!(
@@ -66,9 +66,9 @@ pub async fn get_relevant_meals(
             protein protein_grams,
             carbohydrates carbohydrates_grams,
             fat fat_grams,
-            name meal_name,
+            name food_name,
             created_at
-        from meal
+        from food
         where created_at at time zone $1 > (
             case when exists (
                 select 1 from balancing_checkpoint where user_id = $2
@@ -88,14 +88,14 @@ pub async fn get_relevant_meals(
         preferences.timezone.to_string(),
         user_id
     )
-    .map(|row| Meal {
+    .map(|row| FoodItem {
         id: row.id,
-        info: MealInfo {
+        details: FoodItemDetails {
             calories: row.calories,
             carbohydrates_grams: row.carbohydrates_grams,
             created_at: row.created_at,
             fat_grams: row.fat_grams,
-            meal_name: row.meal_name,
+            food_name: row.food_name,
             protein_grams: row.protein_grams,
         },
     })
@@ -108,7 +108,7 @@ pub async fn get_current_goal(
     user_id: i32,
     preferences: &UserPreference,
 ) -> Aresult<i32> {
-    let relevant_meals = get_relevant_meals(db, user_id, preferences).await?;
+    let relevant_food = get_relevant_food(db, user_id, preferences).await?;
     let balancing_history = compute_balancing(
         utc_now(),
         preferences.timezone,
@@ -117,7 +117,7 @@ pub async fn get_current_goal(
             .ok_or(Error::msg("user does not have caloric intake goal"))?,
         preferences.calorie_balancing_max_calories,
         preferences.calorie_balancing_min_calories,
-        &relevant_meals,
+        &relevant_food,
     );
     Ok(balancing_history.current_calorie_goal)
 }
@@ -128,8 +128,8 @@ pub async fn history(
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "balancing history")?;
     let preferences = session.get_preferences(&db).await?;
-    let relevant_meals =
-        get_relevant_meals(&db, session.user_id, &preferences).await?;
+    let relevant_food =
+        get_relevant_food(&db, session.user_id, &preferences).await?;
     let balancing_history = compute_balancing(
         utc_now(),
         preferences.timezone,
@@ -138,7 +138,7 @@ pub async fn history(
             .expect("user has caloric intake goal"),
         preferences.calorie_balancing_max_calories,
         preferences.calorie_balancing_min_calories,
-        &relevant_meals,
+        &relevant_food,
     );
 
     Ok(Page {

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{count_chat::Meal, prelude::*};
+use crate::{count_chat::FoodItem, prelude::*};
 use chrono::Duration;
 use std::cmp::{max, min};
 
@@ -27,7 +27,7 @@ pub struct BalancingEvent<'a> {
     /// With calorie balancing, calories in excess of the user's minimum or
     /// maximum limit will go into this bucket.
     calories_to_be_applied_at_a_later_date: i32,
-    meals: &'a [Meal],
+    food_items: &'a [FoodItem],
     user_tz: Tz,
 }
 
@@ -38,14 +38,15 @@ impl Component for BalancingEvent<'_> {
         let new = self.new_calorie_goal;
         let consumed = self.calories_consumed_during_period;
         let user_goal = self.user_input_calorie_goal;
-        let meals = self.meals.iter().fold(String::new(), |mut acc, meal| {
-            acc.push_str(&meal.render());
-            acc
-        });
-        let meal_container = if meals.is_empty() {
+        let food_items =
+            self.food_items.iter().fold(String::new(), |mut acc, food| {
+                acc.push_str(&food.render());
+                acc
+            });
+        let food_container = if food_items.is_empty() {
             r#"
             <p class="text-xs italic">
-                Zero meals have been eaten on this date
+                No food was eaten on this date
             </p>
             "#
             .into()
@@ -53,9 +54,9 @@ impl Component for BalancingEvent<'_> {
             format!(
                 r#"
                 <details>
-                    <summary>View Meals</summary>
+                    <summary>View Food</summary>
                     <div class="flex gap-2 flex-wrap">
-                    {meals}
+                    {food_items}
                     </div>
                 </details>
                 "#
@@ -92,7 +93,7 @@ impl Component for BalancingEvent<'_> {
                     <p>=> {new} <sub>{new_goal_description}</sub></p>
                     <p>=> {extra} <sub>calories exceeding limits</sub></p>
                 </div>
-                {meal_container}
+                {food_container}
             </div>
             "#
         )
@@ -106,14 +107,14 @@ pub struct BalancedCaloriesResult<'a> {
     pub details: Vec<BalancingEvent<'a>>,
 }
 
-/// `meals` must be provided sorted by date.
+/// `food` must be provided sorted by date.
 pub fn compute_balancing(
     now: DateTime<Utc>,
     user_timezone: Tz,
     calorie_goal: i32,
     max_calories: Option<i32>,
     min_calories: Option<i32>,
-    meals: &[Meal],
+    food_items: &[FoodItem],
 ) -> BalancedCaloriesResult<'_> {
     let max_calories = max_calories.unwrap_or(i32::MAX);
     let min_calories = min_calories.unwrap_or(0);
@@ -126,9 +127,9 @@ pub fn compute_balancing(
         panic!("max calories cannot be less than the calorie goal");
     };
     let mut details = vec![];
-    let mut date = meals
+    let mut date = food_items
         .first()
-        .map_or(utc_now(), |m| m.info.created_at)
+        .map_or(utc_now(), |m| m.details.created_at)
         .with_timezone(&user_timezone)
         .with_hour(0)
         .expect("(1) zero is a valid hour, and we are not spanning a DST transition")
@@ -138,18 +139,18 @@ pub fn compute_balancing(
         .expect("(1) zero is a valid second, and we are not spanning a DST transition")
         .with_nanosecond(0)
         .expect("(1) zero is a valid nanosecond, and we are not spanning a DST transition");
-    let mut meal_ptr = 0;
+    let mut food_ptr = 0;
     while date < now {
         let mut calories_consumed = 0;
-        let this_day_slice_start = meal_ptr;
-        for meal in meals[meal_ptr..].iter() {
+        let this_day_slice_start = food_ptr;
+        for food in food_items[food_ptr..].iter() {
             let offset_from_date =
-                meal.info.created_at.with_timezone(&user_timezone) - date;
+                food.details.created_at.with_timezone(&user_timezone) - date;
             if offset_from_date > Duration::zero()
                 && offset_from_date < Duration::days(1)
             {
-                calories_consumed += meal.info.calories;
-                meal_ptr += 1;
+                calories_consumed += food.details.calories;
+                food_ptr += 1;
             }
         }
 
@@ -178,7 +179,7 @@ pub fn compute_balancing(
             new_calorie_goal: limited_goal,
             calories_consumed_during_period: calories_consumed,
             calories_to_be_applied_at_a_later_date: new_remainder,
-            meals: &meals[this_day_slice_start..meal_ptr],
+            food_items: &food_items[this_day_slice_start..food_ptr],
             user_tz: user_timezone,
         });
         date += Duration::days(1);
@@ -204,17 +205,17 @@ pub fn compute_balancing(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::count_chat::MealInfo;
+    use crate::count_chat::FoodItemDetails;
     #[test]
     fn test_compute_balancing_subtracts_surplus_to_next_day() {
-        let history = [Meal {
+        let history = [FoodItem {
             id: 1,
-            info: MealInfo {
+            details: FoodItemDetails {
                 calories: 2100,
                 fat_grams: 0,
                 protein_grams: 0,
                 carbohydrates_grams: 0,
-                meal_name: "test".into(),
+                food_name: "test".into(),
                 created_at: utc_now()
                     - Duration::days(1)
                         .to_std()
@@ -228,28 +229,28 @@ mod test {
     #[test]
     fn test_compute_balancing_subtracts_surplus_from_two_days() {
         let history = [
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: utc_now()
                         - Duration::days(2)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 2,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: utc_now()
                         - Duration::days(1)
                             .to_std()
@@ -265,28 +266,28 @@ mod test {
     fn test_compute_balancing_handles_one_day_gap() {
         let now = utc_now();
         let history = [
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "3 days ago".into(),
+                    food_name: "3 days ago".into(),
                     created_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 2,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "yesterday".into(),
+                    food_name: "yesterday".into(),
                     created_at: now
                         - Duration::days(1)
                             .to_std()
@@ -300,14 +301,14 @@ mod test {
     }
     #[test]
     fn test_compute_balancing_adds_defecit_to_next_day() {
-        let history = [Meal {
+        let history = [FoodItem {
             id: 1,
-            info: MealInfo {
+            details: FoodItemDetails {
                 calories: 1900,
                 fat_grams: 0,
                 protein_grams: 0,
                 carbohydrates_grams: 0,
-                meal_name: "test".into(),
+                food_name: "test".into(),
                 created_at: utc_now()
                     - Duration::days(1)
                         .to_std()
@@ -322,28 +323,28 @@ mod test {
     fn test_compute_balancing_creates_correct_event_log() {
         let now = utc_now();
         let history = [
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 2,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(1)
                             .to_std()
@@ -361,7 +362,7 @@ mod test {
         match skipped_day {
             Some(event) => {
                 assert_eq!(event.calories_consumed_during_period, 0);
-                assert_eq!(event.meals.len(), 0);
+                assert_eq!(event.food_items.len(), 0);
                 assert_eq!(event.previous_calorie_goal, 1900);
                 assert_eq!(event.new_calorie_goal, 3900);
             }
@@ -372,14 +373,14 @@ mod test {
     #[test]
     fn test_max_limit() {
         let now = utc_now();
-        let history = [Meal {
+        let history = [FoodItem {
             id: 1,
-            info: MealInfo {
+            details: FoodItemDetails {
                 calories: 1000,
                 fat_grams: 0,
                 protein_grams: 0,
                 carbohydrates_grams: 0,
-                meal_name: "test".into(),
+                food_name: "test".into(),
                 created_at: now
                     - Duration::days(1)
                         .to_std()
@@ -401,14 +402,14 @@ mod test {
     #[test]
     fn test_min_limit() {
         let now = utc_now();
-        let history = [Meal {
+        let history = [FoodItem {
             id: 1,
-            info: MealInfo {
+            details: FoodItemDetails {
                 calories: 3000,
                 fat_grams: 0,
                 protein_grams: 0,
                 carbohydrates_grams: 0,
-                meal_name: "test".into(),
+                food_name: "test".into(),
                 created_at: now
                     - Duration::days(1)
                         .to_std()
@@ -431,70 +432,70 @@ mod test {
     fn test_min_and_max_limits_practical_example() {
         let now = utc_now();
         let history = [
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 4000,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(6)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2000,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(4)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 2400,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1800,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(2)
                             .to_std()
                             .expect("can convert days to std"),
                 },
             },
-            Meal {
+            FoodItem {
                 id: 1,
-                info: MealInfo {
+                details: FoodItemDetails {
                     calories: 1000,
                     fat_grams: 0,
                     protein_grams: 0,
                     carbohydrates_grams: 0,
-                    meal_name: "test".into(),
+                    food_name: "test".into(),
                     created_at: now
                         - Duration::days(1)
                             .to_std()

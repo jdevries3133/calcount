@@ -27,13 +27,13 @@ use axum::{
 /// for the Axum router.
 pub enum Route {
     About,
-    AddMealToToday(Option<i32>),
+    AddFoodToToday(Option<i32>),
     BalancingCheckpoints,
     BalancingCreateCheckpoint,
     BalancingDeleteCheckpoint,
     BalancingHistory,
     ChatForm,
-    DeleteMeal(Option<i32>),
+    DeleteFood(Option<i32>),
     DisplayMacros,
     Favicon,
     /// This is just a route which, when visited, will trigger the backend
@@ -46,21 +46,21 @@ pub enum Route {
     HandleChat,
     Htmx,
     InitAnon,
-    ListMeals,
+    ListFood,
     Login,
     Logout,
     PasswordReset,
     PasswordResetSecret(Option<String>),
     Ping,
-    /// Receives form data for a meal, and returns a new form which adds a
-    /// visible created_at field, allowing the user to save the meal to a
+    /// Receives form data for a food irtem, and returns a new form which adds
+    /// a visible created_at field, allowing the user to save the meal to a
     /// custom date.
-    PreviousDayMeal,
+    PreviousDayFood,
     PrivacyPolicy,
     Register,
     RobotsTxt,
     Root,
-    SaveMeal,
+    SaveFood,
     StaticAppleIcon,
     StaticLargeIcon,
     StaticManifest,
@@ -94,9 +94,9 @@ impl Route {
     pub fn as_string(&self) -> String {
         match self {
             Self::About => "/about".into(),
-            Self::AddMealToToday(slug) => match slug {
-                Some(value) => format!("/add-meal-to-today/{value}"),
-                None => "/add-meal-to-today/:id".into(),
+            Self::AddFoodToToday(slug) => match slug {
+                Some(value) => format!("/add-food-to-today/{value}"),
+                None => "/add-food-to-today/:id".into(),
             },
             Self::BalancingCheckpoints => {
                 "/calorie-balancing/checkpoints".into()
@@ -105,9 +105,9 @@ impl Route {
             Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
             Self::BalancingHistory => "/calorie-balancing".into(),
             Self::ChatForm => "/chat-form".into(),
-            Self::DeleteMeal(slug) => match slug {
-                Some(value) => format!("/delete-meal/{value}"),
-                None => "/delete-meal/:id".into(),
+            Self::DeleteFood(slug) => match slug {
+                Some(value) => format!("/delete-food/{value}"),
+                None => "/delete-food/:id".into(),
             },
             Self::DisplayMacros => "/metrics/macros".into(),
             Self::Favicon => "/favicon.ico".into(),
@@ -115,7 +115,7 @@ impl Route {
             Self::HandleChat => "/chat".into(),
             Self::Htmx => "/generated/htmx-1.9.12".into(),
             Self::InitAnon => "/authentication/init-anon".into(),
-            Self::ListMeals => "/list-meals".into(),
+            Self::ListFood => "/list-food".into(),
             Self::Login => "/authentication/login".into(),
             Self::Logout => "/authentication/logout".into(),
             Self::PasswordReset => "/authentication/reset-password".into(),
@@ -124,12 +124,12 @@ impl Route {
                 None => "/authentication/reset-password/:slug".into(),
             },
             Self::Ping => "/ping".into(),
-            Self::PreviousDayMeal => "/get-meal-custom-date-form".into(),
+            Self::PreviousDayFood => "/get-food-custom-date-form".into(),
             Self::PrivacyPolicy => "/privacy".into(),
             Self::Register => "/authentication/register".into(),
             Self::Root => "/".into(),
             Self::RobotsTxt => "/robots.txt".into(),
-            Self::SaveMeal => "/save-meal".into(),
+            Self::SaveFood => "/save-food".into(),
             Self::StaticAppleIcon => "/static/apple_icon".into(),
             Self::StaticLargeIcon => "/static/large-icon".into(),
             Self::StaticManifest => "/static/manifest".into(),
@@ -169,14 +169,14 @@ impl std::fmt::Display for Route {
 fn get_authenticated_routes() -> Router<models::AppState> {
     Router::new()
         .route(
-            &Route::AddMealToToday(None).as_string(),
-            post(controllers::add_meal_to_today),
+            &Route::AddFoodToToday(None).as_string(),
+            post(controllers::add_food_to_today),
         )
         .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
         .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
-            &Route::DeleteMeal(None).as_string(),
-            delete(controllers::delete_meal),
+            &Route::DeleteFood(None).as_string(),
+            delete(controllers::delete_food),
         )
         .route(
             &Route::DisplayMacros.as_string(),
@@ -186,14 +186,14 @@ fn get_authenticated_routes() -> Router<models::AppState> {
             &Route::HandleChat.as_string(),
             post(count_chat::handle_chat),
         )
-        .route(&Route::ListMeals.as_string(), get(count_chat::list_meals))
+        .route(&Route::ListFood.as_string(), get(count_chat::list_food))
         .route(
-            &Route::SaveMeal.as_string(),
-            post(count_chat::handle_save_meal),
+            &Route::SaveFood.as_string(),
+            post(count_chat::handle_save_food),
         )
         .route(
-            &Route::PreviousDayMeal.as_string(),
-            post(count_chat::prev_day_meal_form),
+            &Route::PreviousDayFood.as_string(),
+            post(count_chat::prev_day_food_form),
         )
         .route(&Route::UserHome.as_string(), get(controllers::user_home))
         .route(

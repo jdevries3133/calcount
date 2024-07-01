@@ -2,12 +2,12 @@
 //! next time an a resonably well-structured declarative way. Inspired by
 //! https://www.youtube.com/watch?v=yj-wSRJwrrc.
 
-use super::MealInfo;
+use super::FoodItemDetails;
 use crate::chrono_utils::utc_now;
 use regex::{Captures, Regex};
 
-impl MealInfo {
-    pub fn parse(llm_text: &str, meal_name: &str) -> Result<Self, ()> {
+impl FoodItemDetails {
+    pub fn parse(llm_text: &str, food_name: &str) -> Result<Self, ()> {
         let calories_mo =
             Regex::new(r"(\d+)-?(\d+)? (of |in |total |the )*calories")
                 .expect("cal regex is valid")
@@ -41,8 +41,8 @@ impl MealInfo {
                 Ok(protein_grams),
                 Ok(fat_grams),
                 Ok(carbohydrates_grams),
-            ) => Ok(MealInfo {
-                meal_name: meal_name.to_string(),
+            ) => Ok(FoodItemDetails {
+                food_name: food_name.to_string(),
                 calories,
                 protein_grams,
                 carbohydrates_grams,
@@ -104,17 +104,17 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_parse_meal_info() {
-        let result = MealInfo::parse(
+    fn test_parse_food_info() {
+        let result = FoodItemDetails::parse(
             "100-200 calories, 10g of fat, 11g of protein, 12g of carbs",
             "name",
         );
         match result {
-            Ok(meal) => {
-                assert_eq!(meal.calories, 150);
-                assert_eq!(meal.fat_grams, 10);
-                assert_eq!(meal.protein_grams, 11);
-                assert_eq!(meal.carbohydrates_grams, 12);
+            Ok(food) => {
+                assert_eq!(food.calories, 150);
+                assert_eq!(food.fat_grams, 10);
+                assert_eq!(food.protein_grams, 11);
+                assert_eq!(food.carbohydrates_grams, 12);
             }
             _ => {
                 panic!("We should be able to parse this input");
@@ -124,16 +124,16 @@ mod test {
 
     #[test]
     fn test_other_filler_words() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "100-200 calories, 10g in fat, 11g in total protein, 12g of total carbs",
             "name",
         );
         match result {
-            Ok(meal) => {
-                assert_eq!(meal.calories, 150);
-                assert_eq!(meal.fat_grams, 10);
-                assert_eq!(meal.protein_grams, 11);
-                assert_eq!(meal.carbohydrates_grams, 12);
+            Ok(food) => {
+                assert_eq!(food.calories, 150);
+                assert_eq!(food.fat_grams, 10);
+                assert_eq!(food.protein_grams, 11);
+                assert_eq!(food.carbohydrates_grams, 12);
             }
             _ => {
                 panic!("We should be able to parse this input");
@@ -143,7 +143,7 @@ mod test {
 
     #[test]
     fn test_missing_calories() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "100 calgories, 10g of fat, 11g of protein, 12g of carbs",
             "name",
         );
@@ -154,7 +154,7 @@ mod test {
 
     #[test]
     fn test_missing_unit() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "100 calories, 10 of fat, 11g of protein, 12g of carbs",
             "name",
         );
@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn test_missing_fat() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "100 calories, 11g of protein, 12g of carbs",
             "name",
         );
@@ -176,7 +176,8 @@ mod test {
 
     #[test]
     fn test_missing_two_properties() {
-        let result = MealInfo::parse("100 calories, 12g of carbs", "name");
+        let result =
+            FoodItemDetails::parse("100 calories, 12g of carbs", "name");
         if result.is_ok() {
             panic!("expected an error");
         }
@@ -184,7 +185,7 @@ mod test {
 
     #[test]
     fn test_verbose_carbs() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "100 calories, 12g of fat, 13g of protein, 14g of carbohydrates",
             "name",
         );
@@ -197,16 +198,16 @@ mod test {
 
     #[test]
     fn real_world_ex_1() {
-        let result = MealInfo::parse(
+        let result = FoodItemDetails::parse(
             "Chex Mix usually contains around 120 calories, 2 grams of protein, 15 grams of carbohydrates, and 6 grams of fat per 1/2 cup serving.",
             "name",
         );
         match result {
-            Ok(meal) => {
-                assert_eq!(meal.calories, 120);
-                assert_eq!(meal.fat_grams, 6);
-                assert_eq!(meal.protein_grams, 2);
-                assert_eq!(meal.carbohydrates_grams, 15);
+            Ok(food) => {
+                assert_eq!(food.calories, 120);
+                assert_eq!(food.fat_grams, 6);
+                assert_eq!(food.protein_grams, 2);
+                assert_eq!(food.carbohydrates_grams, 15);
             }
             _ => {
                 panic!("We should be able to parse this input");

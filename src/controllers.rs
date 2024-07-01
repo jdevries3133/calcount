@@ -174,7 +174,7 @@ pub async fn user_home(
         children: &components::PageContainer {
             children: &components::UserHome {
                 user: &user,
-                meals: &meals,
+                food_items: &meals,
                 macros: &macros,
                 preferences,
                 subscription_type: sub_type,
@@ -187,7 +187,7 @@ pub async fn user_home(
     Ok(html)
 }
 
-pub async fn delete_meal(
+pub async fn delete_food(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
     Path(id): Path<i32>,
@@ -200,14 +200,14 @@ pub async fn delete_meal(
     }
     let Qres { created_at } = query_as!(
         Qres,
-        "select created_at from meal where user_id = $1 and id = $2",
+        "select created_at from food where user_id = $1 and id = $2",
         session.user_id,
         id
     )
     .fetch_one(&db)
     .await?;
     query!(
-        "delete from meal where user_id = $1 and id = $2",
+        "delete from food where user_id = $1 and id = $2",
         session.user_id,
         id
     )
@@ -223,22 +223,22 @@ pub async fn delete_meal(
     }
 }
 
-pub async fn add_meal_to_today(
+pub async fn add_food_to_today(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
     Path(id): Path<i32>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "add meal to today")?;
     let existing_meal = query_as!(
-        count_chat::MealInfo,
+        count_chat::FoodItemDetails,
         "select
             calories,
             protein protein_grams,
             carbohydrates carbohydrates_grams,
             fat fat_grams,
-            name meal_name,
+            name food_name,
             created_at
-        from meal
+        from food
         where id = $1 and user_id = $2",
         id,
         session.user_id
@@ -246,19 +246,19 @@ pub async fn add_meal_to_today(
     .fetch_one(&db)
     .await?;
     query!(
-        "insert into meal (calories, protein, carbohydrates, fat, name, user_id)
+        "insert into food (calories, protein, carbohydrates, fat, name, user_id)
         values ($1, $2, $3, $4, $5, $6)",
         existing_meal.calories,
         existing_meal.protein_grams,
         existing_meal.carbohydrates_grams,
         existing_meal.fat_grams,
-        existing_meal.meal_name,
+        existing_meal.food_name,
         session.user_id
     )
     .execute(&db)
     .await?;
 
-    let headers = client_events::reload_meals(HeaderMap::new());
+    let headers = client_events::reload_food(HeaderMap::new());
     let headers = client_events::reload_macros(headers);
     Ok((headers, ""))
 }
