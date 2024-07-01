@@ -71,23 +71,21 @@ impl Component for CheckpointList<'_> {
                         All meals before a checkpoint will be ignored for the
                         purpose of calorie balancing. Most of the time, calorie
                         balancing ensures that excess or defecit calories from
-                        previous days will rollover into our goals for future
-                        days. If we eat too much, our future goal will decrease.
-                        If we eat too little, our future goal increases.
+                        previous days will rollover into your goal for today.
+                        If you ate too much yesterday, today's goal will be a
+                        bit lower, and visa versa.
                     </p>
                     <p>
-                        Of course, this system is all fine and good until life
-                        happens and you miss counting a few meals! In this case,
-                        you can set a checkpoint, and Bean Count will ignore all
-                        meals before the checkpoint date. This allows you to give
-                        yourself a clean slate as-of any date at any time as many
-                        times as you'd like.
-                    </p>
+                        Of course, this system breaks down if you skip calorie
+                        counting for a few days! If that happens, set a
+                        checkpoint to "reset" calorie balancing as-of a date
+                        of your choice. Checkpoints give you a clean slate.
                     <p>
                         Note that if you set a checkpoint date in the future,
                         you effectively disable calorie balancing until that
-                        date arrives, which might be a handy feature for the
-                        holiday season!
+                        date arrives, which might be handy feature if you
+                        have an upcoming holiday or vacation where you're
+                        planning to pause calorie counting!
                     </p>
                 </details>
             </div>
