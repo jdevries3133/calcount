@@ -8,8 +8,21 @@ suggestion, let me know! You can submit feature requests via a GitHub issue, or
 by sending me an email at
 <a href="mailto:jdevries3133@gmail.com">jdevries3133@gmail.com</a>.
 
-_(The roadmap is empty right now, while I'm working on marketing and getting
-feedback from users. Please send me feature requests!)_
+# Upcoming Features
+
+## Blog
+
+It's content marketing time, baby.
+
+## Meals
+
+Group multiple food items into a meal. Plan meals interactively before you sit
+down to eat. Add meals to the current day to track your calories.
+
+## Calorie Progress Bar
+
+Show a progress bar instead of, "You have 1000 calories left to eat today." for
+users that have a caloric intake goal.
 
 # Completed Items
 
@@ -104,4 +117,4 @@ the users' plan for the day, for example, planning on eating a large dinner.
 
 ## Macro Goals
 
-Allow the input of macro goals (grams of protein, fat, and carbs).
+Allow the input of macro goals (gramsof protein, fat, and carbs).
