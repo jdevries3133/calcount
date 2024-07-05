@@ -2,6 +2,7 @@ use super::pw;
 use crate::{
     components::Span,
     config,
+    config::MINIMUM_PASSWORD_LENGTH,
     db_ops::{GetModel, GetUserQuery, SaveModel},
     html_sanitize::encode_quotes,
     htmx,
@@ -211,6 +212,14 @@ pub async fn handle_registration(
     } else if !is_email_available {
         errors.push(Box::new(EmailUsed {
             email: form.email.clone(),
+        }));
+    }
+
+    if form.password.len() < MINIMUM_PASSWORD_LENGTH.into() {
+        errors.push(Box::new(Span {
+            content: format!(
+                "Password must at least {MINIMUM_PASSWORD_LENGTH} characters long."
+            )
         }));
     }
 
