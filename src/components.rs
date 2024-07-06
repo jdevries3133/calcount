@@ -121,7 +121,6 @@ impl Component for Footer {
         let tos = Route::TermsOfService;
         let home = Route::UserHome;
         let about = Route::About;
-        let blog = Route::BlogPostList;
         format!(
             r#"
             <footer class="flex flex-wrap items-center justify-center gap-2 p-4">
@@ -130,7 +129,6 @@ impl Component for Footer {
                 <a class="link" href="{home}">Dashboard</a>
                 <a class="link" href="/">Home</a>
                 <a class="link" href="{about}">About</a>
-                <a class="link" href="{blog}">Blog</a>
             </footer>
             "#
         )
