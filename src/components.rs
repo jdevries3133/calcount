@@ -53,6 +53,18 @@ pub trait Component: Send + Sync {
     fn render(&self) -> String;
 }
 
+impl<T> Component for Vec<T>
+where
+    T: Component,
+{
+    fn render(&self) -> String {
+        self.iter().fold(String::new(), |mut acc, item| {
+            acc.push_str(&item.render());
+            acc
+        })
+    }
+}
+
 impl std::fmt::Display for dyn Component {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.render())
@@ -109,6 +121,7 @@ impl Component for Footer {
         let tos = Route::TermsOfService;
         let home = Route::UserHome;
         let about = Route::About;
+        let blog = Route::BlogPostList;
         format!(
             r#"
             <footer class="flex flex-wrap items-center justify-center gap-2 p-4">
@@ -117,6 +130,7 @@ impl Component for Footer {
                 <a class="link" href="{home}">Dashboard</a>
                 <a class="link" href="/">Home</a>
                 <a class="link" href="{about}">About</a>
+                <a class="link" href="{blog}">Blog</a>
             </footer>
             "#
         )

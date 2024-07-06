@@ -1,5 +1,19 @@
 {
   "db": "PostgreSQL",
+  "1139a2a47a6914cf69c28f25c950664ade6cda41dee7fb7c0356cae4d9fa4b0f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Text"
+        ]
+      }
+    },
+    "query": "insert into comment\n        (\n            user_id,\n            post_id,\n            body\n        ) values ($1, $2, $3)"
+  },
   "375d5edd228b1196f0a4f39228eee4c127f1df6526f626dd143f5370ba8930ae": {
     "describe": {
       "columns": [],
@@ -138,6 +152,39 @@
       }
     },
     "query": "insert into audit_stripe_webhooks (payload, includes_usable_update)\n        values ($1, $2)\n        "
+  },
+  "571bf491019dd239859167e74c6b84f27fe17f0255eb25076b9348ae2c0ae20a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "title",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "summary",
+          "ordinal": 2,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "select\n            id,\n            title,\n            summary\n        from post\n        order by created_at desc\n        limit $1\n        offset $2"
   },
   "58f1f3b223bc3818b5657d17367e6f1fc6798db354d30f7cf90fd9e5e831684c": {
     "describe": {
@@ -322,6 +369,34 @@
       }
     },
     "query": "select\n                        id,\n                        username,\n                        email,\n                        stripe_customer_id,\n                        subscription_type_id,\n                        created_at\n                    from users\n                    where username = $1 or email = $1"
+  },
+  "920fcec9f10660d4a98c9193a79f9db1c245cf7b9b023e8d0964abe701bff37c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "username",
+          "ordinal": 0,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "body",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int8",
+          "Int8"
+        ]
+      }
+    },
+    "query": "select\n            u.username,\n            c.body\n        from comment c\n        join users u on u.id = c.user_id\n        where c.post_id = $1\n        order by c.created_at desc\n        limit $2\n        offset $3"
   },
   "9361b5e9a28eb5c39bc4de6ff68426cb723c74050f2a0b7b1d8e56427aeb4c3d": {
     "describe": {
@@ -759,6 +834,38 @@
       }
     },
     "query": "update users set\n                username = $1,\n                email = $2,\n                stripe_customer_id = $3,\n                subscription_type_id = $4\n            where id = $5\n                "
+  },
+  "f5aa3c98baf1d0bcc3ef418f32ae51351e697d23d11796a20c2c8e35efc8456e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "title",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "post_markdown",
+          "ordinal": 2,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "select\n            id,\n            title,\n            post_markdown\n        from post\n        where id = $1"
   },
   "f748e9ed0f5b5e67f60c827ff66dc6e7bf0fd41deab3bdcb6e8f9ba621b06a9f": {
     "describe": {

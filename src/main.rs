@@ -6,6 +6,7 @@ use std::net::SocketAddr;
 
 mod auth;
 mod balancing;
+mod blog;
 mod chrono_utils;
 mod client_events;
 mod components;

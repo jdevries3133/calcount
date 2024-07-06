@@ -14,7 +14,7 @@ pub use crate::{
 pub use ammonia::clean;
 pub use anyhow::{Error, Result as Aresult};
 pub use axum::{
-    extract::{Form, Path, State},
+    extract::{Form, Path, Query, State},
     headers::HeaderMap,
     response::IntoResponse,
 };

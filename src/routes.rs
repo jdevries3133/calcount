@@ -1,7 +1,7 @@
 //! All possible routes with their params are defined in a big enum.
 
 use super::{
-    auth, balancing, controllers, count_chat, legal, metrics, middleware,
+    auth, balancing, blog, controllers, count_chat, legal, metrics, middleware,
     models, preferences, stripe,
 };
 use axum::{
@@ -32,6 +32,9 @@ pub enum Route {
     BalancingCreateCheckpoint,
     BalancingDeleteCheckpoint,
     BalancingHistory,
+    BlogCommentSubmission,
+    BlogPostList,
+    BlogPost(Option<i32>),
     ChatForm,
     DeleteFood(Option<i32>),
     DisplayMacros,
@@ -104,6 +107,12 @@ impl Route {
             Self::BalancingCreateCheckpoint => "/create-checkpoint".into(),
             Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
             Self::BalancingHistory => "/calorie-balancing".into(),
+            Self::BlogCommentSubmission => "/blog-comment".into(),
+            Self::BlogPostList => "/blog-posts".into(),
+            Self::BlogPost(id) => match id {
+                Some(id) => format!("/blog-post/{id}"),
+                None => "/blog-post/:id".into(),
+            },
             Self::ChatForm => "/chat-form".into(),
             Self::DeleteFood(slug) => match slug {
                 Some(value) => format!("/delete-food/{value}"),
@@ -172,6 +181,10 @@ fn get_authenticated_routes() -> Router<models::AppState> {
             &Route::AddFoodToToday(None).as_string(),
             post(controllers::add_food_to_today),
         )
+        .route(
+            &Route::BlogCommentSubmission.as_string(),
+            post(blog::handle_comment_submission),
+        )
         .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
         .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
         .route(
@@ -230,6 +243,8 @@ fn get_public_routes() -> Router<models::AppState> {
             &Route::BalancingHistory.as_string(),
             get(balancing::history),
         )
+        .route(&Route::BlogPostList.as_string(), get(blog::post_list))
+        .route(&Route::BlogPost(None).as_string(), get(blog::post_page))
         .route(
             &Route::BalancingCheckpoints.as_string(),
             get(balancing::checkpoint_list),
