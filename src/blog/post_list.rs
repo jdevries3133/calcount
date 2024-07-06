@@ -9,8 +9,9 @@ impl Component for PostSummary {
         format!(
             r#"
             <a href="{href}">
-                <div class="prose m-2 p-2 bg-blue-100 dark:bg-blue-950 rounded">
-                    <h1 class="text-lg">{title}</h1>
+                <div class="prose m-2 p-2 bg-blue-100 dark:bg-blue-950
+                    dark:text-slate-400 rounded">
+                    <h1 class="text-lg dark:text-slate-200">{title}</h1>
                     <p>{summary}</p>
                 </div>
             </a>

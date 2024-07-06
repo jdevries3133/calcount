@@ -22,7 +22,10 @@ impl Component for Comment {
         let body = clean(&self.body);
         format!(
             r#"
-            <div class="prose my-2 p-2 bg-blue-100 dark:bg-blue-950 rounded">
+            <div
+                class="prose dark:prose-invert my-2 p-2 bg-blue-100
+                    dark:bg-blue-950 rounded"
+            >
                 <p class="text-sm font-bold">{username}</p>
                 <p>{body}</p>
             </div>
@@ -91,7 +94,7 @@ impl Component for PostPage<'_> {
         let comments = self.comments.render();
         format!(
             r#"
-            <div class="prose">
+            <div class="prose dark:prose-invert">
                 {post}
             </div>
             <div>
