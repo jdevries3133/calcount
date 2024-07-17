@@ -20,7 +20,6 @@ use chrono_tz::Tz;
 use futures::join;
 #[cfg(feature = "stripe")]
 use sqlx::query_as;
-use uuid::Uuid;
 
 /// This will ensure that outgoing requests receive a content-type if the
 /// request handler did not specify one. 99% of request handlers in this
@@ -93,16 +92,15 @@ pub async fn auth(request: Request<Body>, next: Next) -> Response {
             .signed_duration_since(session.created_at)
             .num_days();
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
-            let uuid = Uuid::new_v4();
             let time = utc_now().with_timezone(&Tz::US__Eastern);
             let method = request.method().as_str();
             let path = request.uri().path();
             let username = session.username;
-            println!("[{time}] {method} {path} from {username}; uuid = {uuid}");
+            println!("[{time}] {method} {path} from {username}");
             let response = next.run(request).await;
             let time = utc_now().with_timezone(&Tz::US__Eastern);
             let stat = response.status();
-            println!("[{time}] Responding {stat}; uuid = {uuid}");
+            println!("[{time}] Responding {stat}");
             response
         } else {
             (response_headers(), Redirect::to(&Route::Login.to_string()))
@@ -115,15 +113,14 @@ pub async fn auth(request: Request<Body>, next: Next) -> Response {
 }
 
 pub async fn log(request: Request<Body>, next: Next) -> Response {
-    let uuid = Uuid::new_v4();
     let time = utc_now().with_timezone(&Tz::US__Eastern);
     let uri = request.uri().path();
     let method = request.method().as_str();
-    println!("[{time}] {method} {uri} from anonymous; uuid = {uuid}");
+    println!("[{time}] {method} {uri} from anonymous");
     let response = next.run(request).await;
     let time = utc_now().with_timezone(&Tz::US__Eastern);
     let stat = response.status();
-    println!("[{time}] Responding {stat}; uuid = {uuid}");
+    println!("[{time}] Responding {stat}");
     response
 }
 
