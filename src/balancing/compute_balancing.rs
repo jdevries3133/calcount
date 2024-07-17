@@ -129,7 +129,7 @@ pub fn compute_balancing(
     let mut details = vec![];
     let mut date = food_items
         .first()
-        .map_or(utc_now(), |m| m.details.created_at)
+        .map_or(utc_now(), |m| m.details.eaten_at)
         .with_timezone(&user_timezone)
         .with_hour(0)
         .expect("(1) zero is a valid hour, and we are not spanning a DST transition")
@@ -145,7 +145,7 @@ pub fn compute_balancing(
         let this_day_slice_start = food_ptr;
         for food in food_items[food_ptr..].iter() {
             let offset_from_date =
-                food.details.created_at.with_timezone(&user_timezone) - date;
+                food.details.eaten_at.with_timezone(&user_timezone) - date;
             if offset_from_date > Duration::zero()
                 && offset_from_date < Duration::days(1)
             {
@@ -216,7 +216,7 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 food_name: "test".into(),
-                created_at: utc_now()
+                eaten_at: utc_now()
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
@@ -237,7 +237,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: utc_now()
+                    eaten_at: utc_now()
                         - Duration::days(2)
                             .to_std()
                             .expect("can convert days to std"),
@@ -251,7 +251,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: utc_now()
+                    eaten_at: utc_now()
                         - Duration::days(1)
                             .to_std()
                             .expect("can convert days to std"),
@@ -274,7 +274,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "3 days ago".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
@@ -288,7 +288,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "yesterday".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(1)
                             .to_std()
                             .expect("can convert days to std"),
@@ -309,7 +309,7 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 food_name: "test".into(),
-                created_at: utc_now()
+                eaten_at: utc_now()
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
@@ -331,7 +331,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
@@ -345,7 +345,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(1)
                             .to_std()
                             .expect("can convert days to std"),
@@ -381,7 +381,7 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 food_name: "test".into(),
-                created_at: now
+                eaten_at: now
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
@@ -410,7 +410,7 @@ mod test {
                 protein_grams: 0,
                 carbohydrates_grams: 0,
                 food_name: "test".into(),
-                created_at: now
+                eaten_at: now
                     - Duration::days(1)
                         .to_std()
                         .expect("can convert days to std"),
@@ -440,7 +440,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(6)
                             .to_std()
                             .expect("can convert days to std"),
@@ -454,7 +454,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(4)
                             .to_std()
                             .expect("can convert days to std"),
@@ -468,7 +468,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(3)
                             .to_std()
                             .expect("can convert days to std"),
@@ -482,7 +482,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(2)
                             .to_std()
                             .expect("can convert days to std"),
@@ -496,7 +496,7 @@ mod test {
                     protein_grams: 0,
                     carbohydrates_grams: 0,
                     food_name: "test".into(),
-                    created_at: now
+                    eaten_at: now
                         - Duration::days(1)
                             .to_std()
                             .expect("can convert days to std"),

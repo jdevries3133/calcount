@@ -56,7 +56,7 @@ pub async fn get_relevant_food(
         carbohydrates_grams: i32,
         fat_grams: i32,
         food_name: String,
-        created_at: DateTime<Utc>,
+        eaten_at: DateTime<Utc>,
     }
     Ok(query_as!(
         Qres,
@@ -67,9 +67,9 @@ pub async fn get_relevant_food(
             carbohydrates carbohydrates_grams,
             fat fat_grams,
             name food_name,
-            created_at
+            eaten_at
         from food
-        where created_at at time zone $1 > (
+        where eaten_at at time zone $1 > (
             case when exists (
                 select 1 from balancing_checkpoint where user_id = $2
             )
@@ -83,7 +83,7 @@ pub async fn get_relevant_food(
             end
         )
         and user_id = $2
-        order by created_at
+        order by eaten_at
         ",
         preferences.timezone.to_string(),
         user_id
@@ -93,7 +93,7 @@ pub async fn get_relevant_food(
         details: FoodItemDetails {
             calories: row.calories,
             carbohydrates_grams: row.carbohydrates_grams,
-            created_at: row.created_at,
+            eaten_at: row.eaten_at,
             fat_grams: row.fat_grams,
             food_name: row.food_name,
             protein_grams: row.protein_grams,

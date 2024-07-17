@@ -141,7 +141,7 @@ impl Component for NewMealOptions<'_> {
         let protein = self.info.protein_grams;
         let carbs = self.info.carbohydrates_grams;
         let fat = self.info.fat_grams;
-        let created_at = self.info.created_at;
+        let eaten_at = self.info.eaten_at;
         let food_name = encode_quotes(&clean(&self.info.food_name));
         format!(
             r##"
@@ -151,7 +151,7 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{protein}" name="protein_grams" />
                 <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
                 <input type="hidden" value="{fat}" name="fat_grams" />
-                <input type="hidden" value="{created_at}" name="created_at" />
+                <input type="hidden" value="{eaten_at}" name="eaten_at" />
                 <button
                     class="bg-indigo-100 p-1 rounded shadow hover:bg-indigo-200"
                     tabindex="3"
@@ -170,7 +170,7 @@ impl Component for NewMealOptions<'_> {
                 <input type="hidden" value="{protein}" name="protein_grams" />
                 <input type="hidden" value="{carbs}" name="carbohydrates_grams" />
                 <input type="hidden" value="{fat}" name="fat_grams" />
-                <input type="hidden" value="{created_at}" name="created_at" />
+                <input type="hidden" value="{eaten_at}" name="eaten_at" />
                 <button
                     class="bg-blue-100 p-1 rounded shadow hover:bg-blue-200"
                     tabindex="1"
@@ -363,7 +363,7 @@ pub async fn list_meals_op<'a>(
         fat_grams: i32,
         protein_grams: i32,
         carbohydrates_grams: i32,
-        created_at: DateTime<Utc>,
+        eaten_at: DateTime<Utc>,
     }
     let mut res = query_as!(
         Qres,
@@ -374,10 +374,10 @@ pub async fn list_meals_op<'a>(
             fat fat_grams,
             protein protein_grams,
             carbohydrates carbohydrates_grams,
-            created_at
+            eaten_at
         from food
         where user_id = $1
-        order by created_at desc
+        order by eaten_at desc
         limit $2
         offset $3
         ",
@@ -398,7 +398,7 @@ pub async fn list_meals_op<'a>(
                 carbohydrates_grams: r.carbohydrates_grams,
                 fat_grams: r.fat_grams,
                 protein_grams: r.protein_grams,
-                created_at: r.created_at,
+                eaten_at: r.eaten_at,
             },
         })
         .collect::<Vec<FoodItem>>())
@@ -421,7 +421,7 @@ pub async fn handle_save_food(
             fat,
             protein,
             carbohydrates,
-            created_at
+            eaten_at
         )
         values ($1, $2, $3, $4, $5, $6, $7)",
         session.user_id,
@@ -430,7 +430,7 @@ pub async fn handle_save_food(
         meal.fat_grams,
         meal.protein_grams,
         meal.carbohydrates_grams,
-        meal.created_at
+        meal.eaten_at
     )
     .execute(&db)
     .await?;
@@ -507,7 +507,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     food_name: "Snack".into(),
-                    created_at: utc_now(),
+                    eaten_at: utc_now(),
                 },
             },
             FoodItem {
@@ -518,7 +518,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     food_name: "Snack".into(),
-                    created_at: utc_now(),
+                    eaten_at: utc_now(),
                 },
             },
         ];
@@ -546,7 +546,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     food_name: "Snack".into(),
-                    created_at: utc_now(),
+                    eaten_at: utc_now(),
                 },
             },
             FoodItem {
@@ -557,7 +557,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     food_name: "Snack".into(),
-                    created_at: utc_now(),
+                    eaten_at: utc_now(),
                 },
             },
             FoodItem {
@@ -568,7 +568,7 @@ mod test {
                     carbohydrates_grams: 1,
                     fat_grams: 1,
                     food_name: "Snack".into(),
-                    created_at: utc_now(),
+                    eaten_at: utc_now(),
                 },
             },
         ];

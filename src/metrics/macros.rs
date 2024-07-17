@@ -111,7 +111,7 @@ pub async fn get_macros(
         carbohydrates_grams: i32,
         fat_grams: i32,
         food_name: String,
-        created_at: DateTime<Utc>,
+        eaten_at: DateTime<Utc>,
     }
     let result = query_as!(
         Qres,
@@ -121,11 +121,11 @@ pub async fn get_macros(
             protein protein_grams,
             fat fat_grams,
             carbohydrates carbohydrates_grams,
-            created_at
+            eaten_at
         from food
         where
             user_id = $1
-            and date_trunc('day', created_at) >= CURRENT_DATE - INTERVAL '1 day'
+            and date_trunc('day', eaten_at) >= CURRENT_DATE - INTERVAL '1 day'
         ",
         user_id
     )
@@ -135,7 +135,7 @@ pub async fn get_macros(
         fat_grams: row.fat_grams,
         carbohydrates_grams: row.carbohydrates_grams,
         food_name: row.food_name,
-        created_at: row.created_at,
+        eaten_at: row.eaten_at,
     })
     .fetch_all(db)
     .await?;
@@ -145,7 +145,7 @@ pub async fn get_macros(
     // UTC days.
     Ok(result
         .iter()
-        .filter(|m| !is_before_today(&m.created_at, user_preferences.timezone))
+        .filter(|m| !is_before_today(&m.eaten_at, user_preferences.timezone))
         .fold(
             Macros {
                 calories: 0,

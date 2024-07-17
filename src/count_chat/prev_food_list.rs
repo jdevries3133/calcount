@@ -87,7 +87,7 @@ pub struct PrevDayFormActions<'a> {
 impl Component for PrevDayFormActions<'_> {
     fn render(&self) -> String {
         let save_meal = Route::SaveFood;
-        let created_at = self.info.created_at.format("%d/%m/%Y");
+        let created_at = self.info.eaten_at.format("%d/%m/%Y");
         let script = include_str!("./custom_date_widget_helper.js");
         let food_name = encode_quotes(&clean(&self.info.food_name));
         let calories = self.info.calories;

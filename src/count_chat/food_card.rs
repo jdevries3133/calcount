@@ -17,7 +17,7 @@ pub struct FoodItemDetails {
     pub carbohydrates_grams: i32,
     pub fat_grams: i32,
     pub food_name: String,
-    pub created_at: DateTime<Utc>,
+    pub eaten_at: DateTime<Utc>,
 }
 
 impl Component for FoodItem {
@@ -49,12 +49,12 @@ impl Component for FoodCard<'_> {
     fn render(&self) -> String {
         let is_meal_before_today = match self.rendering_behavior {
             RenderingBehavior::UseTimezone(tz) => {
-                is_before_today(&self.info.created_at, tz)
+                is_before_today(&self.info.eaten_at, tz)
             }
             RenderingBehavior::RenderAsToday => false,
         };
         let (datetime, timezone) = match self.rendering_behavior {
-            RenderingBehavior::UseTimezone(tz) => (self.info.created_at, tz),
+            RenderingBehavior::UseTimezone(tz) => (self.info.eaten_at, tz),
             RenderingBehavior::RenderAsToday => (utc_now(), Tz::UTC),
         };
         let date_str = fmt_date(&datetime, timezone);

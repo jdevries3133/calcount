@@ -196,11 +196,11 @@ pub async fn delete_food(
         .ok_or_else(|| ServerError::forbidden("delete meal"))?;
     let preferences = session.get_preferences(&db).await?;
     struct Qres {
-        created_at: DateTime<Utc>,
+        eaten_at: DateTime<Utc>,
     }
-    let Qres { created_at } = query_as!(
+    let Qres { eaten_at } = query_as!(
         Qres,
-        "select created_at from food where user_id = $1 and id = $2",
+        "select eaten_at from food where user_id = $1 and id = $2",
         session.user_id,
         id
     )
@@ -213,7 +213,7 @@ pub async fn delete_food(
     )
     .execute(&db)
     .await?;
-    if !chrono_utils::is_before_today(&created_at, preferences.timezone) {
+    if !chrono_utils::is_before_today(&eaten_at, preferences.timezone) {
         Ok(
             (client_events::reload_macros(HeaderMap::new()), "")
                 .into_response(),
@@ -237,7 +237,7 @@ pub async fn add_food_to_today(
             carbohydrates carbohydrates_grams,
             fat fat_grams,
             name food_name,
-            created_at
+            eaten_at
         from food
         where id = $1 and user_id = $2",
         id,

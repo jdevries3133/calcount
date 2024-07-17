@@ -47,7 +47,7 @@ impl FoodItemDetails {
                 protein_grams,
                 carbohydrates_grams,
                 fat_grams,
-                created_at: utc_now(),
+                eaten_at: utc_now(),
             }),
             _ => Err(()),
         }
