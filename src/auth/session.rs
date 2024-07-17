@@ -7,7 +7,7 @@ use crate::{
     models, preferences,
 };
 use anyhow::Result;
-use axum::headers::{HeaderMap, HeaderValue};
+use axum::http::{HeaderMap, HeaderValue};
 use base64::{engine::general_purpose, Engine as _};
 use chrono::{DateTime, Days, Utc};
 use chrono_tz::Tz;

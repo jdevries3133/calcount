@@ -1,6 +1,6 @@
 use super::authenticate::authenticate;
 use crate::{config, htmx, prelude::*};
-use axum::{headers::HeaderValue, http::StatusCode};
+use axum::http::{HeaderValue, StatusCode};
 
 pub struct LoginForm;
 impl Component for LoginForm {
