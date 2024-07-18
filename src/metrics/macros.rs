@@ -77,7 +77,7 @@ impl Component for MacroStatus<'_> {
                 {calories_remaining}
                 <p>
                     In total, you've eaten {calories} calories, {protein} grams
-                    of protein, {fat} grams of fat, and {carbs} carbs today.
+                    of protein, {fat} grams of fat, and {carbs} grams of carbs today.
                 </p>
             </div>"#
         )
