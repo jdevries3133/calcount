@@ -193,8 +193,6 @@ pub async fn handle_registration(
     ];
     let is_username_available = is_username_available?;
     let is_email_available = is_email_available?;
-    dbg!(is_username_available);
-    dbg!(is_email_available);
 
     let mut errors: Vec<Box<dyn Component>> = vec![];
     if form.username.is_empty() {
