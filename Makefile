@@ -37,7 +37,7 @@ ifndef CI
 	@# our checks
 	SQLX_OFFLINE=true cargo build --features production
 endif
-	cargo clippy -- -D warnings
+	cargo clippy --features production -- -D warnings
 	cargo fmt --check
 	terraform fmt --check
 	cargo test
