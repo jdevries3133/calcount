@@ -523,7 +523,7 @@ mod test {
             },
         ];
         let ui = Chat {
-            food_items: &mock_meals,
+            food_items: mock_meals,
             prompt: None,
             user_timezone: Tz::UTC,
             next_page: 1,
@@ -573,7 +573,7 @@ mod test {
             },
         ];
         let ui = Chat {
-            food_items: &mock_meals,
+            food_items: mock_meals,
             prompt: None,
             user_timezone: Tz::UTC,
             next_page: 1,

@@ -42,9 +42,8 @@ async fn main() -> Result<()> {
     axum::serve(
         tokio::net::TcpListener::bind(&addr)
             .await
-            .map(|listener| {
+            .inspect(|_| {
                 println!("listening on {}", addr);
-                listener
             })
             .unwrap_or_else(|e| panic!("Can bind to address {addr} ({e})")),
         app.into_make_service(),
