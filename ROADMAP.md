@@ -10,14 +10,44 @@ by sending me an email at
 
 # Upcoming Features
 
-## Blog
-
-It's content marketing time, baby.
-
 ## Meals
 
 Group multiple food items into a meal. Plan meals interactively before you sit
 down to eat. Add meals to the current day to track your calories.
+
+At first, I was thinking about strictly deduping food items per-user by
+maintaining a unique key on `(user_id, food_name)`. This would have provided the
+advantage that we would understand the history of when and in what quantity a
+given food item is eaten, which could provide some interesting insights. We can
+also understand food items that are shared across saved meals, and all of the
+instances that a set of food items (i.e, saved meals) were eaten. It seems like
+some degree of deduping provides nice properties.
+
+However, strict deduping presents a challenge for basic food item insertion.
+Consider if you type a simple query like `120 calories of protein powder`.
+ChatGPT may return slightly different macros the second time that you type this,
+but the name would clash with the first. What do we do in this scenario? We
+can't overwrite the macros of the first protein powder; this would surprisingly
+change past meals and modify your calorie balancing results. I think that strict
+deduping is not the right solution, because it is too rigid and will introduce
+too much complexity.
+
+Instead, I think that we should add natural deduping to the app;
+
+- separate `food` and `food_eaten_event` into different tables
+- point saved meals and their eaten events back to the same row in `food`. This
+  can be part of the operation for adding a saved meal to the current day
+- modify the behavior of the "add meal to today" button to insert into
+  `food_eaten_event` a pointer back to the same `food` item instead of cloning
+- in the future, potentially search for similar `food` in addition to querying
+  ChatGPT when new food items are added, and present an option to use previously
+  entered food
+
+If this is all designed well, deduping should naturally emerge, while we also
+keep the friction low for adding items if duplicates do happen to be introduced.
+Plus, as we add the nice features which take advantage of soft deduping, some
+users may be incentivized to proactively dedupe as they also build up libraries
+of data that they trust more than LLM responses.
 
 ## Calorie Progress Bar
 
@@ -27,6 +57,10 @@ users that have a caloric intake goal.
 # Completed Items
 
 Looking back fondly at the road behind us.
+
+## Blog
+
+It's content marketing time, baby (no posts yet).
 
 ## Marketing Efforts
 
