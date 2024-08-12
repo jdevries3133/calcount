@@ -92,15 +92,15 @@ pub async fn auth(request: Request<Body>, next: Next) -> Response {
             .signed_duration_since(session.created_at)
             .num_days();
         if token_age_days < config::SESSION_EXPIRY_TIME_DAYS {
-            let time = utc_now().with_timezone(&Tz::US__Eastern);
-            let method = request.method().as_str();
-            let path = request.uri().path();
+            let start = utc_now().with_timezone(&Tz::US__Eastern);
+            let method = request.method().as_str().to_owned();
+            let uri = request.uri().path().to_owned();
             let username = session.username;
-            println!("[{time}] {method} {path} from {username}");
             let response = next.run(request).await;
-            let time = utc_now().with_timezone(&Tz::US__Eastern);
+            let end = utc_now().with_timezone(&Tz::US__Eastern);
+            let duration = (end - start).num_milliseconds();
             let stat = response.status();
-            println!("[{time}] Responding {stat}");
+            println!("[{end}] {method} {uri} => {stat} in {duration}ms from {username}");
             response
         } else {
             (response_headers(), Redirect::to(&Route::Login.to_string()))
@@ -113,14 +113,15 @@ pub async fn auth(request: Request<Body>, next: Next) -> Response {
 }
 
 pub async fn log(request: Request<Body>, next: Next) -> Response {
-    let time = utc_now().with_timezone(&Tz::US__Eastern);
-    let uri = request.uri().path();
-    let method = request.method().as_str();
-    println!("[{time}] {method} {uri} from anonymous");
+    let start = utc_now().with_timezone(&Tz::US__Eastern);
+    let uri = request.uri().path().to_owned();
+    let method = request.method().as_str().to_owned();
     let response = next.run(request).await;
-    let time = utc_now().with_timezone(&Tz::US__Eastern);
+    let end = utc_now().with_timezone(&Tz::US__Eastern);
+    let duration = (end - start).num_milliseconds();
     let stat = response.status();
-    println!("[{time}] Responding {stat}");
+    println!("[{end}] {method} {uri} => {stat} in {duration}ms");
+
     response
 }
 
