@@ -299,20 +299,6 @@ impl Component for Home {
     }
 }
 
-pub struct TrialAccountCounter {
-    count_remaining: usize,
-}
-impl Component for TrialAccountCounter {
-    fn render(&self) -> String {
-        let count_remaining = self.count_remaining;
-        format!(
-            r#"
-            <span hx-trigger="load delay:5s">{count_remaining}</span>
-            "#
-        )
-    }
-}
-
 pub struct ExternalLink<'a> {
     pub href: &'a str,
     pub children: Box<dyn Component>,
