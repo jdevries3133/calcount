@@ -1,6 +1,6 @@
 delete from food where user_id = 1;
 -- 
-insert into food (user_id, name, calories, carbohydrates, protein, fat, created_at)
+insert into food (user_id, name, calories, carbohydrates, protein, fat, eaten_at)
 values
     -- slight defecit
     (1, 'slight-defecit', 1000, 100, 100, 100, now() - interval '1 day'),
