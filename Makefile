@@ -38,6 +38,7 @@ ifndef CI
 	SQLX_OFFLINE=true cargo build --features production
 endif
 	./scripts/lint_dbg.sh
+	./scripts/lint_todo.sh
 	cargo clippy --features production -- -D warnings
 	cargo fmt --check
 	terraform fmt --check
