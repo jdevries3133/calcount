@@ -52,9 +52,7 @@ build: setup
 	cargo build --release
 
 setup:
-	[[ ! -f ./src/htmx-1.9.12.vendor.js ]] \
-		&& curl -L https://unpkg.com/htmx.org@1.9.12 > src/htmx-1.9.12.vendor.js \
-		|| true
+	./scripts/download_htmx.sh
 ifdef CI
 	npm i -g pnpm
 endif

@@ -124,7 +124,7 @@ impl Route {
             Self::Favicon => "/favicon.ico".into(),
             Self::GotoStripePortal => "/stripe-portal".into(),
             Self::HandleChat => "/chat".into(),
-            Self::Htmx => "/generated/htmx-1.9.12".into(),
+            Self::Htmx => "/generated/htmx-2.0.2".into(),
             Self::InitAnon => "/authentication/init-anon".into(),
             Self::ListFood => "/list-food".into(),
             Self::Login => "/authentication/login".into(),
