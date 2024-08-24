@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select subscription_type_id id, created_at from users where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "dbe09fd03f87ffcd343b148d625cd90adba6707a5a3375880a594b9ae8ea4625"
+}

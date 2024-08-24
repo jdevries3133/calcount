@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "lock audit_stripe_webhooks",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "5cce2f4a9f8febd19e37475f0c57aed7ec4b8ed9e1b0147de310732042726742"
+}

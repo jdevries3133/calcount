@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT salt, digest FROM users WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "salt",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "digest",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e03e96472e0f78b53e31e86f7702dd80d455475d8c051c4e2284d42f1862403e"
+}

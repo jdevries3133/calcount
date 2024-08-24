@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            id,\n            title,\n            summary\n        from post\n        order by created_at desc\n        limit $1\n        offset $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "summary",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "571bf491019dd239859167e74c6b84f27fe17f0255eb25076b9348ae2c0ae20a"
+}

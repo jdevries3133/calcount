@@ -1,0 +1,60 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            id,\n            name food_name,\n            calories,\n            fat fat_grams,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            eaten_at\n        from food\n        where user_id = $1\n        order by eaten_at desc\n        limit $2\n        offset $3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "food_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "fat_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "protein_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "carbohydrates_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "eaten_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ce4e03667b87162c7a47789a64904473d7c2ae10e3013af2f70d07d88d03843e"
+}

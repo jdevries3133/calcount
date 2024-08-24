@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update users set\n                username = $1,\n                email = $2,\n                stripe_customer_id = $3,\n                subscription_type_id = $4\n            where id = $5\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f3d328905295377cf81eb8a6f5ba2b0c40f9c04a660a4392d910a56b23b540e7"
+}

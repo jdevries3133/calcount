@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select subscription_type_id from users where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "subscription_type_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "80648dd6dac88e353f8301674f32e02a409761d274d7e6d2cb0e5e5981ee5488"
+}

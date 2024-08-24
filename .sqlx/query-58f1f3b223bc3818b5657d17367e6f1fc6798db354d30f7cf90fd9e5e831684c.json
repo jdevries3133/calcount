@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from password_reset_link where slug = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "58f1f3b223bc3818b5657d17367e6f1fc6798db354d30f7cf90fd9e5e831684c"
+}

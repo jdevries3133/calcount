@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_max_calories,\n            calorie_balancing_min_calories,\n            timezone\n        from user_preference\n        where user_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "caloric_intake_goal",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "calorie_balancing_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 2,
+        "name": "calorie_balancing_max_calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "calorie_balancing_min_calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "timezone",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "6e3f6e228c1f08bc7dfa5bb69d1184e209c4bb108ce71361b7b38bb359cdfa01"
+}

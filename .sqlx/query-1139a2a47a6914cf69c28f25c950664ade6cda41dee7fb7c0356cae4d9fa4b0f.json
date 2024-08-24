@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into comment\n        (\n            user_id,\n            post_id,\n            body\n        ) values ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1139a2a47a6914cf69c28f25c950664ade6cda41dee7fb7c0356cae4d9fa4b0f"
+}

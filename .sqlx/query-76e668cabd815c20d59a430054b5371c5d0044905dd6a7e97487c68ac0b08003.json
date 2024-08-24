@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into food\n        (\n            user_id,\n            name,\n            calories,\n            fat,\n            protein,\n            carbohydrates,\n            eaten_at\n        )\n        values ($1, $2, $3, $4, $5, $6, $7)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "76e668cabd815c20d59a430054b5371c5d0044905dd6a7e97487c68ac0b08003"
+}

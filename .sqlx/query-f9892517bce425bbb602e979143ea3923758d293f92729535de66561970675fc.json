@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into balancing_checkpoint (user_id, ignore_before)\n        values ($1, $2)\n        on conflict do nothing\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f9892517bce425bbb602e979143ea3923758d293f92729535de66561970675fc"
+}

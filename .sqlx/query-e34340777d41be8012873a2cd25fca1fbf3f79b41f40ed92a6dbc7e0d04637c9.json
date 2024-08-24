@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select ignore_before as date\n        from balancing_checkpoint where user_id = $1\n        order by date desc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "date",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e34340777d41be8012873a2cd25fca1fbf3f79b41f40ed92a6dbc7e0d04637c9"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from balancing_checkpoint\n        where ignore_before = $1 and user_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b10be26436ca11929fa3b3ba6537ece229d7bd04186ca821dd937e9ab25ac252"
+}

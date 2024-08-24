@@ -108,7 +108,7 @@ pub async fn handle_stripe_webhook(
 ) -> Result<impl IntoResponse, ServerError> {
     let mut tx = db.begin().await?;
     query!("lock audit_stripe_webhooks")
-        .execute(&mut tx)
+        .execute(&mut *tx)
         .await?;
     let signature = headers
         .get("Stripe-Signature")
@@ -123,11 +123,11 @@ pub async fn handle_stripe_webhook(
         body,
         parsed_update.is_some()
     )
-    .execute(&mut tx)
+    .execute(&mut *tx)
     .await?;
     if let Some(update) = parsed_update {
         println!("persisting relevant stripe update: {update:?}");
-        persist_update_op(&mut tx, &update).await?;
+        persist_update_op(&mut *tx, &update).await?;
     };
     tx.commit().await?;
     Ok("")
