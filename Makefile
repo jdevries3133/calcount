@@ -148,7 +148,7 @@ backup-prod:
 		-n calcount \
 		pod/db-postgresql-0 \
 		-- /bin/sh -c 'pg_dump postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount' \
-		> ~/Desktop/calcount_backups/backup-$(shell date '+%m-%d-%Y %H:%M:%S').sql
+		> ~/Desktop/calcount_backups/backup-$(shell date '+%m-%d-%Y__%H:%M:%S').sql
 
 build-container: setup
 	pnpm run build
