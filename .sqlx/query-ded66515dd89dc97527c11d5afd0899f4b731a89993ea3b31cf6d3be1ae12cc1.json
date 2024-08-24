@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select f.id\n        from food_eaten_event fee\n        join food f on fee.food_id = f.id\n        where\n            f.id = $1\n            and f.user_id = $2\n            and fee.user_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ded66515dd89dc97527c11d5afd0899f4b731a89993ea3b31cf6d3be1ae12cc1"
+}

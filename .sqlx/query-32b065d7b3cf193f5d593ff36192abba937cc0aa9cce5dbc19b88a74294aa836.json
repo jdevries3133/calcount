@@ -1,0 +1,66 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            f.id,\n            name food_name,\n            calories,\n            fat fat_grams,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fee.eaten_at,\n            fee.id eaten_event_id\n        from food_eaten_event fee\n        join food f on f.id = fee.food_id\n        where\n            f.user_id = $1\n            and fee.user_id = $1\n        order by eaten_at desc\n        limit $2\n        offset $3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "food_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "fat_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "protein_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "carbohydrates_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "eaten_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "eaten_event_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "32b065d7b3cf193f5d593ff36192abba937cc0aa9cce5dbc19b88a74294aa836"
+}

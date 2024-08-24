@@ -441,10 +441,11 @@ pub async fn handle_save_food(
     .fetch_one(&db)
     .await?;
     query!(
-        "insert into food_eaten_event (food_id, user_id)
-        values ($1, $2)",
+        "insert into food_eaten_event (food_id, user_id, eaten_at)
+        values ($1, $2, $3)",
         id,
-        session.user_id
+        session.user_id,
+        meal.eaten_at
     )
     .execute(&db)
     .await?;

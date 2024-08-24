@@ -90,7 +90,7 @@ pub struct PrevDayFormActions<'a> {
 impl Component for PrevDayFormActions<'_> {
     fn render(&self) -> String {
         let save_meal = Route::SaveFood;
-        let created_at = self.info.eaten_at.format("%d/%m/%Y");
+        let eaten_at = self.info.eaten_at.format("%d/%m/%Y");
         let script = include_str!("./custom_date_widget_helper.js");
         let food_name = encode_quotes(&clean(&self.info.food_name));
         let calories = self.info.calories;
@@ -108,14 +108,14 @@ impl Component for PrevDayFormActions<'_> {
                 </label>
                 <input
                     required
-                    value="{created_at}"
+                    value="{eaten_at}"
                     type="date"
                     name="created_date"
                     id="created_date"
                 />
                 <!-- This field gets populated by JS when the buttons below are
                 clicked -->
-                <input type="hidden" name="created_at" id="created_at" />
+                <input type="hidden" name="eaten_at" id="eaten_at" />
                 <input type="hidden" value="{food_name}" name="food_name" />
                 <input type="hidden" value="{calories}" name="calories" />
                 <input type="hidden" value="{protein}" name="protein_grams" />

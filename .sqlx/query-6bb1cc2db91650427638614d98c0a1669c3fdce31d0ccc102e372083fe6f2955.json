@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            name food_name,\n            calories calories,\n            protein protein_grams,\n            fat fat_grams,\n            carbohydrates carbohydrates_grams,\n            fee.eaten_at\n        from food_eaten_event fee\n        join food f on fee.food_id = f.id\n        where\n            f.user_id = $1\n            and fee.user_id = $1\n            and fee.user_id = $1\n            and date_trunc('day', fee.eaten_at) >= CURRENT_DATE - INTERVAL '1 day'\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "food_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "protein_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "fat_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "carbohydrates_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "eaten_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6bb1cc2db91650427638614d98c0a1669c3fdce31d0ccc102e372083fe6f2955"
+}

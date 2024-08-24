@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from food_eaten_event\n        where\n            id = $1\n            and user_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "91069e6624c66fa95905424a715b2d6d398a5974efb16dad11f2164595238d0c"
+}

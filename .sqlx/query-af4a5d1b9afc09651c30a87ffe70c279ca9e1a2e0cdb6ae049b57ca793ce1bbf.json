@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into food_eaten_event (user_id, food_id)\n        values ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "af4a5d1b9afc09651c30a87ffe70c279ca9e1a2e0cdb6ae049b57ca793ce1bbf"
+}

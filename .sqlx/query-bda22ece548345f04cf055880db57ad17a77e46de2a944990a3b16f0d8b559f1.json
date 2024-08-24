@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            f.id,\n            calories,\n            protein protein_grams,\n            carbohydrates carbohydrates_grams,\n            fat fat_grams,\n            name food_name,\n            fee.eaten_at,\n            fee.id eaten_event_id\n        from food_eaten_event fee\n        join food f on fee.food_id = f.id\n        where fee.eaten_at at time zone $1 > (\n            case when exists (\n                select 1 from balancing_checkpoint\n                where\n                    fee.user_id = $2\n                    and f.user_id = $2\n            )\n            then (\n                select ignore_before\n                from balancing_checkpoint\n                where user_id = $2\n                order by ignore_before desc\n                limit 1\n            ) else date('01-01-0')\n            end\n        )\n        and fee.user_id = $2\n        and f.user_id = $2\n        order by fee.eaten_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "calories",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "protein_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "carbohydrates_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "fat_grams",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "food_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "eaten_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "eaten_event_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "bda22ece548345f04cf055880db57ad17a77e46de2a944990a3b16f0d8b559f1"
+}

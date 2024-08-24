@@ -9,7 +9,7 @@
 // Based on the user's choice, it will take the form field "created_date" and
 // turn it into a datetime, putting breakfast at 8:00, lunch at noon, dinner
 // at 6pm, and evening at 10pm. Then, the form submit event will propagate,
-// and the form will be submitted with the "created_at" datetime field filled
+// and the form will be submitted with the "eaten_at" datetime field filled
 // baased on whichever button the user pressed.
 
 const buttons = [
@@ -66,7 +66,7 @@ function handler(e) {
   /**
    * @type {HTMLInputElement}
    */
-  const targetEl = document.getElementById("created_at");
+  const targetEl = document.getElementById("eaten_at");
   targetEl.value = datetime.toISOString();
 }
 
