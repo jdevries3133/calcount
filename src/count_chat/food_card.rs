@@ -7,6 +7,7 @@ use crate::{
 #[derive(Debug)]
 pub struct FoodItem {
     pub id: i32,
+    pub eaten_event_id: i32,
     pub details: FoodItemDetails,
 }
 
@@ -23,7 +24,10 @@ pub struct FoodItemDetails {
 impl Component for FoodItem {
     fn render(&self) -> String {
         FoodCard {
-            meal_id: Some(self.id),
+            identifiers: Some(FoodIdentifiers {
+                meal_id: self.id,
+                eaten_event_id: self.eaten_event_id,
+            }),
             info: &self.details,
             actions: Some(&Void {}),
             rendering_behavior: RenderingBehavior::RenderAsToday,
@@ -38,9 +42,14 @@ pub enum RenderingBehavior {
     RenderAsToday,
 }
 
+pub struct FoodIdentifiers {
+    pub meal_id: i32,
+    pub eaten_event_id: i32,
+}
+
 pub struct FoodCard<'a> {
     pub info: &'a FoodItemDetails,
-    pub meal_id: Option<i32>,
+    pub identifiers: Option<FoodIdentifiers>,
     pub actions: Option<&'a dyn Component>,
     pub rendering_behavior: RenderingBehavior,
     pub show_ai_warning: bool,
@@ -65,10 +74,12 @@ impl Component for FoodCard<'_> {
         let fat = self.info.fat_grams;
         let actions = match &self.actions {
             Some(action) => action.render(),
-            None => match self.meal_id {
-                Some(id) => {
-                    let delete_href = Route::DeleteFood(Some(id));
-                    let add_to_today_href = Route::AddFoodToToday(Some(id));
+            None => match &self.identifiers {
+                Some(idents) => {
+                    let delete_href =
+                        Route::DeleteFood(Some(idents.eaten_event_id));
+                    let add_to_today_href =
+                        Route::AddFoodToToday(Some(idents.meal_id));
                     let add_to_today_button = if is_meal_before_today {
                         format!(
                             r#"

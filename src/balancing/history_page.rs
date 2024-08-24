@@ -57,21 +57,27 @@ pub async fn get_relevant_food(
         fat_grams: i32,
         food_name: String,
         eaten_at: DateTime<Utc>,
+        eaten_event_id: i32,
     }
     Ok(query_as!(
         Qres,
         "select
-            id,
+            f.id,
             calories,
             protein protein_grams,
             carbohydrates carbohydrates_grams,
             fat fat_grams,
             name food_name,
-            eaten_at
-        from food
-        where eaten_at at time zone $1 > (
+            fee.eaten_at,
+            fee.id eaten_event_id
+        from food_eaten_event fee
+        join food f on fee.food_id = f.id
+        where fee.eaten_at at time zone $1 > (
             case when exists (
-                select 1 from balancing_checkpoint where user_id = $2
+                select 1 from balancing_checkpoint
+                where
+                    fee.user_id = $2
+                    and f.user_id = $2
             )
             then (
                 select ignore_before
@@ -82,14 +88,16 @@ pub async fn get_relevant_food(
             ) else date('01-01-0')
             end
         )
-        and user_id = $2
-        order by eaten_at
+        and fee.user_id = $2
+        and f.user_id = $2
+        order by fee.eaten_at
         ",
         preferences.timezone.to_string(),
         user_id
     )
     .map(|row| FoodItem {
         id: row.id,
+        eaten_event_id: row.eaten_event_id,
         details: FoodItemDetails {
             calories: row.calories,
             carbohydrates_grams: row.carbohydrates_grams,

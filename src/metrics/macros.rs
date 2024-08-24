@@ -121,11 +121,14 @@ pub async fn get_macros(
             protein protein_grams,
             fat fat_grams,
             carbohydrates carbohydrates_grams,
-            eaten_at
-        from food
+            fee.eaten_at
+        from food_eaten_event fee
+        join food f on fee.food_id = f.id
         where
-            user_id = $1
-            and date_trunc('day', eaten_at) >= CURRENT_DATE - INTERVAL '1 day'
+            f.user_id = $1
+            and fee.user_id = $1
+            and fee.user_id = $1
+            and date_trunc('day', fee.eaten_at) >= CURRENT_DATE - INTERVAL '1 day'
         ",
         user_id
     )

@@ -115,8 +115,10 @@ impl Route {
             },
             Self::ChatForm => "/chat-form".into(),
             Self::DeleteFood(slug) => match slug {
-                Some(value) => format!("/delete-food/{value}"),
-                None => "/delete-food/:id".into(),
+                Some(food_eaten_event_id) => {
+                    format!("/food-eaten-event/{food_eaten_event_id}")
+                }
+                None => "/food-eaten-event/:food_eaten_event_id".into(),
             },
             Self::DisplayMacros => "/metrics/macros".into(),
             Self::Favicon => "/favicon.ico".into(),

@@ -1,5 +1,5 @@
 use super::{
-    food_card::{FoodCard, RenderingBehavior},
+    food_card::{FoodCard, FoodIdentifiers, RenderingBehavior},
     FoodItem, FoodItemDetails,
 };
 use crate::{config::FOOD_PAGE_SIZE, prelude::*};
@@ -49,7 +49,10 @@ impl Component for FoodList<'_> {
             acc.push_str(
                 &FoodCard {
                     info: &meal.details,
-                    meal_id: Some(meal.id),
+                    identifiers: Some(FoodIdentifiers {
+                        meal_id: meal.id,
+                        eaten_event_id: meal.eaten_event_id,
+                    }),
                     actions: None,
                     rendering_behavior: RenderingBehavior::UseTimezone(
                         self.user_timezone,

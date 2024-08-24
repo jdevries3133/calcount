@@ -195,21 +195,28 @@ pub async fn delete_food(
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("delete meal"))?;
     let preferences = session.get_preferences(&db).await?;
+
     struct Qres {
         eaten_at: DateTime<Utc>,
     }
+
     let Qres { eaten_at } = query_as!(
         Qres,
-        "select eaten_at from food where user_id = $1 and id = $2",
-        session.user_id,
-        id
+        "select eaten_at from food_eaten_event
+        where id = $1 and user_id = $2",
+        id,
+        session.user_id
     )
     .fetch_one(&db)
     .await?;
+
     query!(
-        "delete from food where user_id = $1 and id = $2",
+        "delete from food_eaten_event
+        where
+            id = $1
+            and user_id = $2",
+        id,
         session.user_id,
-        id
     )
     .execute(&db)
     .await?;
@@ -229,31 +236,30 @@ pub async fn add_food_to_today(
     Path(id): Path<i32>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "add meal to today")?;
-    let existing_meal = query_as!(
-        count_chat::FoodItemDetails,
-        "select
-            calories,
-            protein protein_grams,
-            carbohydrates carbohydrates_grams,
-            fat fat_grams,
-            name food_name,
-            eaten_at
-        from food
-        where id = $1 and user_id = $2",
+    let existing_meal = query!(
+        "select f.id
+        from food_eaten_event fee
+        join food f on fee.food_id = f.id
+        where
+            f.id = $1
+            and f.user_id = $2
+            and fee.user_id = $2",
         id,
         session.user_id
     )
-    .fetch_one(&db)
+    .fetch_optional(&db)
     .await?;
+    if existing_meal.is_none() {
+        return Err(ServerError::bad_request(
+            "attempt to add non-existent meal to toay",
+            None,
+        ));
+    }
     query!(
-        "insert into food (calories, protein, carbohydrates, fat, name, user_id)
-        values ($1, $2, $3, $4, $5, $6)",
-        existing_meal.calories,
-        existing_meal.protein_grams,
-        existing_meal.carbohydrates_grams,
-        existing_meal.fat_grams,
-        existing_meal.food_name,
-        session.user_id
+        "insert into food_eaten_event (user_id, food_id)
+        values ($1, $2)",
+        session.user_id,
+        id
     )
     .execute(&db)
     .await?;

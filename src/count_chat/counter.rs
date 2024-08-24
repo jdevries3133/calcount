@@ -296,7 +296,7 @@ pub async fn handle_chat(
     match parse_result {
         Ok(meal) => Ok(FoodCard {
             info: &meal,
-            meal_id: None,
+            identifiers: None,
             actions: Some(&NewMealOptions { info: &meal }),
             rendering_behavior: RenderingBehavior::UseTimezone(
                 preferences.timezone,
@@ -364,19 +364,24 @@ pub async fn list_meals_op<'a>(
         protein_grams: i32,
         carbohydrates_grams: i32,
         eaten_at: DateTime<Utc>,
+        eaten_event_id: i32,
     }
     let mut res = query_as!(
         Qres,
         "select
-            id,
+            f.id,
             name food_name,
             calories,
             fat fat_grams,
             protein protein_grams,
             carbohydrates carbohydrates_grams,
-            eaten_at
-        from food
-        where user_id = $1
+            fee.eaten_at,
+            fee.id eaten_event_id
+        from food_eaten_event fee
+        join food f on f.id = fee.food_id
+        where
+            f.user_id = $1
+            and fee.user_id = $1
         order by eaten_at desc
         limit $2
         offset $3
@@ -392,6 +397,7 @@ pub async fn list_meals_op<'a>(
         .drain(..)
         .map(|r| FoodItem {
             id: r.id,
+            eaten_event_id: r.eaten_event_id,
             details: FoodItemDetails {
                 food_name: r.food_name,
                 calories: r.calories,
@@ -412,7 +418,8 @@ pub async fn handle_save_food(
     let session = Session::from_headers(&headers)
         .ok_or_else(|| ServerError::forbidden("handle save meal"))?;
     let preferences = session.get_preferences(&db).await?;
-    query!(
+    let Id { id } = query_as!(
+        Id,
         "insert into food
         (
             user_id,
@@ -420,17 +427,24 @@ pub async fn handle_save_food(
             calories,
             fat,
             protein,
-            carbohydrates,
-            eaten_at
+            carbohydrates
         )
-        values ($1, $2, $3, $4, $5, $6, $7)",
+        values ($1, $2, $3, $4, $5, $6)
+        returning id",
         session.user_id,
         meal.food_name,
         meal.calories,
         meal.fat_grams,
         meal.protein_grams,
         meal.carbohydrates_grams,
-        meal.eaten_at
+    )
+    .fetch_one(&db)
+    .await?;
+    query!(
+        "insert into food_eaten_event (food_id, user_id)
+        values ($1, $2)",
+        id,
+        session.user_id
     )
     .execute(&db)
     .await?;
@@ -481,7 +495,7 @@ pub async fn prev_day_food_form(
     let preferences = session.get_preferences(&db).await?;
     Ok(FoodCard {
         info: &meal,
-        meal_id: None,
+        identifiers: None,
         actions: Some(&PrevDayFormActions { info: &meal }),
         rendering_behavior: RenderingBehavior::UseTimezone(
             preferences.timezone,
@@ -501,6 +515,7 @@ mod test {
         let mock_meals = &vec![
             FoodItem {
                 id: 1,
+                eaten_event_id: 1,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -512,6 +527,7 @@ mod test {
             },
             FoodItem {
                 id: 2,
+                eaten_event_id: 1,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -540,6 +556,7 @@ mod test {
         let mock_meals = &vec![
             FoodItem {
                 id: 1,
+                eaten_event_id: 1,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -551,6 +568,7 @@ mod test {
             },
             FoodItem {
                 id: 2,
+                eaten_event_id: 1,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -562,6 +580,7 @@ mod test {
             },
             FoodItem {
                 id: 3,
+                eaten_event_id: 1,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
