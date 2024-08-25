@@ -145,7 +145,10 @@ impl Component for NewMealOptions<'_> {
         let food_name = encode_quotes(&clean(&self.info.food_name));
         format!(
             r##"
-            <form hx-post="{prev_day_route}" hx-target="#cal-chat-container">
+            <form
+                hx-post="{prev_day_route}"
+                hx-target="closest div[data-name='meal-card']"
+            >
                 <input type="hidden" value="{food_name}" name="food_name" />
                 <input type="hidden" value="{calories}" name="calories" />
                 <input type="hidden" value="{protein}" name="protein_grams" />

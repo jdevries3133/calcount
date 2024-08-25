@@ -90,6 +90,7 @@ pub struct PrevDayFormActions<'a> {
 impl Component for PrevDayFormActions<'_> {
     fn render(&self) -> String {
         let save_meal = Route::SaveFood;
+        let default = Route::ChatForm;
         let eaten_at = self.info.eaten_at.format("%d/%m/%Y");
         let script = include_str!("./custom_date_widget_helper.js");
         let food_name = encode_quotes(&clean(&self.info.food_name));
@@ -145,6 +146,13 @@ impl Component for PrevDayFormActions<'_> {
                     id="evening"
                 >
                     Evening
+                </button>
+                <button
+                    class="block p-2 m-2 bg-red-100 hover:bg-red-200 rounded shadow hover:shadow-none"
+                    hx-get="{default}"
+                    hx-target="#cal-chat-container"
+                >
+                    Cancel
                 </button>
                 <script>(() => {{{script}}})();</script>
             </form>
