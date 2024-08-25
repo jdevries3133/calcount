@@ -36,6 +36,7 @@ pub enum Route {
     BlogPostList,
     BlogPost(Option<i32>),
     ChatForm,
+    DeleteComment(Option<i32>),
     DeleteFood(Option<i32>),
     DisplayMacros,
     Favicon,
@@ -108,12 +109,16 @@ impl Route {
             Self::BalancingDeleteCheckpoint => "/delete-checkpoint".into(),
             Self::BalancingHistory => "/calorie-balancing".into(),
             Self::BlogCommentSubmission => "/blog-comment".into(),
-            Self::BlogPostList => "/blog-posts".into(),
+            Self::BlogPostList => "/blog".into(),
             Self::BlogPost(id) => match id {
-                Some(id) => format!("/blog-post/{id}"),
-                None => "/blog-post/:id".into(),
+                Some(id) => format!("/blog/{id}"),
+                None => "/blog/:id".into(),
             },
             Self::ChatForm => "/chat-form".into(),
+            Self::DeleteComment(slug) => match slug {
+                Some(id) => format!("/blog-delete-comment/{id}"),
+                None => "/blog-delete-comment/:id".into(),
+            },
             Self::DeleteFood(slug) => match slug {
                 Some(food_eaten_event_id) => {
                     format!("/food-eaten-event/{food_eaten_event_id}")
@@ -189,6 +194,10 @@ fn get_authenticated_routes() -> Router<models::AppState> {
         )
         .route(&Route::ChatForm.as_string(), get(count_chat::chat_form))
         .route(&Route::ChatForm.as_string(), post(count_chat::chat_form))
+        .route(
+            &Route::DeleteComment(None).as_string(),
+            delete(blog::handle_delete_comment),
+        )
         .route(
             &Route::DeleteFood(None).as_string(),
             delete(controllers::delete_food),

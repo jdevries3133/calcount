@@ -36,6 +36,9 @@ pub struct Session {
     pub created_at: DateTime<Utc>,
 }
 impl Session {
+    pub fn is_administrator(&self) -> bool {
+        config::ADMINISTRATOR_USER_IDS.contains(&self.user_id)
+    }
     /// Parse the session from request headers, validating the cookie
     /// signature along the way. Returns the [None] variant if the session
     /// header is missing or invalid.

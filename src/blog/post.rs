@@ -13,6 +13,8 @@ pub struct PostSummary {
 }
 
 pub struct Comment {
+    pub id: i32,
+    pub user_id: i32,
     pub username: String,
     pub body: String,
 }

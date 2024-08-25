@@ -3,7 +3,7 @@
 pub use crate::{
     auth::Session,
     chrono_utils::utc_now,
-    components::{Component, Page, PageContainer},
+    components::{BrandedContainer, Component, Page, PageContainer},
     errors::ServerError,
     html_sanitize::encode_quotes,
     models::{AppState, Id},

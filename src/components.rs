@@ -117,18 +117,19 @@ impl Component for Page<'_> {
 struct Footer;
 impl Component for Footer {
     fn render(&self) -> String {
-        let privacy = Route::PrivacyPolicy;
-        let tos = Route::TermsOfService;
+        let root = Route::Root;
         let home = Route::UserHome;
         let about = Route::About;
+        let tos = Route::TermsOfService;
+        let privacy = Route::PrivacyPolicy;
         format!(
             r#"
             <footer class="flex flex-wrap items-center justify-center gap-2 p-4">
+                <a class="link" href="{root}">Home</a>
+                <a class="link" href="{home}">Dashboard</a>
+                <a class="link" href="{about}">About</a>
                 <a class="link" href="{privacy}">Privacy Policy</a>
                 <a class="link" href="{tos}">Terms of Service</a>
-                <a class="link" href="{home}">Dashboard</a>
-                <a class="link" href="/">Home</a>
-                <a class="link" href="{about}">About</a>
             </footer>
             "#
         )
@@ -156,21 +157,43 @@ impl Component for PageContainer<'_> {
     }
 }
 
+pub struct BrandedContainer<'a> {
+    pub children: &'a dyn Component,
+}
+impl Component for BrandedContainer<'_> {
+    fn render(&self) -> String {
+        let brand = Brand {}.render();
+        let children = self.children.render();
+        let footer = Footer {}.render();
+        format!(
+            r#"
+            <div
+                class="p-2 sm:p-4 md:p-8 bg-teal-50 dark:bg-indigo-1000
+                dark:text-slate-200 min-h-[100vh]"
+            >
+                {brand}
+                {children}
+                {footer}
+            </div>
+            "#
+        )
+    }
+}
+
 pub struct Home {}
 impl Component for Home {
     fn render(&self) -> String {
         let login_route = Route::Login;
         let init_anon = Route::InitAnon;
         let footer = Footer {}.render();
+        let brand = Brand {}.render();
         format!(
             r#"
             <main
                 class="p-2 sm:p-4 md:p-8 bg-teal-50 dark:bg-indigo-1000
                 dark:text-slate-200 min-h-[100vh]"
             >
-                <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
-                    &#127793; Bean Count &#129752;
-                </h1>
+                {brand}
                 <div class="h-[90vh] flex justify-center flex-col">
                     <h2
                         class="bg-gradient-to-br from-blue-600 via-green-500
@@ -294,6 +317,22 @@ impl Component for Home {
                     }}
                 }})();
             </script>
+            "#
+        )
+    }
+}
+
+pub struct Brand;
+impl Component for Brand {
+    fn render(&self) -> String {
+        let root = Route::Root;
+        format!(
+            r#"
+            <a href="{root}">
+                <h1 class="mt-2 md:mt-8 text-3xl font-extrabold">
+                    &#127793; Bean Count &#129752;
+                </h1>
+            </a>
             "#
         )
     }
@@ -534,55 +573,51 @@ impl Component for Saved<'_> {
 pub struct AboutPage;
 impl Component for AboutPage {
     fn render(&self) -> String {
-        let home = Route::UserHome;
-        format!(
-            r#"
-            <div class="prose dark:text-slate-200">
-                <h1 class="dark:text-slate-200">About Bean Count</h1>
-                <p><a class="link" href="{home}">Return Home</a></p>
-                <h2 class="dark:text-slate-200">Background</h2>
-                <p>
-                    I created Bean Count because I've always struggled with my
-                    own weight. First and foremost, Bean Count takes advantage
-                    of the fact that new Large Language Model (LLM) technology
-                    is pretty dang good at giving rough calorie estimates.
-                    This website uses OpenAI's ChatGPT on the backend to give
-                    calorie estimates.  This means that you can simply describe
-                    what you're eating and get back an estimate which is about
-                    as good as the description you've written.
-                </p>
-                <p>
-                    For me, this solves maybe the most substantial pain point
-                    around any calorie counting: I don't want to change my diet
-                    to eat things that are easy to calorie count -- I want it
-                    to be easy to count the calories <i>in the things I
-                    actually eat!</i>
-                </p>
-                <h2 class="dark:text-slate-200">Open Source</h2>
-                <p>
-                    Bean Count is open source software! You can see the source
-                    code for this website on
-                    <a class="link" href="https://github.com/jdevries3133/calcount">GitHub</a>!
-                </p>
-                <h2 class="dark:text-slate-200">Feature Roadmap</h2>
-                <p>
-                    I don't have a ton of time to work on Bean Count, but I am
-                    definitely excited to continue developing this project, and
-                    there are lots of exciting features in our roadmap! If you
-                    have an idea for a Bean Count feature, please reach out and
-                    let me know. To see what I have planned, you can
-                    <a class="link" href="https://github.com/jdevries3133/calcount/blob/main/ROADMAP.md">
-                        view our roadmap on GitHub
-                    </a>.
-                    You can submit feature requests via GitHub, or shoot me an
-                    email at
-                    <a class="link" href="mailto:jdevries3133@gmail.com">
-                        jdevries3133@gmail.com
-                    </a>.
-                </p>
-            </div>
-            "#
-        )
+        r#"
+        <div class="prose dark:text-slate-200">
+            <h1 class="dark:text-slate-200">About Bean Count</h1>
+            <h2 class="dark:text-slate-200">Background</h2>
+            <p>
+                I created Bean Count because I've always struggled with my
+                own weight. First and foremost, Bean Count takes advantage
+                of the fact that new Large Language Model (LLM) technology
+                is pretty dang good at giving rough calorie estimates.
+                This website uses OpenAI's ChatGPT on the backend to give
+                calorie estimates.  This means that you can simply describe
+                what you're eating and get back an estimate which is about
+                as good as the description you've written.
+            </p>
+            <p>
+                For me, this solves maybe the most substantial pain point
+                around any calorie counting: I don't want to change my diet
+                to eat things that are easy to calorie count -- I want it
+                to be easy to count the calories <i>in the things I
+                actually eat!</i>
+            </p>
+            <h2 class="dark:text-slate-200">Open Source</h2>
+            <p>
+                Bean Count is open source software! You can see the source
+                code for this website on
+                <a class="link" href="https://github.com/jdevries3133/calcount">GitHub</a>!
+            </p>
+            <h2 class="dark:text-slate-200">Feature Roadmap</h2>
+            <p>
+                I don't have a ton of time to work on Bean Count, but I am
+                definitely excited to continue developing this project, and
+                there are lots of exciting features in our roadmap! If you
+                have an idea for a Bean Count feature, please reach out and
+                let me know. To see what I have planned, you can
+                <a class="link" href="https://github.com/jdevries3133/calcount/blob/main/ROADMAP.md">
+                    view our roadmap on GitHub
+                </a>.
+                You can submit feature requests via GitHub, or shoot me an
+                email at
+                <a class="link" href="mailto:jdevries3133@gmail.com">
+                    jdevries3133@gmail.com
+                </a>.
+            </p>
+        </div>
+        "#.into()
     }
 }
 
@@ -634,5 +669,16 @@ pub struct Void;
 impl Component for Void {
     fn render(&self) -> String {
         "".into()
+    }
+}
+
+pub struct BackIcon;
+impl Component for BackIcon {
+    fn render(&self) -> String {
+        r#"
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 inline">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+        </svg>
+        "#.into()
     }
 }

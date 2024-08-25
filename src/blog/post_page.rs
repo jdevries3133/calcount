@@ -1,25 +1,62 @@
 use super::post::{Comment, Post};
-use crate::{components::Span, prelude::*};
+use crate::{
+    components::{BackIcon, Brand, Span},
+    config::ADMINISTRATOR_USER_IDS,
+    prelude::*,
+};
 use axum::{http::StatusCode, response::Redirect};
 use futures::join;
 
 impl Component for Post {
     fn render(&self) -> String {
         let posts = Route::BlogPostList;
-        let html = clean(&markdown::to_html(&self.post_markdown));
+        let back_icon = BackIcon {}.render();
+        let render_result = &markdown::to_html_with_options(
+            &self.post_markdown,
+            &markdown::Options::gfm(),
+        );
+        let html = match render_result {
+            Ok(html) => html,
+            Err(msg) => {
+                let post_id = self.id;
+                eprintln!("Error: failed to render {post_id} :: {msg}");
+                "Something went wrong."
+            }
+        };
         format!(
             r#"
-            <a class="link" href="{posts}">View All Posts</a>
+            <a class="link flex items-center gap-1 sm:py-3" href="{posts}">Back {back_icon}</a>
             {html}
             "#
         )
     }
 }
 
-impl Component for Comment {
+struct CommentUI<'a> {
+    comment: &'a Comment,
+    can_delete: bool,
+}
+impl Component for CommentUI<'_> {
     fn render(&self) -> String {
-        let username = clean(&self.username);
-        let body = clean(&self.body);
+        let username = clean(&self.comment.username);
+        let body = clean(&self.comment.body);
+        let delete_button = if self.can_delete {
+            let delete_route = Route::DeleteComment(Some(self.comment.id));
+            format!(
+                r#"
+                <button
+                    hx-delete="{delete_route}"
+                    hx-target="closest div"
+                    class="self-start text-xs p-1 my-2 bg-red-100
+                    hover:bg-red-200 rounded-full text-black"
+                >
+                    Delete
+                </button>
+                "#
+            )
+        } else {
+            "".into()
+        };
         format!(
             r#"
             <div
@@ -28,13 +65,14 @@ impl Component for Comment {
             >
                 <p class="text-sm font-bold">{username}</p>
                 <p>{body}</p>
+                {delete_button}
             </div>
             "#
         )
     }
 }
 
-impl Component for [Comment] {
+impl Component for [CommentUI<'_>] {
     fn render(&self) -> String {
         self.iter().fold(String::new(), |mut acc, comment| {
             acc.push_str(&comment.render());
@@ -63,6 +101,7 @@ impl Component for CreateCommentForm {
                 <textarea
                     id="comment_body"
                     name="comment_body"
+                    required
                     placeholder="Leave a comment"
                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50
                     rounded-lg border border-gray-300 focus:ring-blue-500
@@ -83,17 +122,35 @@ impl Component for CreateCommentForm {
 struct PostPage<'a> {
     post: &'a Post,
     comments: &'a [Comment],
+    user_id: Option<i32>,
 }
 impl Component for PostPage<'_> {
     fn render(&self) -> String {
         let post = self.post.render();
+        let brand = Brand {}.render();
         let comment_form = CreateCommentForm {
             post_id: self.post.id,
         }
         .render();
-        let comments = self.comments.render();
+        let comments =
+            self.comments
+                .iter()
+                .fold(String::new(), |mut acc, comment| {
+                    acc.push_str(
+                        &CommentUI {
+                            comment,
+                            can_delete: self.user_id.map_or(false, |uid| {
+                                uid == comment.user_id
+                                    || ADMINISTRATOR_USER_IDS.contains(&uid)
+                            }),
+                        }
+                        .render(),
+                    );
+                    acc
+                });
         format!(
             r#"
+            {brand}
             <div class="prose dark:prose-invert">
                 {post}
             </div>
@@ -115,9 +172,11 @@ pub struct PostPageQuery {
 
 pub async fn post_page(
     Path(id): Path<i32>,
+    headers: HeaderMap,
     Query(PostPageQuery { comment_page }): Query<PostPageQuery>,
     State(AppState { db }): State<AppState>,
 ) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers(&headers);
     let comment_limit: i64 = 100;
     let comment_offset = comment_limit * comment_page.unwrap_or_default();
     let post = query_as!(
@@ -134,8 +193,10 @@ pub async fn post_page(
     let comments = query_as!(
         Comment,
         "select
-            u.username,
-            c.body
+            c.id,
+            c.user_id,
+            c.body,
+            u.username
         from comment c
         join users u on u.id = c.user_id
         where c.post_id = $1
@@ -160,6 +221,7 @@ pub async fn post_page(
                     children: &PostPage {
                         post: &post,
                         comments: &comments,
+                        user_id: session.map(|s| s.user_id),
                     },
                 },
             }
@@ -210,4 +272,29 @@ pub async fn handle_comment_submission(
     let post_route = Route::BlogPost(Some(form.post_id));
 
     Ok(Redirect::to(&post_route.as_string()))
+}
+
+pub async fn handle_delete_comment(
+    State(AppState { db }): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<i32>,
+) -> Result<impl IntoResponse, ServerError> {
+    let session = Session::from_headers_err(&headers, "handle_delete_comment")?;
+    if session.is_administrator() {
+        query!("delete from comment where id = $1", id)
+            .execute(&db)
+            .await?;
+    } else {
+        query!(
+            "delete from comment
+            where
+                user_id = $1
+                and id = $2",
+            session.user_id,
+            id
+        )
+        .execute(&db)
+        .await?;
+    }
+    Ok("")
 }

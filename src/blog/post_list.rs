@@ -49,7 +49,7 @@ pub async fn post_list(
 
     Ok(Page {
         title: "Posts",
-        children: &PageContainer { children: &posts },
+        children: &BrandedContainer { children: &posts },
     }
     .render())
 }

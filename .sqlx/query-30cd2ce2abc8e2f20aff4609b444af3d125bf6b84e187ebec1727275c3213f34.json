@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n            c.id,\n            c.user_id,\n            c.body,\n            u.username\n        from comment c\n        join users u on u.id = c.user_id\n        where c.post_id = $1\n        order by c.created_at desc\n        limit $2\n        offset $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "body",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "username",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "30cd2ce2abc8e2f20aff4609b444af3d125bf6b84e187ebec1727275c3213f34"
+}

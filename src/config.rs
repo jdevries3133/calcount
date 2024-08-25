@@ -36,3 +36,5 @@ pub const BASIC_PLAN_STRIPE_ID: &str = "price_1OoJ2oBhmccJFhTPaTT6PdEp";
 pub const FOOD_PAGE_SIZE: u8 = 50;
 
 pub const MINIMUM_PASSWORD_LENGTH: u8 = 8;
+
+pub const ADMINISTRATOR_USER_IDS: [i32; 1] = [1];
