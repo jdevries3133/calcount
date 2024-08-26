@@ -7,7 +7,7 @@ mod register;
 mod reset;
 mod session;
 
-pub use anon::{init_anon, is_anon};
+pub use anon::{init_anon, is_anon, InitAnonNextRoute};
 pub use authenticate::authenticate;
 pub use login::{get_login_form, handle_login, logout};
 pub use register::{get_registration_form, handle_registration, RegisterForm};

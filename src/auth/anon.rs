@@ -1,17 +1,56 @@
 use super::{pw::hash_new, register::create_user};
 use crate::{config, htmx, preferences::save_user_preference, prelude::*};
+use axum::extract::Query;
 use chrono::Days;
 use regex::Regex;
+use serde_urlencoded::to_string;
 use uuid::Uuid;
+
+/// This is part of the `init-anon` route. After initting an anonymous user,
+/// we will always redirect the user somewhere. By constructing the
+/// [Self::CustomNextRoute]
+#[derive(Debug)]
+pub enum InitAnonNextRoute {
+    AxumTemplate,
+    DefaultNextRoute,
+    CustomNextRoute(Box<Route>),
+}
+
+impl InitAnonNextRoute {
+    pub fn as_string(&self) -> String {
+        match self {
+            Self::CustomNextRoute(route) => {
+                to_string([("next", &route.as_string())])
+                    .map(|query| format!("/authentication/init-anon?{query}"))
+                    .unwrap_or_else(|err| {
+                        eprintln!(
+                            "Route {route:?} cannot be URL encoded ({err})"
+                        );
+                        Self::DefaultNextRoute.as_string()
+                    })
+            }
+            Self::AxumTemplate => "/authentication/init-anon".into(),
+            Self::DefaultNextRoute => {
+                "/authentication/init-anon?next=%2fhome".into()
+            }
+        }
+    }
+}
 
 #[derive(Deserialize)]
 pub struct AnonForm {
     timezone: Tz,
 }
 
+#[derive(Deserialize)]
+pub struct AnonParams {
+    next: Option<String>,
+}
+
 pub async fn init_anon(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
+    Query(AnonParams { next }): Query<AnonParams>,
     Form(AnonForm { timezone }): Form<AnonForm>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = match Session::from_headers(&headers) {
@@ -51,7 +90,10 @@ pub async fn init_anon(
     let response_headers = HeaderMap::new();
     let headers = session.update_headers(response_headers);
 
-    Ok(htmx::redirect_2(headers, &Route::UserHome.as_string()))
+    Ok(htmx::redirect_2(
+        headers,
+        &next.unwrap_or(Route::UserHome.as_string()),
+    ))
 }
 
 pub fn is_anon(username: &str) -> bool {

@@ -1,5 +1,6 @@
 use super::post::{Comment, Post};
 use crate::{
+    auth::{is_anon, InitAnonNextRoute},
     components::{BackIcon, Brand, Span},
     config::ADMINISTRATOR_USER_IDS,
     prelude::*,
@@ -38,7 +39,11 @@ struct CommentUI<'a> {
 }
 impl Component for CommentUI<'_> {
     fn render(&self) -> String {
-        let username = clean(&self.comment.username);
+        let username = if is_anon(&self.comment.username) {
+            "anon".to_string()
+        } else {
+            clean(&self.comment.username)
+        };
         let body = clean(&self.comment.body);
         let delete_button = if self.can_delete {
             let delete_route = Route::DeleteComment(Some(self.comment.id));
@@ -86,6 +91,7 @@ struct CreateCommentForm {
 }
 impl Component for CreateCommentForm {
     fn render(&self) -> String {
+        let home = Route::UserHome;
         let submit = Route::BlogCommentSubmission;
         let post_id = self.post_id;
         format!(
@@ -113,7 +119,64 @@ impl Component for CreateCommentForm {
                     class="self-start text-xs p-1 my-2 bg-emerald-100
                     hover:bg-emerald-200 rounded-full text-black"
                 >Submit</button>
+                <a href="{home}">
+                    <button
+                        class="
+                            bg-gradient-to-tr
+                            from-blue-700
+                            to-indigo-700
+                            from-blue-100
+                            to-indigo-200
+                            p-2
+                            rounded
+                            shadow-md
+                            hover:shadow-sm
+                            font-extrabold
+                            text-white
+                            my-2
+                        "
+                    >Try Bean Count!</button>
+                </a>
             </form>
+            "#
+        )
+    }
+}
+
+struct NoAuthCommentActions {
+    post_id: i32,
+}
+impl Component for NoAuthCommentActions {
+    fn render(&self) -> String {
+        let init_anon = Route::InitAnon(InitAnonNextRoute::CustomNextRoute(
+            Box::new(Route::BlogPost(Some(self.post_id))),
+        ));
+        let login = Route::Login;
+        format!(
+            r#"
+            <div class="flex gap-2">
+                <form method="POST" action="{init_anon}">
+                    <input type="hidden" value="" name="timezone" id="timezone" />
+                    <button
+                        class="self-start text-xs p-1 bg-emerald-100
+                        hover:bg-emerald-200 rounded-full text-black"
+                    >Create an account to comment</button>
+                </form>
+                <a class="text-xs" href="{login}">
+                    <button
+                        class="self-start text-xs p-1 rounded-full border-2
+                        jorder-emerald-200"
+                    >Or, login if you have an account
+                    </button>
+                </a>
+            </div>
+            <script>
+                (() => {{
+                    for (const el of document.querySelectorAll("[name='timezone'")) {{
+                        el.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    }}
+                }})();
+            </script>
             "#
         )
     }
@@ -128,10 +191,17 @@ impl Component for PostPage<'_> {
     fn render(&self) -> String {
         let post = self.post.render();
         let brand = Brand {}.render();
-        let comment_form = CreateCommentForm {
-            post_id: self.post.id,
-        }
-        .render();
+        let action = if self.user_id.is_some() {
+            CreateCommentForm {
+                post_id: self.post.id,
+            }
+            .render()
+        } else {
+            NoAuthCommentActions {
+                post_id: self.post.id,
+            }
+            .render()
+        };
         let comments =
             self.comments
                 .iter()
@@ -155,7 +225,7 @@ impl Component for PostPage<'_> {
                 {post}
             </div>
             <div>
-                {comment_form}
+                {action}
             </div>
             <div>
                 {comments}

@@ -184,7 +184,8 @@ pub struct Home {}
 impl Component for Home {
     fn render(&self) -> String {
         let login_route = Route::Login;
-        let init_anon = Route::InitAnon;
+        let init_anon =
+            Route::InitAnon(auth::InitAnonNextRoute::DefaultNextRoute);
         let footer = Footer {}.render();
         let brand = Brand {}.render();
         format!(

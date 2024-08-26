@@ -25,6 +25,7 @@ use axum::{
 /// For each route, the parameters are inside an Option<T>. If no parameters
 /// are provided, we'll construct the route with the `:id` template in it
 /// for the Axum router.
+#[derive(Debug)]
 pub enum Route {
     About,
     AddFoodToToday(Option<i32>),
@@ -49,7 +50,7 @@ pub enum Route {
     GotoStripePortal,
     HandleChat,
     Htmx,
-    InitAnon,
+    InitAnon(auth::InitAnonNextRoute),
     ListFood,
     Login,
     Logout,
@@ -130,7 +131,7 @@ impl Route {
             Self::GotoStripePortal => "/stripe-portal".into(),
             Self::HandleChat => "/chat".into(),
             Self::Htmx => "/generated/htmx-2.0.2".into(),
-            Self::InitAnon => "/authentication/init-anon".into(),
+            Self::InitAnon(next_route) => next_route.as_string(),
             Self::ListFood => "/list-food".into(),
             Self::Login => "/authentication/login".into(),
             Self::Logout => "/authentication/logout".into(),
@@ -274,7 +275,10 @@ fn get_public_routes() -> Router<models::AppState> {
             get(controllers::get_tiny_icon),
         )
         .route(&Route::Htmx.as_string(), get(controllers::get_htmx_js))
-        .route(&Route::InitAnon.as_string(), post(auth::init_anon))
+        .route(
+            &Route::InitAnon(auth::InitAnonNextRoute::AxumTemplate).as_string(),
+            post(auth::init_anon),
+        )
         .route(&Route::Login.as_string(), get(auth::get_login_form))
         .route(&Route::Login.as_string(), post(auth::handle_login))
         .route(&Route::Logout.as_string(), get(auth::logout))

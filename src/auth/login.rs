@@ -1,5 +1,5 @@
 use super::authenticate::authenticate;
-use crate::{config, htmx, prelude::*};
+use crate::{auth::InitAnonNextRoute, config, htmx, prelude::*};
 use axum::http::{HeaderValue, StatusCode};
 
 pub struct LoginForm;
@@ -7,7 +7,7 @@ impl Component for LoginForm {
     fn render(&self) -> String {
         let login_route = Route::Login;
         let password_reset = Route::PasswordReset;
-        let init_anon = Route::InitAnon;
+        let init_anon = Route::InitAnon(InitAnonNextRoute::DefaultNextRoute);
         format!(
             r##"
             <div id="form-container">
