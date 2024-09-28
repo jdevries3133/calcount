@@ -98,6 +98,7 @@ pub async fn get_relevant_food(
     .map(|row| FoodItem {
         id: row.id,
         eaten_event_id: row.eaten_event_id,
+        hide_calories: preferences.hide_calories,
         details: FoodItemDetails {
             calories: row.calories,
             carbohydrates_grams: row.carbohydrates_grams,
@@ -115,7 +116,10 @@ pub async fn get_current_goal(
     db: impl PgExecutor<'_>,
     user_id: i32,
     preferences: &UserPreference,
-) -> Aresult<i32> {
+) -> Aresult<Option<i32>> {
+    if !preferences.calorie_balancing_enabled {
+        return Ok(preferences.caloric_intake_goal);
+    };
     let relevant_food = get_relevant_food(db, user_id, preferences).await?;
     let balancing_history = compute_balancing(
         utc_now(),
@@ -127,7 +131,7 @@ pub async fn get_current_goal(
         preferences.calorie_balancing_min_calories,
         &relevant_food,
     );
-    Ok(balancing_history.current_calorie_goal)
+    Ok(Some(balancing_history.current_calorie_goal))
 }
 
 pub async fn history(

@@ -211,6 +211,7 @@ mod test {
         let history = [FoodItem {
             id: 1,
             eaten_event_id: 1,
+            hide_calories: false,
             details: FoodItemDetails {
                 calories: 2100,
                 fat_grams: 0,
@@ -233,6 +234,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -248,6 +250,7 @@ mod test {
             FoodItem {
                 id: 2,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -272,6 +275,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -287,6 +291,7 @@ mod test {
             FoodItem {
                 id: 2,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -309,6 +314,7 @@ mod test {
         let history = [FoodItem {
             id: 1,
             eaten_event_id: 1,
+            hide_calories: false,
             details: FoodItemDetails {
                 calories: 1900,
                 fat_grams: 0,
@@ -332,6 +338,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -347,6 +354,7 @@ mod test {
             FoodItem {
                 id: 2,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2100,
                     fat_grams: 0,
@@ -384,6 +392,7 @@ mod test {
         let history = [FoodItem {
             id: 1,
             eaten_event_id: 1,
+            hide_calories: false,
             details: FoodItemDetails {
                 calories: 1000,
                 fat_grams: 0,
@@ -414,6 +423,7 @@ mod test {
         let history = [FoodItem {
             id: 1,
             eaten_event_id: 1,
+            hide_calories: false,
             details: FoodItemDetails {
                 calories: 3000,
                 fat_grams: 0,
@@ -445,6 +455,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 4000,
                     fat_grams: 0,
@@ -460,6 +471,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2000,
                     fat_grams: 0,
@@ -475,6 +487,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 2400,
                     fat_grams: 0,
@@ -490,6 +503,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1800,
                     fat_grams: 0,
@@ -505,6 +519,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1000,
                     fat_grams: 0,

@@ -6,16 +6,17 @@ use crate::{config::FOOD_PAGE_SIZE, prelude::*};
 
 pub struct PreviousFood<'a> {
     pub meals: &'a Vec<FoodItem>,
-    pub user_timezone: Tz,
+    pub preferences: &'a UserPreference,
     pub next_page: i64,
 }
 impl Component for PreviousFood<'_> {
     fn render(&self) -> String {
         let meals = FoodList {
             meals: &self.meals[..],
-            user_timezone: self.user_timezone,
+            user_timezone: self.preferences.timezone,
             next_page: self.next_page,
             show_ai_warning: false,
+            hide_calories: self.preferences.hide_calories,
         }
         .render();
         let refresh_meals_href = format!("{}?page=0", Route::ListFood);
@@ -42,6 +43,7 @@ pub struct FoodList<'a> {
     pub user_timezone: Tz,
     pub next_page: i64,
     pub show_ai_warning: bool,
+    pub hide_calories: bool,
 }
 impl Component for FoodList<'_> {
     fn render(&self) -> String {
@@ -58,6 +60,7 @@ impl Component for FoodList<'_> {
                         self.user_timezone,
                     ),
                     show_ai_warning: self.show_ai_warning,
+                    hide_calories: self.hide_calories,
                 }
                 .render(),
             );

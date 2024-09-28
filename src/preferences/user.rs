@@ -18,6 +18,7 @@ pub struct UserPreference {
     /// property so that we know whether to render an explicit zero, or a
     /// blank form field on the preferences page.
     pub calorie_balancing_min_calories: Option<i32>,
+    pub hide_calories: bool,
 }
 
 impl Default for UserPreference {
@@ -28,6 +29,7 @@ impl Default for UserPreference {
             calorie_balancing_enabled: false,
             calorie_balancing_max_calories: None,
             calorie_balancing_min_calories: None,
+            hide_calories: false,
         }
     }
 }
@@ -65,8 +67,9 @@ impl Component for UserPreferenceForm<'_> {
         });
         let self_url = Route::UserPreference;
         let home = Route::UserHome;
-        let checkbox = if self.preferences.calorie_balancing_enabled {
-            r#"
+        let calorie_balancing_enabled =
+            if self.preferences.calorie_balancing_enabled {
+                r#"
             <input
                 class="w-6 h-6"
                 type="checkbox"
@@ -75,8 +78,8 @@ impl Component for UserPreferenceForm<'_> {
                 checked
             />
             "#
-        } else {
-            r#"
+            } else {
+                r#"
             <input
                 class="w-6 h-6"
                 type="checkbox"
@@ -84,6 +87,33 @@ impl Component for UserPreferenceForm<'_> {
                 name="calorie_balancing_enabled"
             />
             "#
+            };
+        let hide_calories = if self.preferences.hide_calories {
+            r#"
+            <input
+                class="w-6 h-6 block"
+                type="checkbox"
+                id="hide_calories"
+                name="hide_calories"
+                checked
+            />
+            "#
+        } else {
+            r#"
+            <input
+                class="w-6 h-6 block"
+                type="checkbox"
+                id="hide_calories"
+                name="hide_calories"
+            />
+            "#
+        };
+        let calorie_preference_err = if let Some(err) =
+            self.get_field_validation_err("calorie_preferences")
+        {
+            format!(r#"<p class="text-red-500 italic text-sm">{err}</p>"#)
+        } else {
+            "".into()
         };
         let min_calories = self
             .preferences
@@ -190,7 +220,24 @@ impl Component for UserPreferenceForm<'_> {
                                 </p>
                             </div>
                         </details>
-                        {checkbox}
+                        {calorie_balancing_enabled}
+                        <br />
+                        <label for="calorie_balancing_enabled">
+                            Hide Calories
+                        </label>
+                        <details>
+                            <summary class="text-xs">Learn more</summary>
+                            <p class="text-xs">
+                                If enabled, calorie counts will be hidden
+                                throughout the app. Optionally, you can
+                                still provide a caloric intake goal, and the
+                                app will indicate whether or not you've hit
+                                your goal for the day. Calorie hiding and
+                                calorie balancing cannot be used together.
+                            </p>
+                        </details>
+                        {hide_calories}
+                        {calorie_preference_err}
                     </div>
                     <div class="rounded my-3 p-3 border-2 border-black">
                         <h2 class="text-lg">Calorie Limits</h2>
@@ -285,6 +332,7 @@ pub async fn get_user_preference(
         calorie_balancing_enabled: bool,
         calorie_balancing_max_calories: Option<i32>,
         calorie_balancing_min_calories: Option<i32>,
+        hide_calories: bool,
     }
     let pref = query_as!(
         Qres,
@@ -293,7 +341,8 @@ pub async fn get_user_preference(
             calorie_balancing_enabled,
             calorie_balancing_max_calories,
             calorie_balancing_min_calories,
-            timezone
+            timezone,
+            hide_calories
         from user_preference
         where user_id = $1",
         user_id
@@ -311,6 +360,7 @@ pub async fn get_user_preference(
                 )
             })?,
             caloric_intake_goal: pref.caloric_intake_goal,
+            hide_calories: pref.hide_calories,
         })),
         None => Ok(None),
     }
@@ -329,22 +379,25 @@ pub async fn save_user_preference(
             caloric_intake_goal,
             calorie_balancing_enabled,
             calorie_balancing_min_calories,
-            calorie_balancing_max_calories
-        ) values ($1, $2, $3, $4, $5, $6)
+            calorie_balancing_max_calories,
+            hide_calories
+        ) values ($1, $2, $3, $4, $5, $6, $7)
         on conflict (user_id)
         do update set
             timezone = $2,
             caloric_intake_goal = $3,
             calorie_balancing_enabled = $4,
             calorie_balancing_min_calories = $5,
-            calorie_balancing_max_calories = $6
+            calorie_balancing_max_calories = $6,
+            hide_calories = $7
         ",
         user_id,
         preference.timezone.to_string(),
         preference.caloric_intake_goal,
         preference.calorie_balancing_enabled,
         preference.calorie_balancing_min_calories,
-        preference.calorie_balancing_max_calories
+        preference.calorie_balancing_max_calories,
+        preference.hide_calories
     )
     .execute(db)
     .await?;
@@ -387,13 +440,16 @@ impl CalorieBalancingLimitResult {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct UserPreferencePayload {
     timezone: Tz,
     caloric_intake_goal: String,
     /// Checkboxes will be the string, "on" if set, or the filed will be
     /// omitted if unset.
     calorie_balancing_enabled: Option<String>,
+    /// Checkboxes will be the string, "on" if set, or the filed will be
+    /// omitted if unset.
+    hide_calories: Option<String>,
     calorie_balancing_min_calories: Option<String>,
     calorie_balancing_max_calories: Option<String>,
 }
@@ -415,6 +471,9 @@ impl UserPreferencePayload {
     }
     fn get_calorie_balancing_enabled(&self) -> bool {
         self.calorie_balancing_enabled.is_some()
+    }
+    fn get_hide_calories(&self) -> bool {
+        self.hide_calories.is_some()
     }
     fn get_calorie_balancing_min_calories(
         &self,
@@ -476,6 +535,13 @@ impl UserPreferencePayload {
             }
         }
     }
+    fn check_calorie_preferences(&self) -> Result<(), &'static str> {
+        if self.get_hide_calories() && self.get_calorie_balancing_enabled() {
+            Err("Calorie balancing and calorie hiding cannot be enabled together.")
+        } else {
+            Ok(())
+        }
+    }
     fn get_errors(&self) -> Vec<(&'static str, &'static str)> {
         let mut errs = Vec::new();
         if let Err(e) = self.get_intake_goal() {
@@ -490,6 +556,9 @@ impl UserPreferencePayload {
             self.get_calorie_balancing_max_calories()
         {
             errs.push(("calorie_balancing_max_calories", e))
+        };
+        if let Err(e) = self.check_calorie_preferences() {
+            errs.push(("calorie_preferences", e))
         };
         errs
     }
@@ -518,6 +587,7 @@ impl UserPreferencePayload {
                 .as_ref()
                 .and_then(|v| v.parse().ok())
                 .or(existing_preferences.calorie_balancing_min_calories),
+            hide_calories: self.get_hide_calories(),
         }
     }
 }
@@ -555,8 +625,9 @@ pub async fn user_preference_controller(
                 let max_cals = max_cals.combobulate(
                     existing_preferences.calorie_balancing_max_calories,
                 );
-                match (intake, min_cals, max_cals) {
-                    (Ok(intake), Ok(min), Ok(max)) => {
+                let calorie_prefs_ok = pref.check_calorie_preferences();
+                match (intake, min_cals, max_cals, calorie_prefs_ok) {
+                    (Ok(intake), Ok(min), Ok(max), Ok(_calorie_prefs)) => {
                         let pref = UserPreference {
                             timezone: pref.timezone,
                             caloric_intake_goal: intake,
@@ -564,6 +635,7 @@ pub async fn user_preference_controller(
                                 .get_calorie_balancing_enabled(),
                             calorie_balancing_max_calories: max,
                             calorie_balancing_min_calories: min,
+                            hide_calories: pref.get_hide_calories(),
                         };
                         save_user_preference(&db, session.user_id, &pref)
                             .await?;

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_max_calories,\n            calorie_balancing_min_calories,\n            timezone\n        from user_preference\n        where user_id = $1",
+  "query": "select\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_max_calories,\n            calorie_balancing_min_calories,\n            timezone,\n            hide_calories\n        from user_preference\n        where user_id = $1",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "timezone",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "hide_calories",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -39,8 +44,9 @@
       false,
       true,
       true,
+      false,
       false
     ]
   },
-  "hash": "6e3f6e228c1f08bc7dfa5bb69d1184e209c4bb108ce71361b7b38bb359cdfa01"
+  "hash": "97a33a00711c9588be5a21a2665261bb218414f7150cae028849322963057a1a"
 }

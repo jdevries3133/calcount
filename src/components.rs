@@ -386,7 +386,7 @@ impl Component for UserHome<'_> {
         .render();
         let chat = count_chat::ChatContainer {
             food_items: self.food_items,
-            user_timezone: self.preferences.timezone,
+            preferences: &self.preferences,
             prompt: None,
             next_page: 1,
             post_request_handler: Route::HandleChat,

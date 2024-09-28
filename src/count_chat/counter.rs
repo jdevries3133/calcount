@@ -17,7 +17,7 @@ use futures::join;
 pub struct Chat<'a> {
     pub food_items: &'a Vec<FoodItem>,
     pub prompt: Option<&'a str>,
-    pub user_timezone: Tz,
+    pub preferences: &'a UserPreference,
     pub next_page: i64,
     pub post_request_handler: Route,
     /// If set, we'll render a banner nagging the user to register, and
@@ -28,7 +28,7 @@ impl Component for Chat<'_> {
     fn render(&self) -> String {
         let prev_meals = PreviousFood {
             meals: self.food_items,
-            user_timezone: self.user_timezone,
+            preferences: self.preferences,
             next_page: self.next_page,
         };
         let chat = ChatUI {
@@ -305,6 +305,7 @@ pub async fn handle_chat(
                 preferences.timezone,
             ),
             show_ai_warning: true,
+            hide_calories: preferences.hide_calories,
         }
         .render()),
         _ => Ok(CannotParse {
@@ -335,10 +336,10 @@ pub async fn chat_form(
     let session = Session::from_headers_err(&headers, "chat form")?;
     let preferences = session.get_preferences(&db).await?;
     let page = page.map_or(0, |p| p.page);
-    let meals = list_meals_op(&db, session.user_id, page).await?;
+    let meals = list_meals_op(&db, session.user_id, &preferences, page).await?;
     let chat = Chat {
         food_items: &meals,
-        user_timezone: preferences.timezone,
+        preferences: &preferences,
         prompt: match prev_prompt {
             Some(ref form) => Some(&form.food_name),
             None => None,
@@ -354,6 +355,7 @@ pub async fn chat_form(
 pub async fn list_meals_op<'a>(
     db: &PgPool,
     user_id: i32,
+    preferences: &UserPreference,
     page: i64,
 ) -> Aresult<Vec<FoodItem>> {
     let limit: i64 = FOOD_PAGE_SIZE.into();
@@ -401,6 +403,7 @@ pub async fn list_meals_op<'a>(
         .map(|r| FoodItem {
             id: r.id,
             eaten_event_id: r.eaten_event_id,
+            hide_calories: preferences.hide_calories,
             details: FoodItemDetails {
                 food_name: r.food_name,
                 calories: r.calories,
@@ -453,12 +456,12 @@ pub async fn handle_save_food(
     .execute(&db)
     .await?;
     let response_headers = client_events::reload_macros(HeaderMap::new());
-    let meals = list_meals_op(&db, session.user_id, 0).await?;
+    let meals = list_meals_op(&db, session.user_id, &preferences, 0).await?;
     Ok((
         response_headers,
         Chat {
             food_items: &meals,
-            user_timezone: preferences.timezone,
+            preferences: &preferences,
             prompt: None,
             next_page: 1,
             post_request_handler: Route::HandleChat,
@@ -474,8 +477,9 @@ pub async fn list_food(
     Query(Pagination { page }): Query<Pagination>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "list meals")?;
+    let preferences = session.get_preferences(&db).await?;
     let (meals, preferences) = join![
-        list_meals_op(&db, session.user_id, page),
+        list_meals_op(&db, session.user_id, &preferences, page),
         session.get_preferences(&db)
     ];
     let meals = meals?;
@@ -486,6 +490,7 @@ pub async fn list_food(
         next_page: page + 1,
         user_timezone: preferences.timezone,
         show_ai_warning: false,
+        hide_calories: preferences.hide_calories,
     }
     .render())
 }
@@ -505,6 +510,7 @@ pub async fn prev_day_food_form(
             preferences.timezone,
         ),
         show_ai_warning: true,
+        hide_calories: preferences.hide_calories,
     }
     .render())
 }
@@ -513,6 +519,10 @@ pub async fn prev_day_food_form(
 mod test {
     use super::*;
 
+    fn get_prefs() -> UserPreference {
+        UserPreference::default()
+    }
+
     /// If an anon user has less than 3 meals, they won't get a warning.
     #[test]
     fn test_no_anon_warning_for_inactive_anon() {
@@ -520,6 +530,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -532,6 +543,7 @@ mod test {
             FoodItem {
                 id: 2,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -545,7 +557,7 @@ mod test {
         let ui = Chat {
             food_items: mock_meals,
             prompt: None,
-            user_timezone: Tz::UTC,
+            preferences: &get_prefs(),
             next_page: 1,
             post_request_handler: Route::HandleChat,
             is_anonymous: true,
@@ -561,6 +573,7 @@ mod test {
             FoodItem {
                 id: 1,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -573,6 +586,7 @@ mod test {
             FoodItem {
                 id: 2,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -585,6 +599,7 @@ mod test {
             FoodItem {
                 id: 3,
                 eaten_event_id: 1,
+                hide_calories: false,
                 details: FoodItemDetails {
                     calories: 1,
                     protein_grams: 1,
@@ -598,7 +613,7 @@ mod test {
         let ui = Chat {
             food_items: mock_meals,
             prompt: None,
-            user_timezone: Tz::UTC,
+            preferences: &get_prefs(),
             next_page: 1,
             post_request_handler: Route::HandleChat,
             is_anonymous: true,

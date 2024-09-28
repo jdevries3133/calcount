@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into user_preference\n        (\n            user_id,\n            timezone,\n            caloric_intake_goal,\n            calorie_balancing_enabled,\n            calorie_balancing_min_calories,\n            calorie_balancing_max_calories,\n            hide_calories\n        ) values ($1, $2, $3, $4, $5, $6, $7)\n        on conflict (user_id)\n        do update set\n            timezone = $2,\n            caloric_intake_goal = $3,\n            calorie_balancing_enabled = $4,\n            calorie_balancing_min_calories = $5,\n            calorie_balancing_max_calories = $6,\n            hide_calories = $7\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Int4",
+        "Bool",
+        "Int4",
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "17ce76bf70bf814026fa08d8cf43125eb2e2159c85bc4a7ee72accbd4d2635ce"
+}

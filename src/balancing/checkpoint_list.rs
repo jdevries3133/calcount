@@ -185,7 +185,7 @@ pub async fn create_checkpoint(
 pub async fn delete_checkpoint(
     State(AppState { db }): State<AppState>,
     headers: HeaderMap,
-    Form(checkpoint): Form<Checkpoint>,
+    Query(checkpoint): Query<Checkpoint>,
 ) -> Result<impl IntoResponse, ServerError> {
     let session = Session::from_headers_err(&headers, "delete checkpoint")?;
     query!(

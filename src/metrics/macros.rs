@@ -68,15 +68,32 @@ impl Component for MacroStatus<'_> {
                         "".into()
                     };
                 let diff = goal - calories;
-                format!("<p>You have {diff} calories left to eat today.</p>{computed_goal}")
+                let goal_statement = if self.user_preferences.hide_calories {
+                    if diff <= 0 {
+                        "<p>You have met your calorie goal!</p>".to_string()
+                    } else {
+                        "<p>You have not met your calorie goal yet.</p>"
+                            .to_string()
+                    }
+                } else {
+                    format!(
+                        "<p>You have {diff} calories left to eat today.</p>"
+                    )
+                };
+                format!("{goal_statement}{computed_goal}")
             }
             None => "".into(),
+        };
+        let total_calories = if self.user_preferences.hide_calories {
+            "".into()
+        } else {
+            format!("{calories} calories,")
         };
         format!(
             r#"<div hx-get="{macros}" hx-trigger="reload-macros from:body">
                 {calories_remaining}
                 <p>
-                    In total, you've eaten {calories} calories, {protein} grams
+                    In total, you've eaten {total_calories} {protein} grams
                     of protein, {fat} grams of fat, and {carbs} grams of carbs today.
                 </p>
             </div>"#
@@ -175,10 +192,7 @@ pub async fn display_macros(
     let preferences = session.get_preferences(&db).await?;
     let macros = get_macros(&db, session.user_id, &preferences).await?;
     let caloric_intake_goal = if preferences.calorie_balancing_enabled {
-        Some(
-            balancing::get_current_goal(&db, session.user_id, &preferences)
-                .await?,
-        )
+        balancing::get_current_goal(&db, session.user_id, &preferences).await?
     } else {
         preferences.caloric_intake_goal
     };

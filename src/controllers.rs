@@ -157,18 +157,14 @@ pub async fn user_home(
     let preferences = preferences?;
     let (macros, meals, sub_type, caloric_intake_goal) = join![
         metrics::get_macros(&db, session.user_id, &preferences),
-        count_chat::list_meals_op(&db, user.id, 0),
+        count_chat::list_meals_op(&db, user.id, &preferences, 0),
         stripe::get_subscription_type(&db, user.id),
         balancing::get_current_goal(&db, user.id, &preferences)
     ];
     let macros = macros?;
     let meals = meals?;
     let sub_type = sub_type?;
-    let caloric_intake_goal = if preferences.calorie_balancing_enabled {
-        Some(caloric_intake_goal?)
-    } else {
-        preferences.caloric_intake_goal
-    };
+    let caloric_intake_goal = caloric_intake_goal?;
     let html = components::Page {
         title: "Home Page",
         children: &components::PageContainer {

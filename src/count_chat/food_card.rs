@@ -9,6 +9,7 @@ pub struct FoodItem {
     pub id: i32,
     pub eaten_event_id: i32,
     pub details: FoodItemDetails,
+    pub hide_calories: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -32,6 +33,7 @@ impl Component for FoodItem {
             actions: Some(&Void {}),
             rendering_behavior: RenderingBehavior::RenderAsToday,
             show_ai_warning: false,
+            hide_calories: self.hide_calories,
         }
         .render()
     }
@@ -53,6 +55,7 @@ pub struct FoodCard<'a> {
     pub actions: Option<&'a dyn Component>,
     pub rendering_behavior: RenderingBehavior,
     pub show_ai_warning: bool,
+    pub hide_calories: bool,
 }
 impl Component for FoodCard<'_> {
     fn render(&self) -> String {
@@ -159,6 +162,13 @@ impl Component for FoodCard<'_> {
         } else {
             "text-right col-span-2 text-sm text-slate-700"
         };
+        let calories = if self.hide_calories {
+            "".to_string()
+        } else {
+            format!(
+                r#"<p class="text-lg"><b>Calories:</b> {calories} kcal</p>"#
+            )
+        };
         format!(
             r##"
             <div
@@ -172,7 +182,7 @@ impl Component for FoodCard<'_> {
                     <h1 class="col-span-5 text-2xl bold serif">{food_name}</h1>
                     <span class="{date_style}">{date_str}</span>
                 </div>
-                <p class="text-lg"><b>Calories:</b> {calories} kcal</p>
+                {calories}
                 <p class="text-sm"><b>Protein:</b> {protein} grams</p>
                 <p class="text-sm"><b>Carbs:</b> {carbs} grams</p>
                 <p class="text-sm"><b>Fat:</b> {fat} grams</p>
