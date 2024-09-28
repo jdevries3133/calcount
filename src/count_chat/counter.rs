@@ -42,7 +42,7 @@ impl Component for Chat<'_> {
         } else {
             "".into()
         };
-        format!("{chat}{anon_warning}")
+        format!("{anon_warning}{chat}")
     }
 }
 
