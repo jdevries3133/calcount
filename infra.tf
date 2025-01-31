@@ -61,11 +61,11 @@ data "external" "git_sha" {
   ]
 }
 
-module "basic-deployment" {
+module "beancount" {
   source  = "jdevries3133/basic-deployment/kubernetes"
-  version = "3.0.2"
+  version = "3.2.0"
 
-  app_name  = "calcount"
+  app_name  = "beancount"
   container = "jdevries3133/calcount:${data.external.git_sha.result.output}"
   domain    = "beancount.bot"
 

@@ -129,23 +129,23 @@ shell-db:
 prod-shell-db:
 	kubectl exec \
 		-it \
-		-n calcount \
+		-n beancount \
 		pod/db-postgresql-0 \
-		-- /bin/sh -c 'psql postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount'
+		-- /bin/sh -c 'psql postgresql://beancount:$$POSTGRES_PASSWORD@127.0.0.1:5432/beancount'
 
 # Port-forward the production database to your local port 5433 (as to not
 # collide with your local PostgreSQL server).
 proxy-prod-db:
-	kubectl -n calcount port-forward service/db-postgresql 5433:5432
+	kubectl -n beancount port-forward service/db-postgresql 5433:5432
 
 proxy-stripe-webhook:
 	stripe listen --forward-to localhost:8000/stripe-webhook
 
 backup-prod:
 	kubectl exec \
-		-n calcount \
+		-n beancount \
 		pod/db-postgresql-0 \
-		-- /bin/sh -c 'pg_dump postgresql://calcount:$$POSTGRES_PASSWORD@127.0.0.1:5432/calcount' \
+		-- /bin/sh -c 'pg_dump postgresql://beancount:$$POSTGRES_PASSWORD@127.0.0.1:5432/beancount' \
 		> ~/Desktop/calcount_backups/backup-$(shell date '+%m-%d-%Y__%H:%M:%S').sql
 
 build-container: setup
