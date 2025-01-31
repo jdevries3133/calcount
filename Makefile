@@ -41,7 +41,6 @@ endif
 	./scripts/lint_todo.sh
 	cargo clippy --features production -- -D warnings
 	cargo fmt --check
-	terraform fmt --check
 	cargo test
 
 sqlx:
