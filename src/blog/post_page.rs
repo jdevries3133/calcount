@@ -209,7 +209,7 @@ impl Component for PostPage<'_> {
                     acc.push_str(
                         &CommentUI {
                             comment,
-                            can_delete: self.user_id.map_or(false, |uid| {
+                            can_delete: self.user_id.is_some_and(|uid| {
                                 uid == comment.user_id
                                     || ADMINISTRATOR_USER_IDS.contains(&uid)
                             }),

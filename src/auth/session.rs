@@ -50,11 +50,7 @@ impl Session {
         let token = &captures[1];
         let deserialize_result = Self::deserialize(token);
 
-        if let Ok(session) = deserialize_result {
-            Some(session)
-        } else {
-            None
-        }
+        deserialize_result.ok()
     }
     /// `err_msg` should identify which handler the error is coming from. Simply
     /// the name of the handler function is typically the best thing to put

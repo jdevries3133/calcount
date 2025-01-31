@@ -352,7 +352,7 @@ pub async fn chat_form(
     Ok(content)
 }
 
-pub async fn list_meals_op<'a>(
+pub async fn list_meals_op(
     db: &PgPool,
     user_id: i32,
     preferences: &UserPreference,
