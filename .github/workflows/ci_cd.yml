@@ -101,7 +101,7 @@ jobs:
         #
         # Ex: https://github.com/jdevries3133/calcount/actions/runs/7469335297/job/20326309777
       - name: maybe save nonpersisted tfstate
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: errored-tfstate
           path: errored.tfstate
