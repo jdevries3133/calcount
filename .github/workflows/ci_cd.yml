@@ -71,6 +71,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+           terraform_version: "^1.10"
+           terraform_wrapper: false
+
       - name: terraform cache
         uses: actions/cache@v4
         with:
