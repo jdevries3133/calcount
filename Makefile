@@ -12,19 +12,23 @@ endif
 CONTAINER_QUALNAME=$(DOCKER_ACCOUNT)/$(PROJECT_NAME)
 CONTAINER_EXACT_REF=$(DOCKER_ACCOUNT)/$(PROJECT_NAME):$(TAG)
 
-.PHONY: build
-.PHONY: check
-.PHONY: setup
-.PHONY: dev
-.PHONY: bootstrap
-.PHONY: deploy
 .PHONY: _start-db
 .PHONY: _stop-db
-.PHONY: watch-db
-.PHONY: shell-db
+.PHONY: backup-prod
+.PHONY: bootstrap
+.PHONY: build
 .PHONY: build-container
+.PHONY: check
 .PHONY: debug-container
+.PHONY: deploy
+.PHONY: dev
+.PHONY: proxy-prod-db
 .PHONY: push-container
+.PHONY: push-container
+.PHONY: setup
+.PHONY: shell-db
+.PHONY: sqlx
+.PHONY: watch-db
 
 check: setup
 ifdef CI
