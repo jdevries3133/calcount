@@ -1,17 +1,16 @@
 SHELL := /bin/bash
 ENV=source .env &&
-DB_CONTAINER_NAME := "calcount"
+PROJECT_NAME=calcount
 
 # The registry is presumed to be docker.io, which is the implicit default
 DOCKER_ACCOUNT=jdevries3133
-CONTAINER_NAME=calcount
 ifdef GITHUB_SHA
 	TAG=$(GITHUB_SHA)
 else
 	TAG=$(shell git rev-parse HEAD)
 endif
-CONTAINER_QUALNAME=$(DOCKER_ACCOUNT)/$(CONTAINER_NAME)
-CONTAINER_EXACT_REF=$(DOCKER_ACCOUNT)/$(CONTAINER_NAME):$(TAG)
+CONTAINER_QUALNAME=$(DOCKER_ACCOUNT)/$(PROJECT_NAME)
+CONTAINER_EXACT_REF=$(DOCKER_ACCOUNT)/$(PROJECT_NAME):$(TAG)
 
 .PHONY: build
 .PHONY: check
@@ -94,7 +93,7 @@ endif
 # $HOME/calcount-backup.sql
 db-from-backup: _stop-db
 	$(ENV) docker run \
-        --name $(DB_CONTAINER_NAME) \
+        --name $(PROJECT_NAME) \
         -e POSTGRES_DATABASE="$$POSTGRES_DB" \
         -e POSTGRES_USER="$$POSTGRES_USER" \
         -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
@@ -106,7 +105,7 @@ db-from-backup: _stop-db
 
 _start-db:
 	$(ENV) docker run \
-        --name $(DB_CONTAINER_NAME) \
+        --name $(PROJECT_NAME) \
         -e POSTGRES_DB="$$POSTGRES_DB" \
         -e POSTGRES_USER="$$POSTGRES_USER" \
         -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
@@ -115,11 +114,11 @@ _start-db:
         postgres:15
 
 _stop-db:
-	docker kill $(DB_CONTAINER_NAME) || true
-	docker rm $(DB_CONTAINER_NAME) || true
+	docker kill $(PROJECT_NAME) || true
+	docker rm $(PROJECT_NAME) || true
 
 watch-db:
-	docker logs -f $(DB_CONTAINER_NAME)
+	docker logs -f $(PROJECT_NAME)
 
 shell-db:
 	$(ENV) PGPASSWORD=$$POSTGRES_PASSWORD \
