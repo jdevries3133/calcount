@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 ENV=source .env &&
-PROJECT_NAME=calcount
+PROJECT_NAME=beancount
 
 # The registry is presumed to be docker.io, which is the implicit default
 DOCKER_ACCOUNT=jdevries3133
@@ -141,10 +141,10 @@ proxy-stripe-webhook:
 
 backup-prod:
 	kubectl exec \
-		-n beancount \
+		-n $(PROJECT_NAME) \
 		pod/db-postgresql-0 \
-		-- /bin/sh -c 'pg_dump postgresql://beancount:$$POSTGRES_PASSWORD@127.0.0.1:5432/beancount' \
-		> ~/Desktop/calcount_backups/backup-$(shell date '+%m-%d-%Y__%H:%M:%S').sql
+		-- /bin/sh -c "pg_dump postgresql://$(PROJECT_NAME):\$$POSTGRES_PASSWORD@127.0.0.1:5432/$(PROJECT_NAME)" \
+		> ~/Desktop/$(PROJECT_NAME)_backups/backup-$(shell date '+%m-%d-%Y__%H:%M:%S').sql
 
 build-container: setup
 	pnpm run build
