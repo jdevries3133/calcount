@@ -138,7 +138,7 @@ prod-shell-db:
 # Port-forward the production database to your local port 5433 (as to not
 # collide with your local PostgreSQL server).
 proxy-prod-db:
-	kubectl -n beancount port-forward service/db-postgresql 5433:5432
+	kubectl -n $(PROJECT_NAME) port-forward service/db-postgresql 5433:5432
 
 proxy-stripe-webhook:
 	stripe listen --forward-to localhost:8000/stripe-webhook
