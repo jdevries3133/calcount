@@ -13,6 +13,7 @@ pub struct OpenAI {
 struct ChatCompletionRequest {
     model: String,
     messages: Vec<ChatCompletionMessage>,
+    max_completion_tokens: i32,
 }
 
 #[derive(Serialize)]
@@ -76,6 +77,7 @@ impl OpenAI {
             String::from("The food I'd like a calorie estimate for is ");
         user_message.push_str(food_description);
         let payload = ChatCompletionRequest {
+            max_completion_tokens: 200,
             model: "gpt-3.5-turbo-1106".into(),
             messages: vec![
                 ChatCompletionMessage {
