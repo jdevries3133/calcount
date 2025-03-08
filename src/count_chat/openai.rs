@@ -78,7 +78,7 @@ impl OpenAI {
         user_message.push_str(food_description);
         let payload = ChatCompletionRequest {
             max_completion_tokens: 200,
-            model: "gpt-3.5-turbo-1106".into(),
+            model: "gpt-4o-mini".into(),
             messages: vec![
                 ChatCompletionMessage {
                     role: MessageRole::system,
