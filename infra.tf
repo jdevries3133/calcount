@@ -66,7 +66,7 @@ module "beancount" {
   version = "3.2.0"
 
   app_name  = "beancount"
-  container = "jdevries3133/calcount:${data.external.git_sha.result.output}"
+  container = "jdevries3133/beancount:${data.external.git_sha.result.output}"
   domain    = "beancount.bot"
 
   extra_env = {
