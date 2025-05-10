@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
         tokio::net::TcpListener::bind(&addr)
             .await
             .inspect(|_| {
-                println!("listening on {}", addr);
+                println!("listening on {addr}");
             })
             .unwrap_or_else(|e| panic!("Can bind to address {addr} ({e})")),
         app.into_make_service(),

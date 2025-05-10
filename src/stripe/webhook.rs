@@ -158,7 +158,7 @@ fn authenticate_stripe(
     let external_digest =
         *entries.get("v1").ok_or(Error::msg("digest is missing"))?;
     let external_digest = external_digest.as_bytes();
-    let payload_str = format!("{}.{}", timestamp, message_body);
+    let payload_str = format!("{timestamp}.{message_body}");
     let payload = payload_str.as_bytes();
     let signing_secret = env::var("STRIPE_WEBHOOK_SIGNING_SECRET")?;
     let mut mac = Hmac::<Sha256>::new_from_slice(signing_secret.as_bytes())?;

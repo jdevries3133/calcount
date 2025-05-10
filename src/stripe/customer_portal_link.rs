@@ -40,7 +40,7 @@ pub async fn redirect_to_billing_portal(
     let client = Client::new();
     let response = client
         .post(url)
-        .header("Authorization", format!("Basic {}", secret_key))
+        .header("Authorization", format!("Basic {secret_key}"))
         .form(&request_payload)
         .send()
         .await?;

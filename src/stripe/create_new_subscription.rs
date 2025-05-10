@@ -22,7 +22,7 @@ pub async fn create_customer(name: &str, email: &str) -> Aresult<String> {
     let client = Client::new();
     let builder = client
         .post(url)
-        .header("Authorization", format!("Basic {}:", secret_key));
+        .header("Authorization", format!("Basic {secret_key}:"));
     let builder = builder.form(&params);
     let response: BillingPortalSession = builder.send().await?.json().await?;
     Ok(response.id)
@@ -64,7 +64,7 @@ pub async fn get_basic_plan_checkout_session(
     let client = Client::new();
     let response = client
         .post(url)
-        .header("Authorization", format!("Basic {}", secret_key))
+        .header("Authorization", format!("Basic {secret_key}"))
         .form(&request_payload)
         .send()
         .await?;
